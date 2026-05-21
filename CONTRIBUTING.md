@@ -50,15 +50,23 @@ git rebase --signoff HEAD~N      # where N = number of commits to fix
 git push --force-with-lease
 ```
 
+## Branching model
+
+We use a light gitflow setup:
+
+- **`develop`** is the active development branch and the default branch — `git clone` checks it out, all PRs target it, and that's where work integrates day-to-day.
+- **`main`** is the stable release branch. It only receives PRs **from `develop`** (typically at release time, possibly with a tag). Never PR a feature branch directly to main.
+
 ## Pull request flow
 
 1. Fork the repo (or create a feature branch if you have write access).
-2. Branch from `main`: `git checkout -b your-username/short-topic-name`.
+2. Branch from `develop`: `git checkout develop && git pull && git checkout -b your-username/short-topic-name`.
 3. Make your change with a focused commit history (rebase/squash before opening the PR if you have a messy series).
 4. Run `uv run pytest` and confirm green.
-5. Open the PR against `main`. Fill in the template — what changed, why, how you tested.
+5. Open the PR against **`develop`**. Fill in the template — what changed, why, how you tested.
 6. CI runs automatically. Address review comments by pushing more commits (don't force-push until review is complete; then squash if needed).
 7. Once approved and CI is green, a maintainer merges (squash by default).
+8. Promotion to `main` is a separate PR cut from `develop` by a maintainer, typically tied to a release. After merging to `main`, the maintainer merges `main` back into `develop` so any release-specific commits (tags, version bumps) are reflected in active dev.
 
 ## What kinds of changes are easy to land
 
