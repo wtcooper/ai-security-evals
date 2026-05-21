@@ -48,6 +48,7 @@ Run:
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
 import hashlib
 import io
@@ -165,7 +166,7 @@ QUOTAS: Dict[str, Tuple[int, int, int]] = {
 HF_SOURCES = {
     "crescendo": {
         "hf_dataset": "tom-gibbs/multi-turn_jailbreak_attack_datasets",
-        "hf_config": "harmful",                # required: only the 'harmful' split has multi-turn
+        "hf_config": None,                     # dataset only ships a 'default' config
         "hf_split": "train",
         "gated": False,
         "authority": 0.85,
@@ -590,7 +591,11 @@ def build_corpus(seed: int = 42) -> dict:
         print("\n[CORPUS IS PARTIAL]")
         print(f"  Missing HuggingFace sources: {missing_hf}")
         if "crescendo" in missing_hf:
-            print(f"    crescendo  -> install `datasets` library (pip install datasets)")
+            if not have_datasets:
+                print(f"    crescendo  -> install `datasets` library (uv sync --extra corpus)")
+            else:
+                print(f"    crescendo  -> fetch failed; see [FAIL ...] above for the cause")
+                print(f"                  https://huggingface.co/datasets/tom-gibbs/multi-turn_jailbreak_attack_datasets")
         if "mhj" in missing_hf:
             print(f"    mhj        -> request access + set HF_TOKEN")
             print(f"                  https://huggingface.co/datasets/ScaleAI/mhj")
@@ -666,9 +671,15 @@ def _parse_hf_source(name: str, ds, cfg: dict) -> List[dict]:
         prompt = None
 
         # ---- Crescendo schema (tom-gibbs/multi-turn_jailbreak_attack_datasets) ----
-        # Column "Multi-turn Conversation" contains a list of dicts {role, content}
+        # Column name was "Multi-turn Conversation" (capital C) in earlier
+        # dataset revisions but is now "Multi-turn conversation" (lowercase
+        # c). Field is a Python-repr string of [{"role": ..., "content": ...}, ...]
         # where assistant turns may be "None" (string) for input-only datasets.
-        crescendo_conv = row.get("Multi-turn Conversation") or row.get("multi_turn_conversation")
+        crescendo_conv = (
+            row.get("Multi-turn conversation")
+            or row.get("Multi-turn Conversation")
+            or row.get("multi_turn_conversation")
+        )
         if crescendo_conv is not None:
             messages = _normalize_conv(crescendo_conv)
             # For input-only Crescendo, all assistant slots are "None"; strip them
@@ -732,10 +743,17 @@ def _normalize_conv(raw) -> List[Dict[str, str]]:
     if raw is None:
         return []
     if isinstance(raw, str):
+        # Crescendo and some HF datasets serialize the conversation as a
+        # Python repr (single-quoted dicts), which json.loads can't parse.
+        # Try JSON first, then ast.literal_eval as a fallback before giving
+        # up and treating the whole string as a single user turn.
         try:
             raw = json.loads(raw)
         except Exception:
-            return [{"role": "user", "content": raw}]
+            try:
+                raw = ast.literal_eval(raw)
+            except Exception:
+                return [{"role": "user", "content": raw}]
     if not isinstance(raw, list):
         return []
 
