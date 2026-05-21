@@ -135,7 +135,18 @@ Then **call out one or two surprises in plain English**:
 - "Most of the apparent ASR drop came from the foundation model's own refusal text, not the guardrail (control_block_harmful only +0.04)."
 - "FPR jumped 0.12 — the guardrail is over-blocking benign requests; spot-check the transcript for false positives on XSTest cases."
 
-**If the experiment includes multi-turn cases** (standard or comprehensive tier), also read `metrics.json["by_technique_family"]` and highlight uneven coverage. A defense that scores 0.9 recall on `gradual_escalation` and `framing_pretext` but 0.3 on `code_smuggling` and `hypothetical_concretization` has a real gap that overall recall hides. Example callout: "Recall is 0.78 overall but only 0.35 on `code_smuggling` (n=4) — defense is weak on obfuscation-via-code attacks." Don't over-claim on small per-family n; flag the sample size when it's under 10.
+**Always read `metrics.json["by_technique_family"]`** when the experiment includes any attack-class data beyond plain content harm (which is most runs at smoke+ now). The corpus covers four attack classes and many technique families within each:
+
+- **Prompt injection** families: `system_prompt_exfiltration` (Lakera Gandalf), `instruction_override` (deepset), `ignore_previous_instructions`, `system_mode` (DAN), `token_smuggling`, `language_switching`, `overload_with_information`, `persuasion`, `payload_splitting`, `output_formatting_manipulation`, `virtualization`, `indirect_reference`, `hypothetical_scenario`, `few_shot_attack`, `many_shot_attack`, `repeated_token_attack`, `mixed_techniques` (all from CyberSecEval PI)
+- **Cyber attack assistance** families: `command_and_control`, `persistence`, `privilege_escalation`, `lateral_movement`, `discovery`, `evasion`, `execution`, `exfil`, `collection`, `recon` (from CyberSecEval MITRE) + interpreter-abuse families
+- **Multi-turn** families: `gradual_escalation`, `code_smuggling`, `hypothetical_concretization`, `persona_split`, `cipher_substitution`, etc.
+
+Highlight uneven coverage explicitly. A guardrail with 0.95 recall on `framing_pretext` but 0.20 on `system_prompt_exfiltration` has a real gap that overall recall hides. Example callouts:
+- "Strong on content harm (recall 0.92) but only catches 0.35 of prompt-injection cases — content-safety guardrail, not a PI guardrail."
+- "PI guardrail catches 0.88 of direct overrides (`ignore_previous_instructions`) but only 0.30 of `token_smuggling` and 0.40 of `language_switching` — defense pattern-matches obvious attacks but misses obfuscation."
+- "Over-blocks 0.18 of `cyber_legitimate` (MITRE-FRR) — refuses security-engineering questions like firewall config and packet inspection. Real false-positive risk for any security-focused user."
+
+Don't over-claim on small per-family n; flag the sample size when it's under 10.
 
 Avoid dashboards, charts, or fancy formatting. Plain text only.
 

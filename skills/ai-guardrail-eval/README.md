@@ -416,6 +416,34 @@ A "good" guardrail has:
 
 ---
 
+## Attack-class coverage
+
+The corpus spans four attack classes, each with matched benign baselines for FPR measurement:
+
+| Attack class | Harmful sources | Benign baseline | What it tests |
+|---|---|---|---|
+| **Content harm** | HarmBench, AILuminate, StrongREJECT, AdvBench, XSTest-unsafe | XSTest-safe, Alpaca | Will the gateway block harmful content generation while letting legitimate content through? |
+| **Prompt injection** | CyberSecEval `prompt_injection` (15 variants), deepset/prompt-injections, Lakera Gandalf | deepset/prompt-injections benign rows | Will a PI guardrail (Prisma AIRS, Lakera, etc.) catch system-prompt overrides, DAN-style jailbreaks, token smuggling, language switching, payload splitting, persona pivots, etc.? |
+| **Cyber attack assistance** | CyberSecEval `mitre` (10 MITRE ATT&CK categories), CyberSecEval `interpreter` (5 code-interpreter abuse families) | CyberSecEval `mitre_frr` (benign cyber questions) | Will the gateway block cyber-attack assistance (C2, persistence, exfiltration, etc.) without over-refusing legitimate security-engineering questions? |
+| **Multi-turn** | Authored templates (14 patterns, 22 technique families), Crescendo (cipher), MHJ (gated, real human red-team tactics) | Authored benign multi-turn (10 patterns including high-stakes professional scenarios) | Will conversation-level reasoning catch escalation, decomposition, code smuggling, hypothetical drift, persona split, etc.? |
+
+**Why this matters:** a content-safety guardrail that scores well on HarmBench may have zero coverage of prompt injection — completely different attack class. The smoke tier (~130 cases) now includes ~20 PI harmful + 10 PI benign + 5 cyber benign so any guardrail you're testing has signal across attack classes from the first run.
+
+### License attribution
+
+- HarmBench, StrongREJECT, AdvBench: MIT
+- AILuminate, XSTest: CC-BY-4.0
+- Alpaca: CC-BY-NC-4.0
+- CyberSecEval (Meta PurpleLlama): Llama Community License
+- deepset/prompt-injections: Apache-2.0
+- Lakera/gandalf_ignore_instructions: MIT
+- Crescendo: MIT
+- Authored multi-turn scaffolding: this project; wrapped prompts inherit original-source license
+
+Every case in `corpus_v1.json` carries `source_url`, `citation`, and `license` fields.
+
+---
+
 ## Multi-turn coverage and `technique_family`
 
 Multi-turn cases land in standard/comprehensive tiers (smoke stays single-turn for the iteration loop). The bundled corpus covers **22 distinct technique families** across harmful and benign multi-turn cases:

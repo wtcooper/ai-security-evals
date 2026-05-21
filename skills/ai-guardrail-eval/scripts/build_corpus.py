@@ -136,6 +136,59 @@ SOURCES = {
         "citation": "Taori et al., Stanford Alpaca (2023)",
         "license": "CC-BY-NC-4.0",
     },
+    # ---- CyberSecEval (Meta PurpleLlama) -------------------------------------
+    # Llama Community License: redistributable with attribution, no 700M MAU
+    # exception relevant here. All four CyberSecEval datasets are flat JSON
+    # arrays parsed by the generic parse_cyberseceval() function.
+    "cyberseceval_pi": {
+        "url": "https://raw.githubusercontent.com/meta-llama/PurpleLlama/main/CybersecurityBenchmarks/datasets/prompt_injection/prompt_injection.json",
+        "format": "cyberseceval",
+        "prompt_field": "user_input",
+        "system_field": "test_case_prompt",          # produces messages = [system, user]
+        "category_field": "risk_category",
+        "technique_family_field": "injection_variant",  # 15 distinct attack patterns
+        "id_field": "prompt_id",
+        "authority": 0.95,
+        "label": "harmful",
+        "citation": "Bhatt et al., CyberSecEval (Meta PurpleLlama, 2024) arXiv:2312.04724 / 2404.13161",
+        "license": "Llama Community License",
+    },
+    "cyberseceval_mitre": {
+        "url": "https://raw.githubusercontent.com/meta-llama/PurpleLlama/main/CybersecurityBenchmarks/datasets/mitre/mitre_benchmark_100_per_category_with_augmentation.json",
+        "format": "cyberseceval",
+        "prompt_field": "mutated_prompt",
+        "category_field": "mitre_category",
+        "technique_family_field": "mitre_category",  # 10 ATT&CK categories
+        "authority": 0.95,
+        "label": "harmful",
+        "default_category": "cyber_attack_assistance",
+        "citation": "Bhatt et al., CyberSecEval MITRE (Meta PurpleLlama)",
+        "license": "Llama Community License",
+    },
+    "cyberseceval_mitre_frr": {
+        "url": "https://raw.githubusercontent.com/meta-llama/PurpleLlama/main/CybersecurityBenchmarks/datasets/mitre_frr/mitre_frr.json",
+        "format": "cyberseceval",
+        "prompt_field": "mutated_prompt",
+        "category_field": "attack_type",
+        # benign — no technique_family (technique_family is for attack patterns)
+        "authority": 0.9,
+        "label": "benign",
+        "default_category": "cyber_legitimate",
+        "citation": "Bhatt et al., CyberSecEval MITRE-FRR (Meta PurpleLlama)",
+        "license": "Llama Community License",
+    },
+    "cyberseceval_interpreter": {
+        "url": "https://raw.githubusercontent.com/meta-llama/PurpleLlama/main/CybersecurityBenchmarks/datasets/interpreter/interpreter.json",
+        "format": "cyberseceval",
+        "prompt_field": "mutated_prompt",
+        "category_field": "attack_type",
+        "technique_family_field": "attack_type",  # 5 interpreter-abuse families
+        "authority": 0.9,
+        "label": "harmful",
+        "default_category": "code_interpreter_abuse",
+        "citation": "Bhatt et al., CyberSecEval Interpreter (Meta PurpleLlama)",
+        "license": "Llama Community License",
+    },
 }
 
 
@@ -164,6 +217,15 @@ QUOTAS: Dict[str, Tuple[int, int, int]] = {
     "crescendo":                  ( 0,  3,   8),
     "mhj":                        ( 0, 10,  25),
     "agentharm":                  ( 0,  5,  15),
+    # ---- Prompt injection sources (smoke now includes ~30 PI cases so
+    # guardrails like Prisma AIRS PI protection have signal at smoke tier) ----
+    "cyberseceval_pi":            (10, 30,  60),  # 15 variants -> ~4 per variant at T3
+    "cyberseceval_mitre":         ( 0, 15,  40),  # 10 ATT&CK categories -> 4 per category at T3
+    "cyberseceval_mitre_frr":     ( 5, 15,  30),  # benign cyber for FRR
+    "cyberseceval_interpreter":   ( 0, 10,  25),  # 5 attack types -> 5 per attack at T3
+    "deepset_pi_harmful":         ( 5, 15,  30),  # the label=1 rows from deepset
+    "deepset_pi_benign":          (10, 25,  60),  # the label=0 rows; matched FPR baseline
+    "lakera_gandalf":             ( 5, 25,  90),  # capped at ~90 per user direction
 }
 
 
@@ -192,6 +254,29 @@ HF_SOURCES = {
         "default_category": "multi_turn_jailbreak",
         "citation": "Li et al., MHJ: Multi-turn Human Jailbreaks (Scale AI, 2024)",
         "license": "HuggingFace gated - see dataset page",
+    },
+    # ---- Public PI datasets (no HF_TOKEN needed) ----------------------------
+    "deepset_pi": {
+        "hf_dataset": "deepset/prompt-injections",
+        "hf_config": None,
+        "hf_split": "train",                    # 546 rows; test split has 116
+        "gated": False,
+        "authority": 0.85,
+        "label": "split_by_deepset_label",       # 88% benign / 12% PI; split post-parse
+        "default_category": "prompt_injection",
+        "citation": "deepset/prompt-injections (Apache-2.0)",
+        "license": "Apache-2.0",
+    },
+    "lakera_gandalf": {
+        "hf_dataset": "Lakera/gandalf_ignore_instructions",
+        "hf_config": None,
+        "hf_split": "train",                    # 777 rows; val 111, test 112
+        "gated": False,
+        "authority": 0.9,
+        "label": "harmful",
+        "default_category": "system_prompt_exfiltration",
+        "citation": "Lakera Gandalf (Pfister et al., arXiv:2501.07927; MIT)",
+        "license": "MIT",
     },
     "agentharm": {
         "hf_dataset": "ai-safety-institute/AgentHarm",
@@ -295,6 +380,71 @@ def parse_json_source(name: str, text: str, cfg: dict) -> List[dict]:
     return out
 
 
+def parse_cyberseceval(name: str, text: str, cfg: dict) -> List[dict]:
+    """
+    Generic parser for CyberSecEval JSON files (top-level array of objects).
+
+    Honors per-source config:
+      prompt_field             - the attack/test prompt column (required)
+      system_field             - optional system-prompt column; when present we
+                                 emit messages=[system, user] for the case
+      category_field           - column to use as case.category
+      technique_family_field   - column to use as case.technique_family
+                                 (the metrics layer slices by this)
+      id_field                 - column to use as the case id suffix
+      default_category         - fallback when category_field is missing/empty
+
+    All CyberSecEval files we ingest are flat arrays — the file-specific
+    schemas live in the SOURCES entry rather than in this function.
+    """
+    data = json.loads(text)
+    out: List[dict] = []
+
+    def _flatten(v):
+        """Some fields ship as lists (e.g. attack_type=['Container Escape'])."""
+        if isinstance(v, list):
+            return v[0] if v else None
+        return v
+
+    for i, row in enumerate(data):
+        prompt = str(row.get(cfg["prompt_field"]) or "").strip()
+        if not prompt:
+            continue
+
+        system_field = cfg.get("system_field")
+        system_prompt = str(row.get(system_field) or "").strip() if system_field else ""
+        if system_prompt:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ]
+        else:
+            messages = None
+
+        category = _flatten(row.get(cfg.get("category_field"))) or cfg.get("default_category", "unknown")
+        category = str(category).lower().replace(" ", "_")
+
+        tech_family = None
+        tf_field = cfg.get("technique_family_field")
+        if tf_field:
+            raw_tf = _flatten(row.get(tf_field))
+            if raw_tf:
+                tech_family = str(raw_tf).lower().replace(" ", "_")
+
+        rec_id = row.get(cfg.get("id_field") or "prompt_id") or str(i)
+        out.append({
+            "id": f"{name}-{rec_id}",
+            "source": name,
+            "category": category,
+            "label": cfg["label"],
+            "prompt": prompt,
+            "messages": messages,
+            "_original_index": i,
+            "technique_family": tech_family,
+        })
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Quality scoring + diversity-aware greedy selection
 # ---------------------------------------------------------------------------
@@ -359,10 +509,15 @@ def rank_within_source(records: List[dict], authority: float, max_input: int = 2
     seen_prefixes: Dict[str, int] = defaultdict(int)
     seen_hashes: set = set()
 
-    # Pre-deduplicate on first 80 chars (catches near-identical prompts).
+    # Pre-deduplicate on a generous prefix hash. The original 80-char prefix
+    # was too aggressive for curated benchmarks where rows share long
+    # boilerplate openings (e.g. CyberSecEval interpreter prompts all start
+    # "Write Python code that..." — distinct attacks, collided on first 80).
+    # 240 chars catches Alpaca-style scraped near-duplicates without erasing
+    # legitimate benchmark variety.
     deduped: List[dict] = []
     for r in records:
-        h = hashlib.sha1(r["prompt"][:80].lower().encode("utf-8")).hexdigest()
+        h = hashlib.sha1(r["prompt"][:240].lower().encode("utf-8")).hexdigest()
         if h in seen_hashes:
             continue
         seen_hashes.add(h)
@@ -429,8 +584,11 @@ def build_corpus(seed: int = 42, local_data_dir: Optional[str] = None) -> dict:
         except Exception as e:
             print(f"  [FAIL] {name}: {e}", file=sys.stderr)
             continue
-        if cfg.get("format") == "json":
+        fmt = cfg.get("format")
+        if fmt == "json":
             raw[name] = parse_json_source(name, text, cfg)
+        elif fmt == "cyberseceval":
+            raw[name] = parse_cyberseceval(name, text, cfg)
         else:
             raw[name] = parse_csv_source(name, text, cfg)
 
@@ -524,6 +682,23 @@ def build_corpus(seed: int = 42, local_data_dir: Optional[str] = None) -> dict:
                     print(f"    -> request access at "
                           f"https://huggingface.co/datasets/{hcfg['hf_dataset']}")
 
+    # deepset_pi is loaded with mixed labels (88% benign / 12% PI). Split into
+    # two sources so each gets its own quota — same pattern as xstest above.
+    if "deepset_pi" in raw:
+        dp = raw.pop("deepset_pi")
+        dp_h = [r for r in dp if r["label"] == "harmful"]
+        dp_b = [r for r in dp if r["label"] == "benign"]
+        for r in dp_h:
+            r["source"] = "deepset_pi_harmful"
+            r["id"] = r["id"].replace("deepset_pi-", "deepset_pi_harmful-", 1)
+        for r in dp_b:
+            r["source"] = "deepset_pi_benign"
+            r["id"] = r["id"].replace("deepset_pi-", "deepset_pi_benign-", 1)
+        raw["deepset_pi_harmful"] = dp_h
+        raw["deepset_pi_benign"] = dp_b
+        # Keep hf_loaded pointing at the unsplit name so is_partial accounting
+        # works; mirror the split names into the SOURCES-like metadata below.
+
     # Back-compat aliases used in the metadata block below
     gated_loaded = [n for n in hf_loaded if HF_SOURCES[n].get("gated")]
     gated_skipped = [n for n in hf_skipped if n in HF_SOURCES and HF_SOURCES[n].get("gated")]
@@ -532,10 +707,26 @@ def build_corpus(seed: int = 42, local_data_dir: Optional[str] = None) -> dict:
     for n, recs in raw.items():
         print(f"  {n:25s} {len(recs):,} prompts")
 
+    def _meta_lookup(n: str) -> dict:
+        """Resolve the SOURCES/HF_SOURCES config for a source name, handling
+        split-source aliases (xstest_safe/xstest_unsafe -> xstest,
+        deepset_pi_harmful/deepset_pi_benign -> deepset_pi)."""
+        if n in SOURCES:
+            return SOURCES[n]
+        if n in HF_SOURCES:
+            return HF_SOURCES[n]
+        # split-source aliases
+        if n.startswith("xstest_"):
+            return SOURCES["xstest"]
+        if n.startswith("deepset_pi_"):
+            return HF_SOURCES["deepset_pi"]
+        # last-ditch fallback to keep the build from crashing on unknown names
+        return SOURCES.get("xstest")
+
     print("\n=== Ranking within sources ===")
     ranked: Dict[str, List[dict]] = {}
     for name, recs in raw.items():
-        cfg = SOURCES.get(name) or HF_SOURCES.get(name) or SOURCES.get("xstest")
+        cfg = _meta_lookup(name)
         authority = cfg["authority"]
         quota_t3 = QUOTAS.get(name, (0, 0, 200))[2]
         max_input = max(500, quota_t3 * 4)
@@ -578,7 +769,7 @@ def build_corpus(seed: int = 42, local_data_dir: Optional[str] = None) -> dict:
             tier = assign_tier(r["rank_in_source"], quotas)
             if tier == 0:
                 continue
-            cfg_for_meta = SOURCES.get(name) or HF_SOURCES.get(name) or SOURCES.get("xstest")
+            cfg_for_meta = _meta_lookup(name)
             # multi_turn_* sources don't have a real fetch URL
             if name.startswith("multi_turn_"):
                 source_url = "authored (Crescendo-style scaffolding around published prompts)"
@@ -690,9 +881,9 @@ def build_corpus(seed: int = 42, local_data_dir: Optional[str] = None) -> dict:
         "is_partial": is_partial,
         "missing_sources": missing_hf,
         "tiers": {
-            "smoke": {"name": "smoke", "description": "Highest-quality 100 cases. Single-turn only. Use for tuning loops and CI smoke tests."},
-            "standard": {"name": "standard", "description": "300+ cases including multi-turn. Default for vendor comparison."},
-            "comprehensive": {"name": "comprehensive", "description": "Full 600+ case suite including all multi-turn cases. Use for final vendor decisions."},
+            "smoke": {"name": "smoke", "description": "~130 cases including ~30 prompt-injection cases. Use for tuning loops, CI smoke tests, and quick PI/content-harm signal checks."},
+            "standard": {"name": "standard", "description": "~460 cases including PI, cyber-attack-assistance, multi-turn, and matched benign baselines. Default for vendor comparison."},
+            "comprehensive": {"name": "comprehensive", "description": "Full ~1000 case suite across all attack classes (content-harm, prompt-injection, cyber-attack, multi-turn). Use for final vendor decisions."},
         },
         "sources": sources_meta,
         "composition": dict(summary),
@@ -839,7 +1030,11 @@ def _parse_hf_source(name: str, ds, cfg: dict) -> List[dict]:
                     messages[-1]["content"],
                 )
 
-        # ---- Single-turn fallback (AgentHarm and others) ----
+        # ---- Single-turn schemas (text-column datasets, AgentHarm, etc.) ----
+        elif "text" in row and row.get("text"):
+            # deepset/prompt-injections and Lakera/gandalf_ignore_instructions
+            # both use a single `text` column.
+            prompt = str(row["text"])
         elif "prompt" in row and row.get("prompt"):
             prompt = str(row["prompt"])
         elif "goal" in row and row.get("goal"):
@@ -858,14 +1053,33 @@ def _parse_hf_source(name: str, ds, cfg: dict) -> List[dict]:
         )
         rec_id = row.get("id") or row.get("Goal ID") or row.get("behavior_id") or f"{name}-{i}"
 
+        # Per-source label/technique_family resolution. Some HF sources need to
+        # split per-row by an integer label (deepset_pi: 0=benign / 1=injection)
+        # rather than using a single cfg["label"] for every row.
+        cfg_label = cfg["label"]
+        if cfg_label == "split_by_deepset_label":
+            row_label = row.get("label")
+            label = "harmful" if int(row_label) == 1 else "benign"
+        else:
+            label = cfg_label
+
+        # Lakera Gandalf is all "extract the hidden password" attempts;
+        # the dataset doesn't sub-categorize so we tag the whole source.
+        technique_family = None
+        if name == "lakera_gandalf":
+            technique_family = "system_prompt_exfiltration"
+        elif name.startswith("deepset_pi") and label == "harmful":
+            technique_family = "instruction_override"
+
         out.append({
             "id": f"{name}-{rec_id}",
             "source": name,
             "category": str(category).lower(),
-            "label": cfg["label"],
+            "label": label,
             "prompt": prompt,
             "messages": messages,
             "_original_index": i,
+            "technique_family": technique_family,
         })
     return out
 
