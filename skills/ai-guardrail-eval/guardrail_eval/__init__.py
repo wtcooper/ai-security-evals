@@ -48,10 +48,11 @@ from .metrics import (
     compute_metrics,
     compute_metrics_by_category,
     compute_metrics_by_source,
+    compute_metrics_by_technique_family,
     compute_outcome_distribution,
     compute_replicate_stability,
     latency_stats,
     print_report,
 )
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

@@ -64,7 +64,7 @@ from typing import Dict, List, Optional, Tuple
 # Local import: the authored multi-turn templates live next to this script.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from multi_turn_templates import (
-    wrap_harmful, wrap_benign,
+    wrap_harmful, wrap_benign, technique_family_for,
     HARMFUL_TEMPLATE_NAMES, BENIGN_TEMPLATE_NAMES,
 )
 
@@ -150,11 +150,18 @@ QUOTAS: Dict[str, Tuple[int, int, int]] = {
     "xstest_safe":                (35, 135, 250),
     "alpaca":                     (15, 15,  50),
     # Multi-turn cases land in T2+; smoke stays small for the iteration loop.
-    "multi_turn_harmful":         ( 0,  8,  18),
-    "multi_turn_benign":          ( 0,  8,  12),
+    # Bumped from (0,8,18)/(0,8,12) once we expanded the template catalog from
+    # 5 to 14 harmful and from 5 to 10 benign patterns - more templates means
+    # more technique diversity at higher quotas without redundancy.
+    "multi_turn_harmful":         ( 0, 25,  60),
+    "multi_turn_benign":          ( 0, 12,  30),
     # HuggingFace sources. Crescendo (public) is always attempted if the
     # `datasets` lib is installed; MHJ and AgentHarm need HF_TOKEN.
-    "crescendo":                  ( 0,  6,  15),
+    # Crescendo trimmed from (0,6,15) to (0,3,8): the dataset is 6,918
+    # variants of ONE attack technique (substitution-cipher), so extra cases
+    # add redundancy not diversity. 8 is enough to represent the technique
+    # without over-weighting it relative to other multi-turn patterns.
+    "crescendo":                  ( 0,  3,   8),
     "mhj":                        ( 0, 10,  25),
     "agentharm":                  ( 0,  5,  15),
 }
@@ -544,6 +551,14 @@ def build_corpus(seed: int = 42) -> dict:
                 source_url = cfg_for_meta.get("url") or cfg_for_meta.get("hf_dataset", "unknown")
                 citation = cfg_for_meta["citation"]
                 license_ = cfg_for_meta["license"]
+            # technique_family: attack pattern (harmful) or use-case scenario
+            # (benign) for multi-turn cases. Authored multi-turn records carry
+            # it directly from the template; Crescendo's whole dataset is one
+            # technique (we verified 100% are substitution-cipher attacks);
+            # single-turn and other sources don't get a technique_family.
+            tech_family = r.get("technique_family")
+            if tech_family is None and name == "crescendo":
+                tech_family = "cipher_substitution"
             cases.append({
                 "id": r["id"],
                 "source": r["source"],
@@ -551,6 +566,7 @@ def build_corpus(seed: int = 42) -> dict:
                 "label": r["label"],
                 "prompt": r["prompt"],
                 "messages": r.get("messages"),  # populated for multi-turn cases
+                "technique_family": tech_family,
                 "quality_tier": tier,
                 "quality_score": r["quality_score"],
                 "rank_in_source": r["rank_in_source"],
@@ -841,6 +857,7 @@ def _generate_multi_turn(
             "quality_score": 0.95,  # authored, high signal
             "rank_in_source": i + 1,
             "_original_index": i,
+            "technique_family": technique_family_for(template, label),
         })
     return out
 

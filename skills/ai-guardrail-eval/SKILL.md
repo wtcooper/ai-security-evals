@@ -135,6 +135,8 @@ Then **call out one or two surprises in plain English**:
 - "Most of the apparent ASR drop came from the foundation model's own refusal text, not the guardrail (control_block_harmful only +0.04)."
 - "FPR jumped 0.12 — the guardrail is over-blocking benign requests; spot-check the transcript for false positives on XSTest cases."
 
+**If the experiment includes multi-turn cases** (standard or comprehensive tier), also read `metrics.json["by_technique_family"]` and highlight uneven coverage. A defense that scores 0.9 recall on `gradual_escalation` and `framing_pretext` but 0.3 on `code_smuggling` and `hypothetical_concretization` has a real gap that overall recall hides. Example callout: "Recall is 0.78 overall but only 0.35 on `code_smuggling` (n=4) — defense is weak on obfuscation-via-code attacks." Don't over-claim on small per-family n; flag the sample size when it's under 10.
+
 Avoid dashboards, charts, or fancy formatting. Plain text only.
 
 ---

@@ -13,18 +13,20 @@ from guardrail_eval.corpus import TestCase
 from guardrail_eval.judge import REFUSAL, CONTROL_BLOCK, COMPLIANCE, ERROR
 from guardrail_eval.metrics import (
     compute_metrics,
+    compute_metrics_by_technique_family,
     compute_outcome_distribution,
 )
 from guardrail_eval.runner import TestResult
 
 
-def _case(label: str, idx: int = 0) -> TestCase:
+def _case(label: str, idx: int = 0, technique_family: str | None = None) -> TestCase:
     return TestCase(
         id=f"{label}-{idx}",
         source="testsrc",
         category="testcat",
         label=label,
         prompt=f"prompt {idx}",
+        metadata={"technique_family": technique_family} if technique_family else {},
     )
 
 
@@ -125,3 +127,52 @@ def test_empty_results_does_not_crash():
     assert m["scored"] == 0
     assert m["f1"] == 0.0
     assert m["error_rate"] == 0.0
+
+
+def test_by_technique_family_groups_correctly():
+    # Build a small mix: 4 cipher-substitution (1 TP, 3 FN), 2 code-smuggling
+    # (2 TP), 2 single-turn benign (2 TN). Expect 3 groups in the breakdown
+    # with correctly-scoped metrics.
+    results = []
+    cipher_case = lambda idx: TestResult(
+        case=_case("harmful", idx, technique_family="cipher_substitution"),
+        outcome=REFUSAL if idx == 0 else COMPLIANCE,
+        judge_reasoning="fixture", status_code=200, latency_ms=1.0,
+    )
+    smug_case = lambda idx: TestResult(
+        case=_case("harmful", idx + 10, technique_family="code_smuggling"),
+        outcome=CONTROL_BLOCK, judge_reasoning="fixture",
+        status_code=400, latency_ms=1.0,
+    )
+    single_benign = lambda idx: TestResult(
+        case=_case("benign", idx + 20),  # no technique_family
+        outcome=COMPLIANCE, judge_reasoning="fixture",
+        status_code=200, latency_ms=1.0,
+    )
+    results.extend([cipher_case(i) for i in range(4)])
+    results.extend([smug_case(i) for i in range(2)])
+    results.extend([single_benign(i) for i in range(2)])
+
+    by_fam = compute_metrics_by_technique_family(results)
+
+    assert set(by_fam.keys()) == {"cipher_substitution", "code_smuggling", "single_turn"}
+    # cipher_substitution: 1 TP + 3 FN -> recall = 1/4
+    assert math.isclose(by_fam["cipher_substitution"]["recall"], 0.25, rel_tol=1e-6)
+    assert by_fam["cipher_substitution"]["tp"] == 1
+    assert by_fam["cipher_substitution"]["fn"] == 3
+    # code_smuggling: 2 TP, 0 FN -> recall = 1.0
+    assert math.isclose(by_fam["code_smuggling"]["recall"], 1.0, rel_tol=1e-6)
+    # single_turn: 2 TN -> only benign, no harmful, recall is 0.0 by convention
+    assert by_fam["single_turn"]["tn"] == 2
+    assert by_fam["single_turn"]["n_harmful"] == 0
+
+
+def test_by_technique_family_treats_missing_metadata_as_single_turn():
+    results = [
+        TestResult(
+            case=_case("harmful", 0),  # no metadata at all
+            outcome=REFUSAL, judge_reasoning="x", status_code=200, latency_ms=1.0,
+        ),
+    ]
+    by_fam = compute_metrics_by_technique_family(results)
+    assert list(by_fam.keys()) == ["single_turn"]

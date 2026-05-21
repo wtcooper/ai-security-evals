@@ -595,6 +595,7 @@ def load_static_suite(tier="smoke", path=None):
                     "source_url": c.get("source_url"),
                     "citation": c.get("citation"),
                     "license": c.get("license"),
+                    "technique_family": c.get("technique_family"),
                 },
             ))
     return cases

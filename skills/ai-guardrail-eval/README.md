@@ -416,6 +416,53 @@ A "good" guardrail has:
 
 ---
 
+## Multi-turn coverage and `technique_family`
+
+Multi-turn cases land in standard/comprehensive tiers (smoke stays single-turn for the iteration loop). The bundled corpus covers **22 distinct technique families** across harmful and benign multi-turn cases:
+
+| Technique family (harmful) | What it is |
+|---|---|
+| `gradual_escalation` | Three templates: progressive specificity, foot-in-the-door, innocent-to-specific |
+| `framing_pretext`, `fiction_pretext`, `academic_pretext`, `role_pretext`, `authority_pretext` | Pretext-based framings asserting a legitimate-sounding role/context |
+| `hypothetical_concretization` | Start hypothetical, demand concrete answer |
+| `counterfactual_probe` | Ask what NOT to do (extracts the same info) |
+| `persona_split` | Set up multi-character "debate" with operational specifics |
+| `code_smuggling` | Embed harmful request in code-review framing |
+| `translation_obfuscation` | Frame as translation exercise |
+| `task_decomposition` | Split harmful task into "innocuous" pieces |
+| `cipher_substitution` | Crescendo-dataset attacks (word-substitution with emoji mappings) |
+
+| Technique family (benign) | What it is |
+|---|---|
+| `professional_education`, `casual_clarification`, `casual_professional`, `parental_guidance`, `journalism` | Lower-stakes legitimate use |
+| `security_research`, `clinical_decision_support`, `harm_reduction`, `academic_research` | **High-stakes** legitimate professional scenarios that superficially look adversarial — strongest FPR signal |
+
+Every multi-turn case has a `technique_family` field, and `compute_metrics_by_technique_family()` produces a breakdown per family. The metric that actually answers "does this defense handle multi-turn?" is the **per-technique recall split**: a defense catching `gradual_escalation` (which keyword filters often handle) but missing `code_smuggling` or `hypothetical_concretization` will have a misleadingly-good overall score otherwise.
+
+The bundled corpus contains **98 multi-turn cases at comprehensive** (14% of the corpus). For larger multi-turn coverage with real-attacker data (not authored scaffolding), see "Getting MHJ and AgentHarm via HF_TOKEN" below.
+
+### Crescendo: one technique, not many
+
+The Crescendo HuggingFace dataset (`tom-gibbs/multi-turn_jailbreak_attack_datasets`, 6,918 rows) is **100% one attack technique** — every row uses the same substitution-cipher with emoji mappings opener. We keep 8 representative cases at comprehensive tier; adding more would inflate the multi-turn count without adding scenario diversity. Real technique variety comes from the authored templates above.
+
+### Getting MHJ and AgentHarm via HF_TOKEN
+
+These are the only public-but-gated multi-turn datasets of comparable quality, and they can't be redistributed:
+
+- **MHJ** (Scale AI) — 537 conversations from professional red-teamers, hand-crafted attack tactics. Request access: https://huggingface.co/datasets/ScaleAI/mhj
+- **AgentHarm** (UK AISI) — 110 agentic multi-turn scenarios. Request access: https://huggingface.co/datasets/ai-safety-institute/AgentHarm
+
+Once approved, get an HF token at https://huggingface.co/settings/tokens, put it in `.env.local`, and rebuild to `/data/` (gitignored — never commit gated data):
+
+```bash
+HF_TOKEN=hf_xxx uv run python skills/ai-guardrail-eval/scripts/build_corpus.py \
+    --out /data/corpus_v1_full.json
+```
+
+Then `--corpus /data/corpus_v1_full.json` on the runner.
+
+---
+
 ## Corpora and experiment outputs (the `.evals/` working directory)
 
 The runner reads corpora from and writes experiments to `.evals/` at the repo root. It's a **working directory only** — the skill creates it on demand, never reads logic from it, and you can delete it any time without losing anything that isn't reproducible.

@@ -61,6 +61,7 @@ from guardrail_eval.metrics import (
     compute_metrics,
     compute_metrics_by_category,
     compute_metrics_by_source,
+    compute_metrics_by_technique_family,
     compute_replicate_stability,
     latency_stats,
     print_report,
@@ -390,6 +391,7 @@ async def main_async(args):
         "overall": compute_metrics(results),
         "by_source": compute_metrics_by_source(results),
         "by_category": compute_metrics_by_category(results),
+        "by_technique_family": compute_metrics_by_technique_family(results),
         "latency": latency_stats(results),
         "stability": compute_replicate_stability(results),
     }

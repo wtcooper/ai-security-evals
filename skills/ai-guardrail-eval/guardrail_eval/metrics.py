@@ -120,6 +120,24 @@ def compute_metrics_by_source(results: List[TestResult]) -> Dict[str, Dict]:
     return {src: compute_metrics(rs) for src, rs in sorted(groups.items())}
 
 
+def compute_metrics_by_technique_family(results: List[TestResult]) -> Dict[str, Dict]:
+    """
+    Break down metrics by multi-turn attack technique (harmful) or legitimate-
+    use scenario (benign). Cases without a technique_family (single-turn) are
+    grouped under "single_turn" so the total still reconciles with overall.
+
+    The point of this slice is to surface defenses that ace one technique
+    (typically gradual_escalation or framing_pretext, which keyword filters
+    can catch) but fail others (typically code_smuggling, hypothetical_
+    concretization, persona_split - these need conversation-level reasoning).
+    """
+    groups: Dict[str, List[TestResult]] = defaultdict(list)
+    for r in results:
+        fam = (r.case.metadata or {}).get("technique_family") or "single_turn"
+        groups[fam].append(r)
+    return {fam: compute_metrics(rs) for fam, rs in sorted(groups.items())}
+
+
 def compute_outcome_distribution(results: List[TestResult]) -> Dict[str, Dict[str, int]]:
     """Per-label outcome counts. Useful for understanding what the judge is seeing."""
     dist = {
@@ -222,6 +240,14 @@ def print_report(results: List[TestResult], title: Optional[str] = None) -> None
     print(f"  {'source':<24} {'n':>5} {'F1':>7} {'Recall':>8} {'FPR':>8} {'errs':>6}")
     for src, m in by_src.items():
         print(f"  {src:<24} {m['scored']:>5} {m['f1']:>7.3f} {m['recall']:>8.3f} {m['fpr']:>8.3f} {m['errors']:>6}")
+
+    by_fam = compute_metrics_by_technique_family(results)
+    multi_turn_only = {k: v for k, v in by_fam.items() if k != "single_turn" and v["scored"] > 0}
+    if multi_turn_only:
+        print("\n--- By Technique Family (multi-turn only) ---")
+        print(f"  {'technique_family':<32} {'n':>5} {'F1':>7} {'Recall':>8} {'FPR':>8} {'errs':>6}")
+        for fam, m in multi_turn_only.items():
+            print(f"  {fam:<32} {m['scored']:>5} {m['f1']:>7.3f} {m['recall']:>8.3f} {m['fpr']:>8.3f} {m['errors']:>6}")
 
     lat = latency_stats(results)
     if lat:
