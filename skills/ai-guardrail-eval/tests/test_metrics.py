@@ -167,6 +167,57 @@ def test_by_technique_family_groups_correctly():
     assert by_fam["single_turn"]["n_harmful"] == 0
 
 
+def test_to_dict_includes_input_side_for_audit():
+    """
+    Regression guard: TestResult.to_dict() must include the input side
+    (prompt, messages, request_messages, request_mock_response) so the
+    audit trail is complete. Lost once already - the old version only
+    captured the response side, which made input-mode and multi-turn
+    runs essentially unauditable.
+    """
+    case = TestCase(
+        id="mt-1", source="testsrc", category="testcat", label="harmful",
+        prompt="final user turn",
+        messages=[
+            {"role": "user", "content": "setup turn"},
+            {"role": "assistant", "content": "ack"},
+            {"role": "user", "content": "final user turn"},
+        ],
+        metadata={"technique_family": "gradual_escalation"},
+    )
+    result = TestResult(
+        case=case,
+        outcome=CONTROL_BLOCK,
+        judge_reasoning="x",
+        status_code=400,
+        latency_ms=10.0,
+        request_messages=case.messages,
+        request_mock_response="placeholder",
+        text_response=None,
+        raw_response={"error": {"message": "blocked"}},
+    )
+    d = result.to_dict()
+    # Identity + classification
+    assert d["id"] == "mt-1"
+    assert d["technique_family"] == "gradual_escalation"
+    assert d["outcome"] == CONTROL_BLOCK
+    # Input side fully present
+    assert d["prompt"] == "final user turn"
+    assert d["messages"] == case.messages
+    assert d["request_messages"] == case.messages
+    assert d["request_mock_response"] == "placeholder"
+    # Response side
+    assert d["status_code"] == 400
+    assert d["raw_response"]["error"]["message"] == "blocked"
+    # No truncation — was a real bug (200-char cap silently lost data)
+    long_text = "x" * 5000
+    r2 = TestResult(
+        case=case, outcome=COMPLIANCE, judge_reasoning="x",
+        status_code=200, latency_ms=1.0, text_response=long_text,
+    )
+    assert r2.to_dict()["text_response"] == long_text
+
+
 def test_by_technique_family_treats_missing_metadata_as_single_turn():
     results = [
         TestResult(

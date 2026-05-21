@@ -401,26 +401,13 @@ async def main_async(args):
     (exp_dir / "metrics.json").write_text(json.dumps(metrics_payload, indent=2))
     (exp_dir / "results.json").write_text(json.dumps(results_payload, indent=2))
 
+    # transcript.jsonl: same per-test schema as results.json, but one line per
+    # record so it's grep/scan-friendly for spot-checking judge decisions.
+    # Includes the full input side (prompt, case.messages, request_messages,
+    # request_mock_response) so multi-turn and output-mode tests are auditable.
     with (exp_dir / "transcript.jsonl").open("w") as f:
         for r in results:
-            line = {
-                "id": r.case.id,
-                "label": r.case.label,
-                "source": r.case.source,
-                "replicate_idx": r.replicate_idx,
-                "mode": r.mode,
-                "outcome": r.outcome,
-                "judge_reasoning": r.judge_reasoning,
-                "judge_error": r.judge_error,
-                "status_code": r.status_code,
-                "block_reason": r.block_reason,
-                "text_response": r.text_response,
-                "raw_response": r.raw_response,
-                "error": r.error,
-                "latency_ms": round(r.latency_ms, 2),
-                "judge_latency_ms": round(r.judge_latency_ms, 2),
-            }
-            f.write(json.dumps(line, default=str) + "\n")
+            f.write(json.dumps(r.to_dict(), default=str) + "\n")
 
     print(f"\nArtifacts written:")
     print(f"  config:     {exp_dir}/config.json")

@@ -43,7 +43,18 @@ DEFAULT_BENIGN_PROMPT = "Hello, can you help me with a quick question?"
 
 @dataclass
 class TestResult:
-    """Outcome of a single guardrail test."""
+    """
+    Outcome of a single guardrail test.
+
+    Captures BOTH sides of the wire for full audit:
+    - request_messages + request_mock_response: exact payload sent to the
+      gateway. For input/baseline these mirror case.messages or [user prompt];
+      for output mode the messages are the benign placeholder and the
+      adversarial content lives in mock_response. Recording what was
+      actually sent (not just what's on the case) keeps the audit honest.
+    - raw_response + text_response + status_code: what came back.
+    - outcome + judge_reasoning: what the judge decided.
+    """
     case: TestCase
     outcome: str                            # REFUSAL | CONTROL_BLOCK | COMPLIANCE | ERROR
     judge_reasoning: str
@@ -57,24 +68,37 @@ class TestResult:
     judge_error: Optional[str] = None
     replicate_idx: int = 0
     mode: str = "input"
+    request_messages: List[Dict[str, str]] = field(default_factory=list)
+    request_mock_response: Optional[str] = None
 
     def to_dict(self) -> dict:
+        meta = self.case.metadata or {}
         return {
             "id": self.case.id,
             "source": self.case.source,
             "category": self.case.category,
             "label": self.case.label,
+            "technique_family": meta.get("technique_family"),
+            # ---- input side (what we sent over the wire) ----
+            "prompt": self.case.prompt,
+            "messages": self.case.messages,
+            "request_messages": self.request_messages,
+            "request_mock_response": self.request_mock_response,
+            # ---- response side ----
+            "status_code": self.status_code,
+            "text_response": self.text_response,
+            "raw_response": self.raw_response,
+            "block_reason": self.block_reason,
+            "error": self.error,
+            # ---- judge verdict ----
             "outcome": self.outcome,
             "judge_reasoning": self.judge_reasoning,
-            "status_code": self.status_code,
-            "latency_ms": round(self.latency_ms, 2),
-            "judge_latency_ms": round(self.judge_latency_ms, 2),
-            "block_reason": self.block_reason,
-            "text_response": (self.text_response[:200] if self.text_response else None),
-            "error": self.error,
             "judge_error": self.judge_error,
+            # ---- run metadata ----
             "replicate_idx": self.replicate_idx,
             "mode": self.mode,
+            "latency_ms": round(self.latency_ms, 2),
+            "judge_latency_ms": round(self.judge_latency_ms, 2),
         }
 
 
@@ -252,6 +276,8 @@ class GuardrailTester:
             raw_response=resp.raw_body,
             error=resp.error,
             judge_error=judgement.judge_error,
+            request_messages=messages,
+            request_mock_response=mock_response,
             replicate_idx=replicate_idx,
             mode=mode,
         )
