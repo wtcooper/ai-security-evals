@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/wtcooper/ai-security-evals/security/advisories/new
+    about: Report a security issue privately. Do NOT open a public issue.
+  - name: Question or discussion
+    url: https://github.com/wtcooper/ai-security-evals/discussions
+    about: Open-ended questions, design discussions, or "is this a bug?" - start here.

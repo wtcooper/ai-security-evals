@@ -1,0 +1,29 @@
+# CODEOWNERS
+#
+# Reviewers GitHub auto-requests on PRs that touch matching paths.
+# Solo-maintainer for now; add per-area owners as the project grows.
+#
+# Syntax: <path-pattern> <space> <@github-username> [...more usernames]
+# Later patterns override earlier ones.
+
+# Default owner for everything
+*                                       @wtcooper
+
+# Skills — each skill should have an explicit owner block once we have
+# more than one maintainer. Today it's all @wtcooper.
+/skills/ai-guardrail-eval/              @wtcooper
+
+# Local LiteLLM proxy + mock infrastructure
+/local/                                 @wtcooper
+
+# Repo-level config (CI, deps, conventions) — be extra careful here
+/.github/                               @wtcooper
+/pyproject.toml                         @wtcooper
+/uv.lock                                @wtcooper
+/.gitignore                             @wtcooper
+/env.example                            @wtcooper
+
+# Security and contribution policy
+/SECURITY.md                            @wtcooper
+/CONTRIBUTING.md                        @wtcooper
+/CODE_OF_CONDUCT.md                     @wtcooper
