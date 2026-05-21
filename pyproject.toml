@@ -1,0 +1,31 @@
+[project]
+name = "ai-security-evals"
+version = "0.1.0"
+description = "Distributable Claude Code skills for AI security evaluation"
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = [
+    "httpx>=0.28.1,<0.29",
+    "tqdm>=4.67.3,<5",
+    "litellm[proxy]>=1.85.1,<2",
+]
+
+[project.optional-dependencies]
+corpus = [
+    "datasets>=4.8.5,<5",
+]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-asyncio>=1.3,<2",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["skills/ai-guardrail-eval/tests"]
+asyncio_mode = "auto"
+pythonpath = ["skills/ai-guardrail-eval"]
+python_classes = ["Test_*"]   # avoid picking up TestCase/TestResult dataclasses
+filterwarnings = ["ignore::pytest.PytestCollectionWarning"]
