@@ -68,9 +68,26 @@ from guardrail_eval.metrics import (
 )
 
 
-# Repo root: skills/ai-guardrail-eval/run_eval.py -> two levels up.
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_DEFAULT_EXPERIMENTS_DIR = _REPO_ROOT / ".evals" / "experiments"
+# Project root resolution.
+#
+# Earlier this script used Path(__file__).resolve().parents[2] which works
+# when the file lives at <repo>/skills/ai-guardrail-eval/run_eval.py but
+# breaks when Claude Code (or any other tool) installs/runs the skill from
+# elsewhere — e.g. ~/.claude/skills/ai-guardrail-eval/run_eval.py would
+# resolve parents[2] to ~/.claude/ and write results to ~/.claude/.evals/.
+#
+# Walking up from CWD looking for a project marker (pyproject.toml or .git)
+# instead finds the user's actual project regardless of where the skill
+# files live. CWD is the right anchor: the user invokes the eval from
+# their project, even if the skill code is installed centrally.
+def _find_project_root() -> Path:
+    cwd = Path.cwd().resolve()
+    for d in [cwd, *cwd.parents]:
+        if (d / "pyproject.toml").exists() or (d / ".git").exists():
+            return d
+    return cwd  # last-ditch fallback
+
+_DEFAULT_EXPERIMENTS_DIR = _find_project_root() / ".evals" / "experiments"
 
 
 def parse_args() -> argparse.Namespace:
@@ -350,12 +367,17 @@ async def main_async(args):
         tester = GuardrailTester(
             provider=provider, judge=judge, model=args.model, concurrency=args.concurrency,
         )
+        # Stream transcript per-result so the file is crash-durable line by
+        # line; metrics + results.json still get built from the in-memory
+        # list at end so this is purely a durability + tail -f win.
+        transcript_path = exp_dir / "transcript.jsonl"
         results = await tester.run_batch(
             cases=cases,
             guardrails=guardrails,
             mode=mode,
             replicates=args.replicates,
             show_progress=not args.quiet,
+            transcript_path=transcript_path,
         )
 
     # ---- report (stdout) -------------------------------------------------
@@ -401,13 +423,9 @@ async def main_async(args):
     (exp_dir / "metrics.json").write_text(json.dumps(metrics_payload, indent=2))
     (exp_dir / "results.json").write_text(json.dumps(results_payload, indent=2))
 
-    # transcript.jsonl: same per-test schema as results.json, but one line per
-    # record so it's grep/scan-friendly for spot-checking judge decisions.
-    # Includes the full input side (prompt, case.messages, request_messages,
-    # request_mock_response) so multi-turn and output-mode tests are auditable.
-    with (exp_dir / "transcript.jsonl").open("w") as f:
-        for r in results:
-            f.write(json.dumps(r.to_dict(), default=str) + "\n")
+    # transcript.jsonl was written incrementally by the runner during
+    # run_batch above (streamed + flushed per result so a crashed run still
+    # has every completed test on disk). Nothing to do here.
 
     print(f"\nArtifacts written:")
     print(f"  config:     {exp_dir}/config.json")

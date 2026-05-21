@@ -25,8 +25,10 @@ Three modes:
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .corpus import TestCase
@@ -184,7 +186,17 @@ class GuardrailTester:
         mode: str = "input",
         replicates: int = 1,
         show_progress: bool = True,
+        transcript_path: Optional[Path] = None,
     ) -> List[TestResult]:
+        """
+        Run the eval batch. If `transcript_path` is set, each worker writes
+        its TestResult.to_dict() as one JSONL line immediately on completion
+        and fsyncs — so an interrupted run still has every completed test
+        durable on disk, and `tail -f transcript_path` works during the run.
+        Workers serialize writes via an asyncio.Lock; sync file I/O is fine
+        here because each line is small (one chat envelope) and writes are
+        infrequent relative to the event loop's other work.
+        """
         if mode == "input":
             async def test_fn(c, rep):
                 return await self.test_input(c, guardrails, replicate_idx=rep)
@@ -211,6 +223,15 @@ class GuardrailTester:
         results: List[TestResult] = []
         progress = _make_progress_bar(total, mode, replicates) if show_progress else None
 
+        # Optional streaming transcript: opened up front, written per-result
+        # under a lock + flush so the file is crash-durable line-by-line.
+        transcript_file = None
+        transcript_lock: Optional[asyncio.Lock] = None
+        if transcript_path is not None:
+            Path(transcript_path).parent.mkdir(parents=True, exist_ok=True)
+            transcript_file = open(transcript_path, "w", buffering=1)  # line-buffered
+            transcript_lock = asyncio.Lock()
+
         async def worker() -> None:
             while True:
                 try:
@@ -229,6 +250,11 @@ class GuardrailTester:
                         replicate_idx=rep, mode=mode,
                     )
                 results.append(result)
+                if transcript_file is not None:
+                    line = json.dumps(result.to_dict(), default=str) + "\n"
+                    async with transcript_lock:
+                        transcript_file.write(line)
+                        transcript_file.flush()
                 if progress is not None:
                     progress.update(1)
                 queue.task_done()
@@ -239,6 +265,8 @@ class GuardrailTester:
         finally:
             if progress is not None:
                 progress.close()
+            if transcript_file is not None:
+                transcript_file.close()
 
         return results
 
