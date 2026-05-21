@@ -143,19 +143,39 @@ def _extract_error_message(body: Dict[str, Any]) -> Optional[str]:
 
 class LiteLLMProvider(Provider):
     """
-    LiteLLM proxy provider with native guardrail and mock_response support.
+    LiteLLM proxy provider with guardrail + per-request mock_response support.
 
     Request shape:
         POST {base_url}/v1/chat/completions
         {
           "model": "...",
           "messages": [...],
-          "mock_response": "..." (optional - skips LLM),
-          "guardrails": ["name1", "name2"] (optional)
+          "metadata": {"harness_mock_response": "..."} (optional),
+          "guardrails": ["name1", "name2"]                (optional)
         }
 
-    Block detection: HTTP 4xx with an error.message describing the trigger.
-    The judge classifies the body to distinguish CONTROL_BLOCK from ERROR.
+    Why `metadata.harness_mock_response` and not the top-level `mock_response`
+    field that LiteLLM's SDK documents:
+
+    The LiteLLM proxy STRIPS the documented top-level `mock_response` field
+    from the request body before any handler/middleware sees it (verified
+    empirically against LiteLLM 1.85.1). It only honors mock_response set
+    at the model config level (litellm_params: mock_response:) — which is
+    fixed per model, not varying per request. Earlier versions of this
+    provider sent mock_response at the top level and silently spent tokens
+    on real LLM calls because the proxy was dropping the field.
+
+    Arbitrary keys inside `metadata`, however, DO pass through to the
+    handler — they show up at kwargs["litellm_params"]["metadata"]. So the
+    harness sends mock_response under metadata.harness_mock_response, and
+    a small CustomLLM handler (shipped in local/mock_handlers.py as
+    MockResponseHandler) reads it back and returns it as the assistant
+    response. Users testing input/output modes against their own LiteLLM
+    proxy must register that handler — see README "Configuring your
+    LiteLLM for input/output mode tests" for the exact config.
+
+    Block detection: HTTP 4xx; the judge classifies the body to
+    distinguish CONTROL_BLOCK from ERROR.
     """
 
     async def call(
@@ -168,7 +188,9 @@ class LiteLLMProvider(Provider):
         client = await self._ensure_client()
         payload: Dict[str, Any] = {"model": model, "messages": messages}
         if mock_response is not None:
-            payload["mock_response"] = mock_response
+            # See class docstring: top-level mock_response is silently dropped
+            # by the proxy. Route via metadata which IS passed through.
+            payload["metadata"] = {"harness_mock_response": mock_response}
         if guardrails:
             payload["guardrails"] = guardrails
 

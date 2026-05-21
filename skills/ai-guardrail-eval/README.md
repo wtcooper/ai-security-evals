@@ -102,6 +102,40 @@ foundation model would have caught some of those anyway via its own policy.
 
 ---
 
+## Configuring your LiteLLM for input/output mode tests
+
+Input and output modes inject per-test "mock model output" content so the guardrail layer fires while no real LLM call happens. **The LiteLLM proxy strips the documented top-level `mock_response` body field before any handler sees it** (verified against LiteLLM 1.85.1; only the *config-level* `litellm_params: mock_response:` is honored, and that's fixed per model — useless for per-test mock injection).
+
+This harness works around it by sending the mock content under a custom field inside `metadata` (`metadata.harness_mock_response`), which the proxy DOES pass through to handlers. A small CustomLLM handler reads it and returns it as the assistant message.
+
+**If you're using the bundled local proxy (`local/litellm_config.yaml`),** this is already configured — use `--model harness-mock` for input/output mode runs.
+
+**If you're testing against your own LiteLLM proxy,** add this to your config:
+
+```yaml
+# 1. Copy local/mock_handlers.py into your proxy's working directory
+#    (only the MockResponseHandler class is needed; rest is optional).
+
+# 2. Register the handler and the model in your litellm_config.yaml:
+model_list:
+  - model_name: harness-mock
+    litellm_params:
+      model: harness-mock/echo
+
+litellm_settings:
+  custom_provider_map:
+    - provider: harness-mock
+      custom_handler: mock_handlers.mock_response_handler
+```
+
+Then run with `--model harness-mock` for input/output tests. Your real model entries stay untouched and remain usable for `--mode baseline`.
+
+**The startup probe will catch misconfiguration before the run starts.** It sends one test request with a known mock string at run start and aborts with an actionable error if the response doesn't echo it back. The first 2 seconds of every input/output-mode run validate the setup so you don't burn 10 minutes of wall clock on a broken pipeline.
+
+**If you can't add the CustomLLM handler** (no admin access to the proxy, etc.), use `--mode baseline --guardrail <name>` instead. It tests pre-call guardrails honestly by sending real adversarial prompts to a real model with the guardrail enabled. Costs tokens (~$0.10 per comprehensive run with gpt-4o-mini) but produces correct results without any special proxy config. Post-call guardrails can't be tested without the handler.
+
+---
+
 ## Testing a guardrail that runs in both input and output
 
 A single run can only measure **one side** of the gateway — pre-call or post-call — never both at once. This is by design, because the corpus tests one direction per case:

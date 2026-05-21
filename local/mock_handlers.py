@@ -326,6 +326,132 @@ class MockBlockGuardrail(CustomGuardrail):
         return data
 
 
+# ---------------------------------------------------------------------------
+# Mock-response handler — solves the "LiteLLM proxy ignores request-body
+# mock_response" gap. The harness's input/output modes rely on per-test
+# mock_response semantics; the proxy only honors mock_response as a
+# config-level field (litellm_params: mock_response:), not as a request
+# body field, so request-body values are silently dropped on the way to
+# the upstream. See LiteLLM issue #20969.
+#
+# Workaround: route through this CustomLLM. It reads mock_response from
+# the kwargs the proxy hands to the handler (we check several known
+# locations because the proxy version may stash it differently) and
+# returns it as the assistant text. Pre-call and post-call guardrails
+# still fire on the request and response as normal, so the harness
+# behavior is preserved.
+# ---------------------------------------------------------------------------
+
+class _DebugMockResponseHandler(CustomLLM):
+    """
+    DEBUG variant — logs every kwarg key it sees so we can pinpoint exactly
+    where the proxy puts request-body fields. Returns a JSON dump of the
+    kwargs so you can read it from the response body.
+
+    Use this temporarily when porting to a new LiteLLM proxy version. Not
+    wired into the default config — invoke by routing a model through it
+    in your local config.
+    """
+
+    def _dump(self, kwargs):
+        # Targeted dump: pull proxy_server_request from litellm_params if
+        # present (the proxy stashes the original request body there) and
+        # surface its keys so we can see whether mock_response made it.
+        out = {}
+        lp = kwargs.get("litellm_params") or {}
+        psr = lp.get("proxy_server_request") if isinstance(lp, dict) else None
+        if isinstance(psr, dict):
+            body = psr.get("body") if isinstance(psr.get("body"), dict) else None
+            out["proxy_server_request.keys"] = sorted(psr.keys())
+            if body is not None:
+                out["proxy_server_request.body.keys"] = sorted(body.keys())
+                out["proxy_server_request.body.mock_response"] = body.get("mock_response")
+        # Also try metadata which sometimes carries pass-through fields.
+        meta_in_lp = lp.get("metadata") if isinstance(lp, dict) else None
+        if isinstance(meta_in_lp, dict):
+            out["litellm_params.metadata.keys"] = sorted(meta_in_lp.keys())
+            out["litellm_params.metadata.mock_response"] = meta_in_lp.get("mock_response")
+        out["kwargs.top_level_keys"] = sorted(kwargs.keys())
+        return json.dumps(out, default=str)
+
+    def completion(self, *args, **kwargs) -> ModelResponse:
+        return _make_response(kwargs.get("model", "debug"), self._dump(kwargs))
+
+    async def acompletion(self, *args, **kwargs) -> ModelResponse:
+        return self.completion(*args, **kwargs)
+
+
+_NO_MOCK_SENTINEL = "[harness-mock: no harness_mock_response in request metadata]"
+
+
+def _extract_mock_response(kwargs: dict) -> str:
+    """
+    Pull the harness's mock-response value from the request kwargs.
+
+    The LiteLLM proxy strips the documented `mock_response` field from the
+    request body before any handler sees it (proxy honors mock_response
+    only at the config level, in litellm_params:). To inject per-test mock
+    content the harness uses a custom field `harness_mock_response` inside
+    `metadata` instead — the proxy passes that through to the handler at
+    kwargs["litellm_params"]["metadata"]["harness_mock_response"], which is
+    what we read here.
+
+    We also check a few legacy locations so an upstream LiteLLM change
+    doesn't silently re-break this.
+    """
+    lp = kwargs.get("litellm_params") or {}
+    if isinstance(lp, dict):
+        meta = lp.get("metadata") or {}
+        if isinstance(meta, dict):
+            v = meta.get("harness_mock_response")
+            if v:
+                return str(v)
+            v = meta.get("mock_response")  # legacy fallback
+            if v:
+                return str(v)
+    # Top-level kwargs (newer LiteLLM might surface it here directly)
+    v = kwargs.get("harness_mock_response") or kwargs.get("mock_response")
+    if v:
+        return str(v)
+    opts = kwargs.get("optional_params") or {}
+    if isinstance(opts, dict):
+        v = opts.get("harness_mock_response") or opts.get("mock_response")
+        if v:
+            return str(v)
+    return _NO_MOCK_SENTINEL
+
+
+class MockResponseHandler(CustomLLM):
+    """
+    Returns the request's `mock_response` field as the assistant text. Lets
+    the harness inject per-test mock_response while still triggering pre-
+    and post-call guardrails on the request and response as normal.
+
+    Register in your LiteLLM proxy config:
+
+        model_list:
+          - model_name: harness-mock
+            litellm_params:
+              model: harness-mock/echo
+        litellm_settings:
+          custom_provider_map:
+            - provider: harness-mock
+              custom_handler: mock_handlers.mock_response_handler
+
+    Then point the harness at it for input/output mode runs:
+        run_eval.py ... --mode input --model harness-mock
+    """
+
+    def completion(self, *args, **kwargs) -> ModelResponse:
+        mock_text = _extract_mock_response(kwargs)
+        return _make_response(kwargs.get("model", "harness-mock"), mock_text)
+
+    async def acompletion(self, *args, **kwargs) -> ModelResponse:
+        return self.completion(*args, **kwargs)
+
+
 # Module-level singletons that the proxy config references via custom_provider_map.
 mock_target_llm = MockTargetLLM()
 mock_judge_llm = MockJudgeLLM()
+mock_response_handler = MockResponseHandler()
+debug_mock_response_handler = _DebugMockResponseHandler()

@@ -32,6 +32,31 @@ model_list:
     litellm_params:
       model: mock-judge/judge
 
+  # ---- Harness mock-response handler ---------------------------------------
+  # Echoes the request's mock_response field as the assistant text. Required
+  # for the harness's --mode input / --mode output runs because the LiteLLM
+  # proxy doesn't honor request-body mock_response when routing to a real
+  # upstream (it only honors mock_response set per-model in litellm_params).
+  # See LiteLLM issue #20969.
+  - model_name: harness-mock
+    litellm_params:
+      model: harness-mock/echo
+
+  # Debug variant — returns a JSON dump of the kwargs the proxy hands to
+  # the handler, so you can find where request-body fields live.
+  - model_name: harness-mock-debug
+    litellm_params:
+      model: harness-mock-debug/dump
+
+  # ---- TEST: config-level mock_response (the documented pattern) -----------
+  # Per LiteLLM issue #20969 this is the supported way to short-circuit a
+  # model call. We use it to verify the documented pattern actually works.
+  - model_name: config-mock-test
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: sk-also-fake-1234567890
+      mock_response: "CONFIG-LEVEL-MOCK-WORKING"
+
   # ---- Real upstream examples (commented out; uncomment + set real keys) ---
   # - model_name: gpt-4o-mini
   #   litellm_params:
@@ -42,12 +67,25 @@ model_list:
   #     model: anthropic/claude-haiku-4-5
   #     api_key: os.environ/ANTHROPIC_API_KEY
 
+  # ---- TEST: routes to a real provider with a fake key. Useful for testing
+  # whether mock_response actually short-circuits the upstream call. With a
+  # working mock_response the request returns 200 + the mock text. Without
+  # it the request fails with an OpenAI auth error.
+  - model_name: openai-test-route
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: sk-this-key-is-intentionally-fake-1234567890
+
 litellm_settings:
   custom_provider_map:
     - provider: mock-target
       custom_handler: mock_handlers.mock_target_llm
     - provider: mock-judge
       custom_handler: mock_handlers.mock_judge_llm
+    - provider: harness-mock
+      custom_handler: mock_handlers.mock_response_handler
+    - provider: harness-mock-debug
+      custom_handler: mock_handlers.debug_mock_response_handler
 
 guardrails:
   # ---- Mock guardrail (no API keys; blocks on obvious adversarial patterns)

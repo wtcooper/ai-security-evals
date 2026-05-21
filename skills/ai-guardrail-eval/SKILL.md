@@ -74,9 +74,15 @@ For each experiment, gather (one `AskUserQuestion` per item, or grouped):
 - **Target model**: model name as registered in the LiteLLM `model_list` (e.g. `mock-target-refusal`, `gpt-4o-mini`, `claude-haiku-4-5`).
 - **Guardrail name(s)** (skip if baseline-only): names as registered under `guardrails:` in the LiteLLM config (e.g. `mock-guardrail`, `panw-prisma-airs-pre`).
 - **Mode — REQUIRED and must be asked explicitly when a guardrail is named.** Never guess; the harness will hard-error if you don't pass `--mode`. Use `AskUserQuestion` with these three options:
-  - **input (pre-call)** — Adversarial prompt goes in the user message; a neutral `mock_response` is sent so the LLM is skipped. Tests the **pre-call guardrail's catch rate on harmful inputs**. Most PI guardrails (Prisma AIRS PI, Lakera Guard, etc.) run pre-call.
-  - **output (post-call)** — Benign user prompt + synthetic adversarial content in `mock_response`. Tests the **post-call guardrail's catch rate on harmful model outputs**. Output-side guardrails (content moderation on model responses, PII scrubbers on outputs).
+  - **input (pre-call)** — Adversarial prompt goes in the user message; the LLM is skipped by injecting placeholder content via `metadata.harness_mock_response`. Tests the **pre-call guardrail's catch rate on harmful inputs**. Most PI guardrails (Prisma AIRS PI, Lakera Guard, etc.) run pre-call.
+  - **output (post-call)** — Benign user prompt + synthetic adversarial content as the model's "output", again via `metadata.harness_mock_response`. Tests the **post-call guardrail's catch rate on harmful model outputs**.
   - **baseline** — Real LLM call, no guardrail layer. Measures the foundation model's own refusal behavior. Use with `--guardrail none`.
+
+  **Important — input/output modes need a specific model on the gateway.** The LiteLLM proxy strips the documented top-level `mock_response` body field, so the harness injects mock content via `metadata.harness_mock_response` and needs a CustomLLM handler to read it back. The bundled local proxy already has this configured as `harness-mock` (use `--model harness-mock`). For a user's own LiteLLM gateway, walk them through adding `MockResponseHandler` from `local/mock_handlers.py` — see README "Configuring your LiteLLM for input/output mode tests" for the exact yaml.
+
+  **The harness probes for this at startup.** If the configured model doesn't echo a known mock string back, run aborts in ~2 seconds with a clear error and the two fixes (add the handler, or fall back to baseline). Pass that error along to the user verbatim — it tells them exactly what to do.
+
+  **If the user can't add the handler:** offer baseline mode as the fallback. `--mode baseline --guardrail <name>` tests pre-call guardrails honestly with real model calls (~$0.10 per comprehensive run with gpt-4o-mini, results correct). Post-call guardrails can't be tested without the handler — be honest about that.
 
   **If the guardrail you're testing runs on BOTH pre_call and post_call:** run TWO experiments — one `--mode input`, one `--mode output` — with the same guardrail name, then compare the two `metrics.json` files. A single run can only measure one side at a time because the corpus tests one direction per case (adversarial-in-prompt OR adversarial-in-mock_response, not both). See README "Testing a guardrail that runs in both input and output" for the rationale.
 

@@ -144,14 +144,14 @@ def test_baseline_policy_block_target_dominates_control_block():
 
 
 def test_input_mode_with_mock_guardrail_produces_control_blocks():
-    # Input mode + mock-guardrail: the guardrail blocks any prompt matching
-    # its adversarial patterns (~30% of smoke harmful in our tuning) and lets
-    # the rest through with the placeholder mock_response. We assert that at
-    # least one harmful prompt hit CONTROL_BLOCK — proves the guardrail path
-    # is wired up. We don't assert exact counts because the pattern list can
-    # be tuned without breaking the wiring contract.
+    # Input mode requires the target model to echo mock_response (the runner
+    # injects it via metadata.harness_mock_response since LiteLLM proxy
+    # strips the documented top-level mock_response field). The harness-mock
+    # model in local/litellm_config.yaml routes through MockResponseHandler
+    # for exactly this purpose. mock-target-compliant returns canned text
+    # regardless and would fail the startup probe.
     results, dist = asyncio.run(_run_matrix_row(
-        model="mock-target-compliant",
+        model="harness-mock",
         guardrails=["mock-guardrail"],
         mode="input",
     ))

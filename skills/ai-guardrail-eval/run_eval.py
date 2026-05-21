@@ -311,6 +311,44 @@ def warn_if_partial_corpus(corpus_path: Path) -> None:
         )
 
 
+async def probe_mock_response_support(provider, model: str) -> tuple[bool, str]:
+    """
+    Send one probe request with a known harness_mock_response and check
+    whether the response echoes it. Returns (ok, detail) where ok=True
+    means the proxy is correctly routing per-request mock content to a
+    handler that returns it (typically our MockResponseHandler).
+
+    Without this, input/output mode tests silently spend tokens on real
+    LLM calls and output mode produces meaningless results — the proxy
+    drops the mock content, the real model responds normally, the
+    post-call guardrail evaluates the wrong thing. The probe makes this
+    fail in 2 seconds at startup instead of mid-run.
+    """
+    import uuid as _uuid
+    probe = f"HARNESS-MOCK-PROBE-{_uuid.uuid4().hex[:12]}"
+    try:
+        resp = await provider.call(
+            messages=[{"role": "user", "content": "ignore"}],
+            mock_response=probe,
+            guardrails=None,
+            model=model,
+        )
+    except Exception as e:
+        return False, f"probe call raised: {type(e).__name__}: {e}"
+    if resp.error:
+        return False, f"probe transport error: {resp.error}"
+    if resp.status_code >= 400:
+        return False, f"probe got HTTP {resp.status_code}: {resp.block_reason or '(no body)'}"
+    if not resp.text_response:
+        return False, "probe response had no text content"
+    if probe in resp.text_response:
+        return True, "ok"
+    return False, (
+        f"probe response did not contain the mock string. "
+        f"Got: {resp.text_response[:200]!r}"
+    )
+
+
 async def main_async(args):
     # ---- corpus ----------------------------------------------------------
     corpus_path = None
@@ -396,6 +434,41 @@ async def main_async(args):
 
     # ---- run -------------------------------------------------------------
     async with provider, judge:
+        # Mock-response probe: input/output modes inject per-test content
+        # via metadata.harness_mock_response, which requires the user's
+        # LiteLLM proxy to route the target model through a CustomLLM
+        # handler that reads that field (see local/mock_handlers.py
+        # MockResponseHandler). Without that, the harness silently spends
+        # tokens on real LLM calls and output mode is meaningless. Fail
+        # fast with a clear, actionable error.
+        if mode in ("input", "output"):
+            ok, detail = await probe_mock_response_support(provider, args.model)
+            if not ok:
+                sys.exit(
+                    f"[ERROR] Pre-run mock-response probe failed for model "
+                    f"{args.model!r}: {detail}\n\n"
+                    f"--mode {mode} requires the target model to honor per-"
+                    f"request mock content injected via "
+                    f"`metadata.harness_mock_response`. The LiteLLM proxy "
+                    f"strips the documented top-level `mock_response` body "
+                    f"field, so the harness uses metadata + a CustomLLM "
+                    f"handler instead. Without it, --mode input silently "
+                    f"runs real model calls (token spend, results still "
+                    f"approximately correct) and --mode output produces "
+                    f"meaningless metrics (post-call guardrail evaluates "
+                    f"the model's real response to a benign prompt, not "
+                    f"the harmful synthetic content the harness intended).\n\n"
+                    f"Fixes:\n"
+                    f"  1. Add MockResponseHandler from local/mock_handlers.py "
+                    f"to your LiteLLM proxy config and register a "
+                    f"'harness-mock' model that routes to it. See README "
+                    f"'Configuring your LiteLLM for input/output mode "
+                    f"tests' for the exact yaml.\n"
+                    f"  2. Or use --mode baseline with --guardrail <name> "
+                    f"(real model calls, tests pre-call guardrails honestly)."
+                )
+            print(f"[OK] Mock-response probe succeeded against {args.model!r}.")
+
         tester = GuardrailTester(
             provider=provider, judge=judge, model=args.model, concurrency=args.concurrency,
         )
