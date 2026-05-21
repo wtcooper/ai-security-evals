@@ -418,7 +418,7 @@ def assign_tier(rank_in_source: int, quotas: Tuple[int, int, int]) -> int:
     return 0  # dropped (over quota)
 
 
-def build_corpus(seed: int = 42) -> dict:
+def build_corpus(seed: int = 42, local_data_dir: Optional[str] = None) -> dict:
     """Fetch, rank, tier, and assemble the full corpus structure."""
     print("\n=== Fetching public sources from GitHub ===")
     raw: Dict[str, List[dict]] = {}
@@ -447,6 +447,40 @@ def build_corpus(seed: int = 42) -> dict:
     hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN")
     hf_loaded: List[str] = []
     hf_skipped: List[str] = []
+
+    # ---- Local downloads (for users who manually grabbed gated data) ----
+    # If --local-data-dir is set, look for known-shape files and load them.
+    # Sources loaded locally are marked in hf_loaded so the HF-API loop below
+    # skips re-fetching them.
+    if local_data_dir:
+        local_dir = Path(local_data_dir)
+        print(f"\n=== Loading local downloads from {local_dir} ===")
+        # MHJ: harmbench_behaviors.csv is the upstream-named file for the MHJ
+        # multi-turn red-team conversations CSV (despite the misleading name).
+        mhj_path = local_dir / "harmbench_behaviors.csv"
+        if mhj_path.exists():
+            try:
+                parsed = _load_local_mhj(mhj_path)
+                raw["mhj"] = parsed
+                hf_loaded.append("mhj")
+                print(f"  mhj                       {len(parsed):,} multi-turn from {mhj_path.name}")
+            except Exception as e:
+                print(f"  mhj                       FAIL ({type(e).__name__}: {str(e)[:120]})")
+        else:
+            print(f"  mhj                       not found ({mhj_path.name})")
+        # AgentHarm chat: single-turn harmful prompts from chat_public_test.json
+        agentharm_chat_path = local_dir / "chat_public_test.json"
+        if agentharm_chat_path.exists():
+            try:
+                parsed = _load_local_agentharm_chat(agentharm_chat_path)
+                raw["agentharm"] = parsed
+                hf_loaded.append("agentharm")
+                print(f"  agentharm                 {len(parsed):,} single-turn from {agentharm_chat_path.name}")
+            except Exception as e:
+                print(f"  agentharm                 FAIL ({type(e).__name__}: {str(e)[:120]})")
+        else:
+            print(f"  agentharm                 not found ({agentharm_chat_path.name})")
+
     try:
         from datasets import load_dataset  # type: ignore
         have_datasets = True
@@ -454,11 +488,14 @@ def build_corpus(seed: int = 42) -> dict:
         have_datasets = False
         print("\n[INFO] `datasets` library not installed; skipping ALL HF sources.")
         print("       pip install datasets   to enable Crescendo / MHJ / AgentHarm.")
-        hf_skipped = list(HF_SOURCES.keys())
+        hf_skipped = [n for n in HF_SOURCES.keys() if n not in hf_loaded]
 
     if have_datasets:
         print("\n=== Fetching HuggingFace sources ===")
         for hname, hcfg in HF_SOURCES.items():
+            if hname in hf_loaded:
+                print(f"  {hname:25s} already loaded locally; skipping HF fetch")
+                continue
             is_gated = hcfg.get("gated", False)
             if is_gated and not hf_token:
                 print(f"  {hname:25s} SKIPPED (gated, HF_TOKEN not set)")
@@ -668,6 +705,85 @@ def build_corpus(seed: int = 42) -> dict:
     }
 
 
+def _load_local_mhj(csv_path: Path) -> List[dict]:
+    """
+    Parse MHJ from a local CSV (rows = multi-turn red-team attempts).
+
+    Schema: Source, temperature, tactic, question_id, time_spent,
+    submission_message, message_0, message_1, ..., message_100 — each
+    message_N is a JSON-encoded {"body": "...", "role": "user|assistant|system"}.
+
+    Uses MHJ's real attacker-labeled `tactic` column as the technique_family,
+    which gives downstream metrics a far richer slice than authored templates
+    alone can provide.
+    """
+    out: List[dict] = []
+    with open(csv_path) as f:
+        reader = csv.DictReader(f)
+        for i, row in enumerate(reader):
+            messages: List[Dict[str, str]] = []
+            for j in range(101):
+                raw = (row.get(f"message_{j}") or "").strip()
+                if not raw:
+                    break
+                try:
+                    msg = json.loads(raw)
+                except Exception:
+                    continue
+                role = msg.get("role")
+                if role in ("user", "assistant"):
+                    body = str(msg.get("body") or "").strip()
+                    if body:
+                        messages.append({"role": role, "content": body})
+            if not messages:
+                continue
+            prompt = next(
+                (m["content"] for m in reversed(messages) if m["role"] == "user"),
+                messages[-1]["content"],
+            )
+            tactic = (row.get("tactic") or "").strip()
+            tech_family = tactic.lower().replace(" ", "_") if tactic else "unknown"
+            qid = row.get("question_id") or str(i)
+            out.append({
+                "id": f"mhj-{qid}-{i}",
+                "source": "mhj",
+                "category": "multi_turn_human_jailbreak",
+                "label": "harmful",
+                "prompt": prompt,
+                "messages": messages,
+                "_original_index": i,
+                "technique_family": tech_family,
+            })
+    return out
+
+
+def _load_local_agentharm_chat(json_path: Path) -> List[dict]:
+    """
+    Parse AgentHarm's `chat` config (single-turn harmful prompts) from local
+    JSON. The `harmful` and `harmless_benign` configs are agentic (carry
+    target_functions for tool calls); they're skipped here since this
+    harness is chat-only — use the chat config which AISI extracted for
+    chat-mode evaluation.
+    """
+    with open(json_path) as f:
+        data = json.load(f)
+    out: List[dict] = []
+    for i, b in enumerate(data.get("behaviors", [])):
+        prompt = b.get("prompt")
+        if not prompt:
+            continue
+        out.append({
+            "id": f"agentharm-chat-{b.get('id', i)}",
+            "source": "agentharm",
+            "category": str(b.get("category", "agentharm")).lower(),
+            "label": "harmful",
+            "prompt": str(prompt),
+            "messages": None,
+            "_original_index": i,
+        })
+    return out
+
+
 def _parse_hf_source(name: str, ds, cfg: dict) -> List[dict]:
     """
     Parse an HF dataset into the same record shape we use elsewhere.
@@ -871,12 +987,23 @@ def main():
         help="Output JSON path.",
     )
     p.add_argument("--seed", type=int, default=42, help="Reserved for future random tiebreaks.")
+    p.add_argument(
+        "--local-data-dir",
+        default=None,
+        help="Optional directory holding LOCAL downloads of gated HuggingFace "
+             "datasets (MHJ CSV + AgentHarm chat JSON). When set, the builder "
+             "loads these from disk INSTEAD of hitting the HF API for those "
+             "sources, so users who manually downloaded the gated data after "
+             "accepting access agreements don't need HF_TOKEN at build time. "
+             "Looks for: harmbench_behaviors.csv (MHJ, despite the filename) "
+             "and chat_public_test.json (AgentHarm chat).",
+    )
     args = p.parse_args()
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    corpus = build_corpus(seed=args.seed)
+    corpus = build_corpus(seed=args.seed, local_data_dir=args.local_data_dir)
     with open(out_path, "w") as f:
         json.dump(corpus, f, indent=2)
 

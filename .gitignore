@@ -223,3 +223,8 @@ __marimo__/
 # Project-local secrets (real provider keys for the local LiteLLM proxy)
 .env.local
 .evals/
+temp/
+# Root-only /data/ (where the rebuilt full corpus with MHJ/AgentHarm lives).
+# Leading slash keeps skills/ai-guardrail-eval/data/ trackable so the bundled
+# corpus_v1.json stays in version control.
+/data/
