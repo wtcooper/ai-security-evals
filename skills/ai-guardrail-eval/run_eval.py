@@ -109,8 +109,11 @@ def parse_args() -> argparse.Namespace:
         "--mode",
         choices=["input", "output", "baseline"],
         default=None,
-        help="input (pre_call), output (post_call), or baseline (no guardrails). "
-             "Defaults: 'input' normally; 'baseline' if --guardrail none.",
+        help="REQUIRED when --guardrail is named. "
+             "input = pre-call test (adversarial prompt, benign mock_response); "
+             "output = post-call test (benign prompt, adversarial mock_response); "
+             "baseline = no guardrails, real model call. "
+             "Auto-set to 'baseline' only when --guardrail none.",
     )
 
     # ---- where to test ---------------------------------------------------
@@ -224,8 +227,23 @@ def resolve_guardrails_and_mode(args):
     """
     Map --guardrail flag and --mode flag to (guardrails_list, mode_string).
 
-    --guardrail none -> baseline mode, no guardrails
-    --guardrail name1,name2 -> mode defaults to 'input' if not given
+    Rules — NO silent defaults when a guardrail is named, because picking
+    the wrong mode silently measures the wrong side of the gateway:
+
+    - --guardrail none           -> baseline (the only sensible mode; default)
+    - --guardrail <name> + --mode input     -> pre-call: adversarial prompt,
+                                               benign mock_response
+    - --guardrail <name> + --mode output    -> post-call: benign prompt,
+                                               adversarial mock_response
+    - --guardrail <name> with no --mode     -> hard ERROR. The user must
+                                               state which side they want
+                                               to measure; the harness will
+                                               not guess.
+
+    For a guardrail configured to run on BOTH pre_call and post_call,
+    run two experiments — one --mode input, one --mode output — and
+    compare the metrics.json files side-by-side. See README "Testing
+    a guardrail that runs in both input and output" for the rationale.
     """
     raw = args.guardrail.strip().lower()
     if raw in ("none", ""):
@@ -240,15 +258,29 @@ def resolve_guardrails_and_mode(args):
         return None, mode
 
     guardrails = [g.strip() for g in args.guardrail.split(",") if g.strip()]
-    mode = args.mode or "input"
-    if mode == "baseline":
+
+    if args.mode is None:
+        sys.exit(
+            "[ERROR] --mode is REQUIRED when --guardrail is set to a named "
+            "guardrail. Pick:\n"
+            "  --mode input   -> tests pre-call guardrail with adversarial "
+            "prompts (harmful prompt in user msg, benign mock_response).\n"
+            "  --mode output  -> tests post-call guardrail with adversarial "
+            "model output (benign user prompt, harmful synthetic mock_response).\n"
+            "If the guardrail runs on both sides, run TWO experiments — one "
+            "--mode input, one --mode output — and compare results.\n"
+            "Use --mode baseline (and --guardrail none) for foundation-model "
+            "behavior with no guardrail layer."
+        )
+
+    if args.mode == "baseline":
         print(
             "[WARN] --mode baseline given alongside guardrails - the guardrails "
             "will be ignored in baseline mode.",
             file=sys.stderr,
         )
         guardrails = None
-    return guardrails, mode
+    return guardrails, args.mode
 
 
 def resolve_experiment_name(args, guardrails) -> str:

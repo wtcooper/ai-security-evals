@@ -73,8 +73,15 @@ For each experiment, gather (one `AskUserQuestion` per item, or grouped):
 
 - **Target model**: model name as registered in the LiteLLM `model_list` (e.g. `mock-target-refusal`, `gpt-4o-mini`, `claude-haiku-4-5`).
 - **Guardrail name(s)** (skip if baseline-only): names as registered under `guardrails:` in the LiteLLM config (e.g. `mock-guardrail`, `panw-prisma-airs-pre`).
+- **Mode — REQUIRED and must be asked explicitly when a guardrail is named.** Never guess; the harness will hard-error if you don't pass `--mode`. Use `AskUserQuestion` with these three options:
+  - **input (pre-call)** — Adversarial prompt goes in the user message; a neutral `mock_response` is sent so the LLM is skipped. Tests the **pre-call guardrail's catch rate on harmful inputs**. Most PI guardrails (Prisma AIRS PI, Lakera Guard, etc.) run pre-call.
+  - **output (post-call)** — Benign user prompt + synthetic adversarial content in `mock_response`. Tests the **post-call guardrail's catch rate on harmful model outputs**. Output-side guardrails (content moderation on model responses, PII scrubbers on outputs).
+  - **baseline** — Real LLM call, no guardrail layer. Measures the foundation model's own refusal behavior. Use with `--guardrail none`.
+
+  **If the guardrail you're testing runs on BOTH pre_call and post_call:** run TWO experiments — one `--mode input`, one `--mode output` — with the same guardrail name, then compare the two `metrics.json` files. A single run can only measure one side at a time because the corpus tests one direction per case (adversarial-in-prompt OR adversarial-in-mock_response, not both). See README "Testing a guardrail that runs in both input and output" for the rationale.
+
 - **Judge model** (default `gpt-4o-mini` for real gateways, `mock-judge` for the bundled mock proxy). Warn if equal to target.
-- **Tier**: `smoke` (≈100 cases, ±8 pt CI; for tuning), `standard` (≈300 cases, ±5 pt CI; for vendor comparison), `comprehensive` (≈600 cases, ±3.5 pt CI; for final decisions). Explain the trade-off; default to `smoke` for first runs.
+- **Tier**: `smoke` (~130 cases including PI; ±8 pt CI; for tuning), `standard` (~475 cases; ±5 pt CI; for vendor comparison), `comprehensive` (~1030 cases; ±3.5 pt CI; for final decisions). Explain the trade-off; default to `smoke` for first runs.
 - **Replicates**: 1 by default; 3 for vendor decisions to measure stability.
 - **Concurrency**: 10 by default (workers + judge pool).
 

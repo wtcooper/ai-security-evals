@@ -102,6 +102,35 @@ foundation model would have caught some of those anyway via its own policy.
 
 ---
 
+## Testing a guardrail that runs in both input and output
+
+A single run can only measure **one side** of the gateway — pre-call or post-call — never both at once. This is by design, because the corpus tests one direction per case:
+
+- `--mode input` sends the **adversarial content in the user message** and a neutral `mock_response`. The pre-call guardrail fires on the adversarial prompt; the post-call guardrail sees only the neutral mock and (correctly) doesn't fire. Measures pre-call catch rate.
+- `--mode output` sends a **benign user message** and the **adversarial content in `mock_response`**. The pre-call guardrail correctly doesn't fire on the benign prompt; the post-call guardrail fires on the adversarial mock. Measures post-call catch rate.
+
+So for a guardrail configured to run on **both** sides, run **two experiments** with the same guardrail name and compare the two `metrics.json` files:
+
+```bash
+# Pre-call effectiveness
+uv run python skills/ai-guardrail-eval/run_eval.py \
+    --guardrail panw-prisma-airs --mode input \
+    --tier standard --experiment-name panw_input
+
+# Post-call effectiveness
+uv run python skills/ai-guardrail-eval/run_eval.py \
+    --guardrail panw-prisma-airs --mode output \
+    --tier standard --experiment-name panw_output
+```
+
+Then look at both `metrics.json["overall"]["control_block_rate_harmful"]` values. The **union recall** (request blocked if either side catches) is bounded by `max(pre_recall, post_recall)` if attacks are correlated and `1 − (1−pre_recall)(1−post_recall)` if independent — in practice somewhere in between. The per-experiment numbers are what you report; the combined number is a derived statistic.
+
+**Why not just run both together?** Because the adversarial content has to live somewhere — either in the prompt (input mode) or the mocked response (output mode). Having the same content in both positions doesn't model real production traffic, where a single request flows through both gates carrying one piece of content. The two-experiments-per-guardrail pattern is the honest version: each run measures one gate's catch rate against attacks targeted at that gate, and you combine the numbers after.
+
+The CLI **hard-errors** if you forget to pass `--mode` when a guardrail is named — silent defaulting to input mode was a real bug that produced convincing-but-wrong post-call measurements before this check was added.
+
+---
+
 ## Three modes
 
 | Mode | Use | What it does |
