@@ -215,8 +215,14 @@ QUOTAS: Dict[str, Tuple[int, int, int]] = {
     # add redundancy not diversity. 8 is enough to represent the technique
     # without over-weighting it relative to other multi-turn patterns.
     "crescendo":                  ( 0,  3,   8),
-    "mhj":                        ( 0, 10,  25),
-    "agentharm":                  ( 0,  5,  15),
+    # MHJ has 537 rows across 7 attacker-labeled tactics (Obfuscation 156,
+    # Direct Request 146, Hidden Intention Streamline 109, Request Framing 68,
+    # Injection 32, Output Format 23, Echoing 3). At quota 150, each tactic
+    # gets ~20 cases on average — enough for meaningful per-technique stats.
+    "mhj":                        ( 0, 50, 150),
+    # AgentHarm chat = 44 test_public + 8 validation = 52 available. Quota 40
+    # uses ~77% of what's there; the loader combines both splits.
+    "agentharm":                  ( 0, 20,  40),
     # ---- Prompt injection sources (smoke now includes ~30 PI cases so
     # guardrails like Prisma AIRS PI protection have signal at smoke tier) ----
     "cyberseceval_pi":            (10, 30,  60),  # 15 variants -> ~4 per variant at T3
@@ -955,23 +961,40 @@ def _load_local_agentharm_chat(json_path: Path) -> List[dict]:
     target_functions for tool calls); they're skipped here since this
     harness is chat-only — use the chat config which AISI extracted for
     chat-mode evaluation.
+
+    Reads chat_public_test.json from the given path AND additionally pulls in
+    chat_validation.json if it lives next to it (gives an extra 8 cases for
+    free). Combined output is one flat record list with stable per-split IDs
+    so the ranker treats them as one source.
     """
-    with open(json_path) as f:
-        data = json.load(f)
+    paths = [json_path]
+    validation = json_path.parent / "chat_validation.json"
+    if validation.exists() and validation != json_path:
+        paths.append(validation)
+
     out: List[dict] = []
-    for i, b in enumerate(data.get("behaviors", [])):
-        prompt = b.get("prompt")
-        if not prompt:
-            continue
-        out.append({
-            "id": f"agentharm-chat-{b.get('id', i)}",
-            "source": "agentharm",
-            "category": str(b.get("category", "agentharm")).lower(),
-            "label": "harmful",
-            "prompt": str(prompt),
-            "messages": None,
-            "_original_index": i,
-        })
+    seen_ids: set = set()
+    for p in paths:
+        with open(p) as f:
+            data = json.load(f)
+        split_tag = "val" if p.name.startswith("chat_validation") else "test"
+        for i, b in enumerate(data.get("behaviors", [])):
+            prompt = b.get("prompt")
+            if not prompt:
+                continue
+            rec_id = f"agentharm-chat-{split_tag}-{b.get('id', i)}"
+            if rec_id in seen_ids:
+                continue
+            seen_ids.add(rec_id)
+            out.append({
+                "id": rec_id,
+                "source": "agentharm",
+                "category": str(b.get("category", "agentharm")).lower(),
+                "label": "harmful",
+                "prompt": str(prompt),
+                "messages": None,
+                "_original_index": len(out),
+            })
     return out
 
 
