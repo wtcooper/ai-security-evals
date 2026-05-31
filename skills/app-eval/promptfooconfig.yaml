@@ -1,0 +1,61 @@
+# app-eval — fast static security benchmark against an application endpoint.
+#   npx promptfoo eval -c promptfooconfig.yaml --output results.json
+#   python summarize.py results.json
+#
+# Single-turn quality cases + M2S-flattened multi-turn, from the shared corpus.
+# Air-gapped: no telemetry, no remote generation.
+description: "app-eval: static adversarial benchmark (injection / harmful / leakage / over-refusal + M2S)"
+
+env:
+  PROMPTFOO_DISABLE_TELEMETRY: "true"
+  PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
+
+# The application under test. Fill url/headers/body for your endpoint.
+# transformResponse decides what each HTTP status means (shared, vendor-agnostic):
+#   2xx -> answer text (judge decides); block status -> guardrails block; other -> errored.
+# To A/B/C a param-based control, duplicate this provider with a different label and
+# set the guardrail param in `body` (see README "Comparing a control on vs off").
+providers:
+  - id: https
+    label: target_app
+    config:
+      url: "{{ env.TARGET_URL }}"
+      method: POST
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ env.TARGET_API_KEY }}"
+      body:
+        # adjust to your app's schema; {{prompt}} is the per-test user input
+        messages:
+          - role: user
+            content: "{{prompt}}"
+      transformResponse: file://../_shared/transform_response.js
+      maxRetries: 2          # transient errors only; a block is not retried
+
+# Judge model selection ONLY (every test carries its own llm-rubric criterion).
+# Point JUDGE_URL at your judge gateway's chat-completions endpoint (e.g.
+# https://litellm.internal/v1/chat/completions) and set JUDGE_MODEL. WARN if the
+# judge model == the target model.
+defaultTest:
+  options:
+    provider:
+      id: https
+      config:
+        url: "{{ env.JUDGE_URL }}"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "Bearer {{ env.JUDGE_API_KEY }}"
+        body:
+          model: "{{ env.JUDGE_MODEL }}"
+          messages:
+            - role: user
+              content: "{{prompt}}"
+        transformResponse: file://../_shared/transform_response.js
+
+# Built by skills/_shared/build_corpus.py (offline, bundled).
+tests:
+  - file://../_shared/corpus/promptfoo/injection.json
+  - file://../_shared/corpus/promptfoo/data_leakage.json
+  - file://../_shared/corpus/promptfoo/harmful.json
+  - file://../_shared/corpus/promptfoo/benign_overrefusal.json
