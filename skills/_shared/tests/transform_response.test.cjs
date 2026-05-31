@@ -1,70 +1,57 @@
 /**
- * Zero-dependency tests for the shared transformResponse block policy.
- * Run: node skills/_shared/tests/transform_response.test.cjs
+ * Tests for the app-skill transformResponse (classify-driven). Run:
+ *   node skills/_shared/tests/transform_response.test.cjs
  */
 const path = require('path');
 const transform = require(path.join(__dirname, '..', 'transform_response.js'));
 
-let pass = 0,
-  fail = 0;
-function check(name, cond) {
-  if (cond) {
-    pass++;
-  } else {
-    fail++;
-    console.error('FAIL:', name);
-  }
-}
+let pass = 0, fail = 0;
+function check(name, cond) { cond ? pass++ : (fail++, console.error('FAIL:', name)); }
 const ctx = (status) => ({ response: { status } });
+const threw = (fn) => { try { fn(); return false; } catch (e) { return true; } };
 
-// --- 2xx text extraction across body shapes ---
-check('openai chat', transform({ choices: [{ message: { content: 'hi' } }] }, '', ctx(200)) === 'hi');
-check('openai completion', transform({ choices: [{ text: 'ct' }] }, '', ctx(200)) === 'ct');
-check('anthropic', transform({ content: [{ text: 'an' }] }, '', ctx(200)) === 'an');
-check('custom .response', transform({ response: 'r' }, '', ctx(200)) === 'r');
-check('custom .output', transform({ output: 'o' }, '', ctx(201)) === 'o');
-check('messages last turn', transform({ messages: [{ content: 'a' }, { content: 'b' }] }, '', ctx(200)) === 'b');
-check('raw text fallback', transform(null, 'plain', ctx(200)) === 'plain');
-check('no status -> answer', transform({ output: 'x' }, '', {}) === 'x');
-check('no status null ctx', transform(null, 'y', ctx(null)) === 'y');
+// --- answers: text extraction + metadata ---
+check('openai chat', transform({ choices: [{ message: { content: 'hi' } }] }, '', ctx(200)).output === 'hi');
+check('anthropic', transform({ content: [{ text: 'an' }] }, '', ctx(200)).output === 'an');
+check('messages last turn', transform({ messages: [{ content: 'a' }, { content: 'b' }] }, '', ctx(200)).output === 'b');
+check('raw text', transform(null, 'plain', ctx(200)).output === 'plain');
+check('no status -> answer', transform({ output: 'x' }, '', {}).output === 'x');
+check('answer metadata', transform({ output: 'x' }, '', ctx(200)).metadata.statusClass === 'answer');
+check('answer httpStatus', transform({ output: 'x' }, '', ctx(201)).metadata.httpStatus === 201);
 
-// --- block status (default 400) -> guardrails object + sentinel ---
+// --- block via status hint (400) ---
 const b = transform({ error: { message: 'policy violation' } }, '', ctx(400));
-check('400 returns object', typeof b === 'object' && b !== null);
-check('400 sentinel in output', b.output.includes('[GUARDRAIL_BLOCK]') && b.output.includes('400'));
-check('400 reason captured', b.output.includes('policy violation'));
-check('400 guardrails.flagged', b.guardrails && b.guardrails.flagged === true);
-check('400 flaggedInput true', b.guardrails.flaggedInput === true);
-check('400 reason field', b.guardrails.reason === 'policy violation');
+check('400 sentinel', b.output.includes('[GUARDRAIL_BLOCK]') && b.output.includes('400'));
+check('400 guardrails.flagged', b.guardrails.flagged === true);
+check('400 metadata block', b.metadata.statusClass === 'block');
 
-// block detail across shapes
-check('400 detail .detail', transform({ detail: 'd' }, '', ctx(400)).guardrails.reason === 'd');
-check('400 detail raw text', transform(null, 'rawerr', ctx(400)).guardrails.reason === 'rawerr');
-check('400 empty reason -> http label', transform({}, '', ctx(400)).guardrails.reason === 'HTTP 400');
+// --- block via BODY signal at a non-hint status (no env needed) ---
+const litellm = transform({ error: { message: 'Content blocked: keyword', provider_specific_fields: { guardrail_name: 'content-filter' } } }, '', ctx(403));
+check('403 litellm content-filter -> block', litellm.guardrails && litellm.guardrails.flagged === true);
+check('403 block sentinel', litellm.output.includes('[GUARDRAIL_BLOCK]'));
+check('200 + action:block -> block', transform({ action: 'block' }, '', ctx(200)).guardrails.flagged === true);
 
-// --- operational errors throw (excluded from metrics) ---
-for (const code of [301, 302, 307, 401, 403, 404, 405, 408, 409, 422, 429, 500, 502, 503]) {
-  let threw = false;
-  try {
-    transform({ error: 'x' }, 'body', ctx(code));
-  } catch (e) {
-    threw = true;
-  }
-  check(`HTTP ${code} throws`, threw);
+// --- operational errors throw (excluded) ---
+for (const code of [500, 502, 503, 504, 429, 408, 401, 407]) {
+  check(`HTTP ${code} throws`, threw(() => transform({}, 'body', ctx(code))));
 }
+check('403 + auth msg throws', threw(() => transform({ error: { message: 'invalid api key' } }, '', ctx(403))));
 
-// --- configurable block statuses (vendor-agnostic, env-driven) ---
+// --- ambiguous: default judge path (not thrown) ---
+const amb = transform({}, 'Forbidden', ctx(403));
+check('403 bare -> ambiguous output', amb.output.startsWith('[AMBIGUOUS HTTP 403]'));
+check('ambiguous keeps body', amb.output.includes('Forbidden'));
+check('ambiguous metadata', amb.metadata.statusClass === 'ambiguous');
+check('451 bare -> ambiguous', transform({}, '', ctx(451)).metadata.statusClass === 'ambiguous');
+
+// --- ambiguous: exclude policy -> throws ---
+process.env.GUARDRAIL_AMBIGUOUS_POLICY = 'exclude';
+check('ambiguous excludes when configured', threw(() => transform({}, '', ctx(451))));
+delete process.env.GUARDRAIL_AMBIGUOUS_POLICY;
+
+// --- configurable block-status hint ---
 process.env.GUARDRAIL_BLOCK_STATUSES = '400,446';
-const prisma = transform({ message: 'blocked by airs' }, '', ctx(446));
-check('446 block when configured', typeof prisma === 'object' && prisma.guardrails.flagged === true);
-check('446 sentinel mentions 446', prisma.output.includes('446'));
-let stillThrows = false;
-try {
-  transform({}, '', ctx(403));
-} catch (e) {
-  stillThrows = true;
-}
-check('403 still throws (not in set)', stillThrows);
+check('446 block when configured', transform({ message: 'blocked' }, '', ctx(446)).guardrails.flagged === true);
 delete process.env.GUARDRAIL_BLOCK_STATUSES;
 
 console.log(`\n${pass} passed, ${fail} failed`);

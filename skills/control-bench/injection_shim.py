@@ -19,11 +19,14 @@ Two modes:
     SHIM_GATEWAY_URL=http://localhost:4000 SHIM_GATEWAY_KEY=$KEY \
     python injection_shim.py --arms arms.json --base-port 8901
 
-Block handling: many guardrails block with a non-2xx (e.g. litellm raises HTTP 400).
-A hard error aborts an Inspect run instead of scoring it, so by default the shim
-converts a block status (GUARDRAIL_BLOCK_STATUSES, default 400) into a 200 refusal
-completion — the benchmark then scores the arm as a refusal (failed attack), keeping
-native scores comparable across arms. Disable with SHIM_BLOCK_AS_REFUSAL=false.
+Block handling: many guardrails block with a non-2xx (e.g. litellm raises HTTP 400;
+the content-filter uses 403). A hard error aborts an Inspect run instead of scoring it,
+so by default the shim classifies the response with the shared body-first classifier
+(status_policy.classify — body signal first, status as a hint) and converts a BLOCK
+into a 200 refusal completion — so a new vendor's block code (e.g. a 403 recognized by
+its body) is handled with NO config. Operational errors pass through (surfaced to
+Inspect). Disable conversion with SHIM_BLOCK_AS_REFUSAL=false; force extra block-status
+hints with GUARDRAIL_BLOCK_STATUSES.
 """
 
 from __future__ import annotations
@@ -36,7 +39,9 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "_shared"))
 from connectors.base import Arm, Connector  # noqa: E402
+from status_policy import classify  # noqa: E402  (shared body-first classifier)
 
 HOP_BY_HOP = {"content-length", "host", "connection", "keep-alive", "transfer-encoding"}
 
@@ -48,11 +53,6 @@ def arm_from_dict(d: dict) -> Arm:
 
 def arm_from_json(s: str) -> Arm:
     return arm_from_dict(json.loads(s))
-
-
-def block_statuses() -> set[int]:
-    raw = os.environ.get("GUARDRAIL_BLOCK_STATUSES", "400")
-    return {int(x) for x in raw.split(",") if x.strip().lstrip("-").isdigit()}
 
 
 def build_forward(path, in_headers, body_bytes, connector: Connector, arm: Arm,
@@ -73,24 +73,27 @@ def build_forward(path, in_headers, body_bytes, connector: Connector, arm: Arm,
     return gateway_url.rstrip("/") + path, headers, out_body, body.get("model") or arm.model
 
 
-def block_to_refusal(data: bytes, code: int, model: str, statuses: set[int]):
-    """If `code` is a guardrail block, return (200, refusal-completion-bytes) so the
-    benchmark scores it as a refusal instead of erroring. Else return (code, data)."""
-    if code not in statuses:
+def block_to_refusal(data: bytes, code: int, model: str):
+    """If the response is a guardrail BLOCK (body-signal first, status as a hint — via
+    the shared classifier), return (200, refusal-completion-bytes) so the benchmark
+    scores it as a refusal instead of erroring. Operational errors and normal answers
+    pass through unchanged. This catches non-400 block codes (e.g. a 403 content-filter
+    recognized by its body) with NO GUARDRAIL_BLOCK_STATUSES config."""
+    try:
+        body = json.loads(data or b"{}")
+    except json.JSONDecodeError:
+        body = {}
+    if classify(code, body, "" if isinstance(body, dict) else str(data)).get("kind") != "block":
         return code, data
     reason = ""
-    try:
-        err = json.loads(data or b"{}")
-    except json.JSONDecodeError:
-        err = {}
-    if isinstance(err, dict):
-        e = err.get("error")
+    if isinstance(body, dict):
+        e = body.get("error")
         if isinstance(e, dict):          # {"error": {"message": "..."}}
             reason = e.get("message") or ""
         elif isinstance(e, str):         # {"error": "..."}
             reason = e
         else:
-            reason = err.get("message") or err.get("detail") or ""
+            reason = body.get("message") or body.get("detail") or ""
     completion = {
         "id": "shim-guardrail-block", "object": "chat.completion", "model": model or "guarded",
         "choices": [{"index": 0, "finish_reason": "content_filter",
@@ -120,7 +123,7 @@ def make_handler(connector, arm, gateway_url, gateway_key, block_as_refusal):
                 data = json.dumps({"error": {"message": f"shim forward failed: {e}"}}).encode()
                 code = 502
             if block_as_refusal:
-                code, data = block_to_refusal(data, code, model, block_statuses())
+                code, data = block_to_refusal(data, code, model)
             self.send_response(code)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(data)))

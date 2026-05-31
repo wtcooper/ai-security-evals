@@ -56,7 +56,7 @@ def test_baseline_arm_strips_guardrail():
 
 def test_block_to_refusal_converts_400():
     body = json.dumps({"error": {"message": "Blocked by policy: 'bomb'"}}).encode()
-    code, data = shim.block_to_refusal(body, 400, "gpt-4o", {400})
+    code, data = shim.block_to_refusal(body, 400, "gpt-4o")
     assert code == 200
     doc = json.loads(data)
     assert doc["choices"][0]["finish_reason"] == "content_filter"
@@ -64,21 +64,30 @@ def test_block_to_refusal_converts_400():
     assert "bomb" in doc["choices"][0]["message"]["content"]
 
 
+def test_block_to_refusal_body_aware_403_no_env():
+    # the LiteLLM content-filter 403 is recognized by its body (guardrail_name) and
+    # converted to a refusal WITHOUT any GUARDRAIL_BLOCK_STATUSES override
+    body = json.dumps({"error": {"message": "Content blocked: keyword 'x' detected",
+                                 "provider_specific_fields": {"guardrail_name": "content-filter"}}}).encode()
+    code, data = shim.block_to_refusal(body, 403, "m")
+    assert code == 200
+    assert "[GUARDRAIL_BLOCK]" in json.loads(data)["choices"][0]["message"]["content"]
+
+
 def test_block_to_refusal_reason_from_string_error():
-    # {"error": "..."} (string, not object) must not lose the reason via AttributeError
-    body = json.dumps({"error": "Blocked by policy: 'bomb'"}).encode()
-    code, data = shim.block_to_refusal(body, 400, "m", {400})
+    body = json.dumps({"error": "Blocked by guardrail: 'bomb'"}).encode()
+    code, data = shim.block_to_refusal(body, 400, "m")
     assert code == 200
     assert "bomb" in json.loads(data)["choices"][0]["message"]["content"]
 
 
 def test_block_to_refusal_passthrough_non_block():
     body = b'{"ok":true}'
-    code, data = shim.block_to_refusal(body, 200, "m", {400})
+    code, data = shim.block_to_refusal(body, 200, "m")
     assert code == 200 and data == body
-    # operational errors are NOT converted (so they stay visible)
-    code, data = shim.block_to_refusal(b'{"error":{}}', 500, "m", {400})
-    assert code == 500
+    # operational errors are NOT converted (so they stay visible to Inspect)
+    code, data = shim.block_to_refusal(b'{"error":{"message":"rate limit"}}', 429, "m")
+    assert code == 429
 
 
 def test_arm_from_dict():

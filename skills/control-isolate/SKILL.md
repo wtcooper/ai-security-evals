@@ -87,6 +87,10 @@ Present and interpret:
 - **F1 / precision / recall / FPR.** Recall = catch rate on attacks; FPR = over-block
   rate on benign (the cost). A guardrail that blocks everything has high recall but
   terrible FPR/F1.
+- **Per-status histogram + warnings.** Shows how the guardrail's responses were bucketed.
+  An `unmapped` / `AMBIGUOUS` warning means a non-2xx had no recognizable block/error
+  signal and was excluded — if it's actually a block, map it via `GUARDRAIL_BLOCK_STATUSES`
+  or `GUARDRAIL_BLOCK_FIELD`/`VALUE` and re-run, so you don't undercount the guardrail.
 - **`by_technique_family`.** Call out blind spots — e.g. "catches `direct_harmful`
   0.9 but `m2s_*` flattened multi-turn 0.2" or "misses `system_prompt_exfiltration`".
 - For input-vs-output runs or vendor comparisons, put the F1/FPR numbers side by side

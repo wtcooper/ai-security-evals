@@ -3,7 +3,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-echo "== Node tests (transform / guardrail adapter) =="
+echo "== Node tests (status policy / transform / guardrail adapter) =="
+node skills/_shared/tests/status_policy.test.cjs
 node skills/_shared/tests/transform_response.test.cjs
 node skills/control-isolate/tests/generic_guardrail.test.cjs
 

@@ -105,6 +105,46 @@ def test_warning_on_all_errored():
     assert m["warnings"] and "0 of 3 rows scored" in m["warnings"][0]
 
 
+def _with_response(type_, passed, output, metadata=None):
+    r = _r(type_, passed)
+    r["response"] = {"output": output}
+    if metadata is not None:
+        r["response"]["metadata"] = metadata
+    return r
+
+
+def test_status_histogram_from_metadata():
+    doc = {"results": {"results": [
+        _with_response("harmful_content", True, "[GUARDRAIL_BLOCK] ...",
+                       {"statusClass": "block", "httpStatus": 403}),
+        _with_response("benign", True, "sure here you go",
+                       {"statusClass": "answer", "httpStatus": 200}),
+    ]}}
+    m = S.summarize(doc)
+    assert m["by_status_class"]["block"] == 1 and m["by_status_class"]["answer"] == 1
+    assert m["by_http_status"][403] == 1 and m["by_http_status"][200] == 1
+
+
+def test_status_histogram_fallback_from_output_marker():
+    # no metadata -> infer class from the output sentinel
+    doc = {"results": {"results": [
+        _with_response("harmful_content", True, "[GUARDRAIL_BLOCK] HTTP 451 blocked"),
+        _with_response("harmful_content", True, "[AMBIGUOUS HTTP 418] teapot"),
+    ]}}
+    m = S.summarize(doc)
+    assert m["by_status_class"]["block"] == 1
+    assert m["by_status_class"]["ambiguous"] == 1
+    assert m["by_http_status"][451] == 1 and m["by_http_status"][418] == 1
+
+
+def test_ambiguous_warning():
+    doc = {"results": {"results": [
+        _with_response("harmful_content", True, "x", {"statusClass": "ambiguous", "httpStatus": 418}),
+    ]}}
+    m = S.summarize(doc)
+    assert any("AMBIGUOUS" in w for w in m["warnings"])
+
+
 def test_flat_results_schema():
     # newer promptfoo flat shape: {"results": [ ... ]}
     doc = {"results": [_r("harmful_content", True), _r("benign", True)]}

@@ -4,8 +4,8 @@ Shared by `app-eval`, `app-redteam`, `control-isolate`, and `control-bench`.
 
 | File | Purpose | Tests |
 |---|---|---|
-| `status_policy.js` | Single source of truth for the HTTP-status block policy (`classifyStatus` → `ok`/`block`/`error`, memoized `GUARDRAIL_BLOCK_STATUSES`, shared `extractReason`). Required by both JS consumers below so they never drift. | covered via the two below |
-| `transform_response.js` | Vendor-agnostic promptfoo `transformResponse`: 2xx→text→judge; block status (default `400`, set `GUARDRAIL_BLOCK_STATUSES`)→native `guardrails` object + sentinel; any other non-2xx (incl. 3xx)→throw (errored, excluded from metrics). | `tests/transform_response.test.cjs` |
+| `status_policy.js` | Single source of truth for response classification: `classify(status, json, text)` → `answer`/`block`/`error`/`ambiguous`, **body-signal first, status as a hint**. Recognizes vendor block bodies (`action:block`, `guardrail_name`, "content blocked", …) and infra errors (5xx/429/401/auth/quota/timeout). Required by both JS consumers so they never drift. | `tests/status_policy.test.cjs` |
+| `transform_response.js` | promptfoo `transformResponse` for the app skills over `classify`: answer→text→judge; block→native `guardrails` + sentinel; error→throw (excluded); ambiguous→judge (default) or exclude (`GUARDRAIL_AMBIGUOUS_POLICY`). Emits `metadata.{httpStatus,statusClass}` for the histogram. | `tests/transform_response.test.cjs` |
 | `m2s.py` | Multi-turn→single-turn flattening (`hyphenize`/`numberize`/`pythonize`, arXiv:2503.04856). | `tests/test_m2s.py` |
 | `build_corpus.py` | Builds promptfoo test files from the vendored offline sources; adds MHJ→M2S harmful cases; dedups; stratified seeded tiers. | `tests/test_build_corpus.py` |
 | `corpus/sources/` | Vendored, offline, license-clean datasets (PromptInject, AdvBench, CyberSecEval PI + FRR, XSTest, MHJ). | — |

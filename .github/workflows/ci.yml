@@ -31,6 +31,7 @@ jobs:
 
       - name: Node tests
         run: |
+          node skills/_shared/tests/status_policy.test.cjs
           node skills/_shared/tests/transform_response.test.cjs
           node skills/control-isolate/tests/generic_guardrail.test.cjs
 
