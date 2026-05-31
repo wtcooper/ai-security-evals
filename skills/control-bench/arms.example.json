@@ -1,0 +1,5 @@
+[
+  {"name": "baseline"},
+  {"name": "prisma", "guardrails": ["prisma-airs-pi"]},
+  {"name": "lakera", "guardrails": ["lakera-guard"]}
+]
