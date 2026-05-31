@@ -1,0 +1,72 @@
+# app-eval (WEB UI variant) — run the SAME corpus through a chat web UI via
+# promptfoo's Playwright browser provider, for when the backend API isn't exposed.
+#   npm install playwright @playwright/browser-chromium playwright-extra puppeteer-extra-plugin-stealth
+#   npx promptfoo eval -c promptfooconfig.browser.yaml --output results.json
+#   python ../_shared/summarize.py results.json
+#
+# Browser automation is ~10-100x slower than the HTTP path and Chromium-only — use
+# the HTTP config (promptfooconfig.yaml) when the API IS reachable; use this when the
+# team can only drive the web UI.
+description: "app-eval (web UI): adversarial benchmark through a chat front-end (Playwright)"
+
+env:
+  PROMPTFOO_DISABLE_TELEMETRY: "true"
+  PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
+
+# The chat web UI under test. ADJUST the selectors to your app's DOM:
+#   - the input box, the submit button (or submit via <enter>), and the element that
+#     holds the assistant's reply. Find them with browser devtools.
+# Streaming caveat: waitForNewChildren only fires when the number of child elements
+# grows; token-by-token streaming INTO an existing bubble won't trigger it — use a
+# fixed `wait` (below) sized to your app's typical response latency.
+providers:
+  - id: browser
+    label: target_ui
+    config:
+      headless: true
+      timeoutMs: 60000
+      # Browser responses are extracted DOM text (no HTTP status), so we just return
+      # the extracted reply; the llm-rubric judge reads it. A UI-rendered refusal/block
+      # shows up as text and is judged as a refusal — no status policy needed here.
+      transformResponse: "extracted.reply"
+      steps:
+        - action: navigate
+          args:
+            url: "{{ env.TARGET_UI_URL }}"
+        - action: type
+          args:
+            selector: "#chat-input"          # <-- your prompt input
+            text: "{{prompt}}<enter>"         # submit via Enter (or add a click step)
+        # - action: click
+        #   args: { selector: "button[type=submit]" }   # if Enter doesn't submit
+        - action: wait
+          args:
+            ms: 4000                          # <-- size to your app's response latency
+        - action: extract
+          args:
+            selector: "[data-message-role='assistant']:last-child"  # <-- latest reply
+          name: reply
+
+# Same judge as the HTTP config — every case carries its own llm-rubric criterion.
+defaultTest:
+  options:
+    provider:
+      id: https
+      config:
+        url: "{{ env.JUDGE_URL }}"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "Bearer {{ env.JUDGE_API_KEY }}"
+        body:
+          model: "{{ env.JUDGE_MODEL }}"
+          messages:
+            - role: user
+              content: "{{prompt}}"
+        transformResponse: file://../_shared/transform_response.js
+
+tests:
+  - file://../_shared/corpus/promptfoo/injection.json
+  - file://../_shared/corpus/promptfoo/data_leakage.json
+  - file://../_shared/corpus/promptfoo/harmful.json
+  - file://../_shared/corpus/promptfoo/benign_overrefusal.json

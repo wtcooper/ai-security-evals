@@ -1,0 +1,65 @@
+# app-redteam (WEB UI variant) — adaptive multi-turn red team driven through a chat
+# web UI via promptfoo's Playwright browser provider, with the session persisted
+# across turns so crescendo/goat/hydra can escalate through the front-end.
+#   npm install playwright @playwright/browser-chromium playwright-extra puppeteer-extra-plugin-stealth
+#   npx promptfoo redteam run -c promptfooconfig.browser.yaml
+#   npx promptfoo redteam report
+#
+# Browser red teaming is slow (Chromium, persistSession requires maxConcurrency 1).
+# Use the HTTP config (promptfooconfig.yaml) when the API is reachable; use this when
+# the team can only attack through the web UI.
+description: "app-redteam (web UI): adaptive multi-turn red team through a chat front-end"
+
+env:
+  PROMPTFOO_DISABLE_TELEMETRY: "true"
+  PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
+
+# maxConcurrency must be 1 when persisting the browser session across turns.
+evaluateOptions:
+  maxConcurrency: 1
+
+targets:
+  - id: browser
+    label: target_ui
+    config:
+      headless: true
+      timeoutMs: 60000
+      persistSession: true                 # keep the chat session across turns
+      transformResponse: "extracted.reply"
+      steps:
+        # On turn 1, navigate once; on later turns, runOnce skips re-navigation.
+        - action: navigate
+          args:
+            url: "{{ env.TARGET_UI_URL }}"
+          runOnce: true
+        - action: type
+          args:
+            selector: "#chat-input"        # <-- your prompt input
+            text: "{{prompt}}<enter>"
+        - action: wait
+          args:
+            ms: 4000                        # <-- size to your app's response latency
+        - action: extract
+          args:
+            selector: "[data-message-role='assistant']:last-child"  # <-- latest reply
+          name: reply
+
+redteam:
+  purpose: >-
+    Authorized security testing of an internal LLM web application via its chat UI.
+  # Attacker model — OpenAI-compatible; point at your production LiteLLM.
+  provider:
+    id: "openai:chat:{{ env.ATTACKER_MODEL }}"
+    config:
+      apiBaseUrl: "{{ env.ATTACKER_BASE_URL }}"
+      apiKey: "{{ env.ATTACKER_API_KEY }}"
+  plugins:
+    - harmful
+    - pii
+    - prompt-extraction
+  strategies:
+    - id: crescendo
+      config: { maxTurns: 5, maxBacktracks: 5, stateful: true }
+    - id: goat
+      config: { maxTurns: 5, stateful: true }
+    - jailbreak
