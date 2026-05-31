@@ -15,6 +15,10 @@ dependencies = [
 corpus = [
     "datasets>=4.8.5,<5",
 ]
+# NOTE: control-bench's engine (inspect_ai / inspect_evals) is intentionally NOT a
+# dependency here — it conflicts with litellm[proxy], and it doesn't need to share a
+# venv: control-bench talks to the gateway over HTTP via the shim. Install Inspect in
+# its own env:  uv venv .venv-inspect && .venv-inspect/bin/python -m pip install inspect_ai inspect_evals
 dev = [
     "pytest>=9.0.3,<10",
     "pytest-asyncio>=1.3,<2",
@@ -24,8 +28,12 @@ dev = [
 package = false
 
 [tool.pytest.ini_options]
-testpaths = ["skills/ai-guardrail-eval/tests"]
+testpaths = [
+    "skills/_shared/tests",
+    "skills/control-bench/tests",
+    "skills/ai-guardrail-eval/tests",
+]
 asyncio_mode = "auto"
-pythonpath = ["skills/ai-guardrail-eval"]
+pythonpath = ["skills/_shared", "skills/ai-guardrail-eval"]
 python_classes = ["Test_*"]   # avoid picking up TestCase/TestResult dataclasses
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]

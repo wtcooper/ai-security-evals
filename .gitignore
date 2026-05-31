@@ -228,3 +228,15 @@ temp/
 # Leading slash keeps skills/ai-guardrail-eval/data/ trackable so the bundled
 # corpus_v1.json stays in version control.
 /data/
+
+# --- security-eval skills: generated artifacts (rebuild via build_corpus.py) ---
+skills/_shared/corpus/promptfoo/
+skills/control-isolate/corpus/
+skills/*/results.json
+skills/**/__pycache__/
+# MHJ multi-turn jailbreaks are research-only — not redistributable. Fetch locally.
+skills/_shared/corpus/sources/raw/mhj_multiturn.csv
+
+# per-skill secrets
+skills/**/.env
+.env
