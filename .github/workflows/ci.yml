@@ -1,0 +1,44 @@
+name: skills-ci
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PROMPTFOO_DISABLE_TELEMETRY: "true"
+      PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Python env
+        run: uv sync --extra dev
+
+      - name: Build corpora (smoke) — exercises the builder offline
+        run: |
+          uv run python skills/_shared/build_corpus.py --tier smoke
+          uv run python skills/_shared/build_corpus.py --tier smoke --assert guardrail --out skills/control-isolate/corpus
+
+      - name: Node tests
+        run: |
+          node skills/_shared/tests/transform_response.test.cjs
+          node skills/control-isolate/tests/generic_guardrail.test.cjs
+
+      - name: Python tests
+        run: uv run pytest skills/_shared/tests skills/control-bench/tests -q
+
+      - name: Validate promptfoo configs
+        run: |
+          for d in app-eval control-isolate app-redteam; do
+            ( cd "skills/$d" && npx -y promptfoo@latest validate -c promptfooconfig.yaml )
+          done
