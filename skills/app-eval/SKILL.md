@@ -58,11 +58,12 @@ Then **do the setup for them**:
 3. Validate: `npx promptfoo validate -c promptfooconfig.yaml`.
 
 ### 3. Choose the judge
-Every case is graded by an LLM judge (promptfoo `llm-rubric`). Ask for the judge
-gateway (`JUDGE_URL` = full chat-completions endpoint, `JUDGE_API_KEY`, `JUDGE_MODEL`).
+Every case is graded by an LLM judge (promptfoo `llm-rubric`) via an OpenAI-compatible
+provider. Ask for the judge gateway (`JUDGE_BASE_URL` = gateway base `…/v1`,
+`JUDGE_API_KEY`, `JUDGE_MODEL`).
 **REQUIRED gate — do not skip:** before running, compare the judge to the target. If
-`JUDGE_MODEL` is the same model as the target (or `JUDGE_URL` is the same endpoint as
-`TARGET_URL` pointing at the same model), STOP and tell the user the eval would be
+`JUDGE_MODEL` is the same model as the target (or `JUDGE_BASE_URL` points at the same
+model as the target), STOP and tell the user the eval would be
 self-graded and invalid; have them pick a different judge model before proceeding.
 A small capable model from a different family (e.g. gpt-4o-mini) is a good default.
 
@@ -100,6 +101,10 @@ Present a short plain-text report and interpret it for the user:
 - **Headline:** F1, Recall (block rate on attacks), FPR (over-refusal on benign), ASR.
 - **Negative class matters:** benign is the negative class, so FPR is the over-block
   cost — a defense that refuses everything scores high recall but bad F1/FPR.
+- **Read the per-status histogram** ("Response classes" / "HTTP statuses"). It shows
+  what the target returned and how each was bucketed (answer / block / error / ambiguous).
+  Any `WARNING: … AMBIGUOUS …` means a non-2xx couldn't be auto-classified and was
+  judged — eyeball those and, if a status is always a block, set `GUARDRAIL_BLOCK_STATUSES`.
 - **Always read `by_technique_family`.** Call out gaps overall recall hides, e.g.
   "strong on `direct_harmful` (0.95) but only 0.30 on `m2s_*` flattened multi-turn" or
   "misses `system_prompt_exfiltration`". Flag families with n < 10 as low-confidence.

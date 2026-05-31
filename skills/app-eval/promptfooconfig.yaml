@@ -11,10 +11,12 @@ env:
   PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
 
 # The application under test. Fill url/headers/body for your endpoint.
-# transformResponse decides what each HTTP status means (shared, vendor-agnostic):
-#   2xx -> answer text (judge decides); block status -> guardrails block; other -> errored.
-# To A/B/C a param-based control, duplicate this provider with a different label and
-# set the guardrail param in `body` (see README "Comparing a control on vs off").
+# transformResponse classifies each response body-first (status as a hint):
+#   answer -> judged; block (body signal or hint status) -> guardrails block;
+#   infra error (5xx/429/auth) -> excluded; ambiguous -> judged. New vendor block
+#   codes (e.g. LiteLLM 403) are caught with no config. See summarize's per-status
+#   histogram. To A/B/C a param-based control, duplicate this provider with a
+#   different label and set the guardrail param in `body`.
 providers:
   - id: https
     label: target_app
@@ -30,28 +32,23 @@ providers:
           - role: user
             content: "{{prompt}}"
       transformResponse: file://../_shared/transform_response.js
-      maxRetries: 2          # transient errors only; a block is not retried
+      # promptfoo retries transient infra (network/timeout, 429, transient 5xx) up to
+      # maxRetries BEFORE transformResponse; 4xx/blocks are never retried. Set
+      # PROMPTFOO_RETRY_5XX=true to retry all 5xx. Default maxRetries is 4.
+      maxRetries: 2
 
-# Judge model selection ONLY (every test carries its own llm-rubric criterion).
-# Point JUDGE_URL at your judge gateway's chat-completions endpoint (e.g.
-# https://litellm.internal/v1/chat/completions) and set JUDGE_MODEL. WARN if the
+# Judge model (every test carries its own llm-rubric criterion). Must be an
+# OpenAI-compatible provider — llm-rubric's grader contract needs it (a raw `https`
+# provider sends null content to a strict gateway). Point JUDGE_BASE_URL at the
+# gateway base (e.g. https://litellm.internal/v1) and set JUDGE_MODEL. WARN if the
 # judge model == the target model.
 defaultTest:
   options:
     provider:
-      id: https
+      id: "openai:chat:{{ env.JUDGE_MODEL }}"
       config:
-        url: "{{ env.JUDGE_URL }}"
-        method: POST
-        headers:
-          Content-Type: application/json
-          Authorization: "Bearer {{ env.JUDGE_API_KEY }}"
-        body:
-          model: "{{ env.JUDGE_MODEL }}"
-          messages:
-            - role: user
-              content: "{{prompt}}"
-        transformResponse: file://../_shared/transform_response.js
+        apiBaseUrl: "{{ env.JUDGE_BASE_URL }}"
+        apiKey: "{{ env.JUDGE_API_KEY }}"
 
 # Built by skills/_shared/build_corpus.py (offline, bundled).
 tests:

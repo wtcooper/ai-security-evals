@@ -1,6 +1,6 @@
 # ai-security-evals
 
-Distributable **Claude Code skills** for evaluating the security of LLM applications
+Distributable **AI skills** for evaluating the security of LLM applications
 and the controls that protect them.
 
 Each skill is an interactive **Plan → Run → Analyze** runbook that Claude Code executes
@@ -27,7 +27,10 @@ Split by **what is under test**. They share a corpus, transform, and metrics lay
 | [`app-redteam`](skills/app-redteam/) | An app endpoint — adaptive attacks | promptfoo `redteam` | which strategies broke through (vuln report) |
 | [`control-isolate`](skills/control-isolate/) | A guardrail API by itself (no model) | promptfoo `eval` | classification F1 / precision / recall / FPR |
 | [`control-bench`](skills/control-bench/) | A control's effect inside a real benchmark | Inspect + inspect_evals | risk-reduction Δ vs baseline (A/B/C) |
-| [`ai-guardrail-eval`](skills/ai-guardrail-eval/) | _(legacy)_ original custom-engine A/B/C harness | custom Python | superseded by the four above |
+
+Each app skill also has a **web-UI variant** (`promptfooconfig.browser.yaml`) that runs
+the same corpus/attacks through a chat front-end via promptfoo's Playwright **browser
+provider** — for when the backend API isn't exposed.
 
 ### When to use which
 
@@ -85,10 +88,21 @@ Split by **what is under test**. They share a corpus, transform, and metrics lay
 prompt (hyphenize/numberize/pythonize), no fabricated assistant turns. Live escalation
 dynamics live in `app-redteam`.
 
-**Vendor-agnostic block handling:** the shared `_shared/status_policy.js` is the single
-source of truth — 2xx → judged text; a block status (default `400`, set
-`GUARDRAIL_BLOCK_STATUSES` per vendor) → promptfoo `guardrails` block; any other non-2xx
-(incl. 3xx) → errored and excluded from metrics. No per-vendor transformer needed.
+**Vendor-agnostic block handling:** the shared `_shared/status_policy.js` classifies each
+response **body-first, status-as-hint** — so a new vendor's block code (e.g. LiteLLM's
+**403** content-filter) is caught automatically, with no config:
+
+| Class | How it's detected | What happens |
+|---|---|---|
+| `answer` | 2xx, no block signal | extracted text → judged |
+| `block` | a body block-signal (`action:block`, `blocked`, `flagged`, `is_malicious`, a `guardrail_name`, a "content blocked/policy" message) **or** a hint status (`GUARDRAIL_BLOCK_STATUSES`, default `400`) | `guardrails` block → judged as a refusal |
+| `error` | 5xx/429/408/401 or an auth/quota/timeout body | **excluded** from metrics (infra ≠ safety decision) |
+| `ambiguous` | a non-2xx with no block or infra signal | app skills hand it to the judge; control-isolate surfaces it loudly — **never silently dropped** |
+
+Transport retries (network/timeout, 429, transient 5xx) are handled by promptfoo
+*before* classification, so anything reaching the classifier has already survived
+retries. `summarize.py` prints a **per-status histogram** every run, so mis-bucketing is
+visible, not silent.
 
 ---
 
@@ -99,7 +113,10 @@ ai-security-evals/
 ├── pyproject.toml                  # uv-managed Python deps (Python 3.11+)
 ├── scripts/run_tests.sh            # all Node + Python tests, offline
 ├── docs/skills-redesign-plan.md    # design rationale for the four skills
-├── local/                          # local LiteLLM proxy: mock models + mock guardrail
+├── targets/                        # things to point the skills at
+│   ├── proxy/                      #   shared LiteLLM AI gateway (models + guardrails)
+│   ├── aigoat/                     #   AIGoat (adopt): UI + API + defense levels — clone+run docs
+│   └── dvaa/                       #   DVAA (adopt): OpenAI-compatible + MCP — clone+run docs
 └── skills/
     ├── _shared/                    # shared layer used by the skills
     │   ├── status_policy.js        #   single HTTP-status block policy (JS)
@@ -109,17 +126,24 @@ ai-security-evals/
     │   ├── summarize.py            #   F1/recall/FPR/ASR + by_technique_family
     │   ├── corpus/sources/         #   vendored offline datasets (license-clean)
     │   └── tests/                  #   unit tests + mock_server.py
-    ├── app-eval/                   # SKILL.md · promptfooconfig.yaml · env.example
-    ├── app-redteam/                # SKILL.md · promptfooconfig.yaml · env.example
+    ├── app-eval/                   # SKILL.md · promptfooconfig.yaml · .browser.yaml · env.example
+    ├── app-redteam/                # SKILL.md · promptfooconfig.yaml · .browser.yaml · env.example
     ├── control-isolate/            # SKILL.md · promptfooconfig.yaml · adapters/ · env.example
-    ├── control-bench/              # SKILL.md · injection_shim.py · connectors/ · arms.example.json
-    └── ai-guardrail-eval/          # legacy custom-engine harness (superseded)
+    └── control-bench/              # SKILL.md · injection_shim.py · connectors/ · arms.example.json
 ```
 
 The shared corpus (`skills/_shared/corpus/promptfoo/`) and the control-isolate corpus are
 **generated** by `build_corpus.py` and gitignored. The research-only MHJ source
 (`mhj_multiturn.csv`) is also gitignored — provide it locally to include M2S cases;
 without it the builder warns and omits the multi-turn dimension.
+
+## Targets
+
+[`targets/`](targets/) holds things to point the skills at: the **shared LiteLLM
+gateway** (`targets/proxy`, models + bundled content-safety guardrails) and two adopted
+deliberately-vulnerable apps — **[AIGoat](targets/aigoat/)** (UI + API + defense levels)
+and **[DVAA](targets/dvaa/)** (OpenAI-compatible + MCP, zero keys). Apps route their
+models through the proxy, so a guardrail can be toggled by name and tested as A/B/C.
 
 ---
 
@@ -147,7 +171,7 @@ runbook and asks you for the details it needs:
 ### Run a skill manually (app-eval example)
 ```bash
 cd skills/app-eval
-cp env.example .env && $EDITOR .env          # TARGET_URL/KEY, JUDGE_URL/KEY/MODEL
+cp env.example .env && $EDITOR .env          # TARGET_URL/KEY, JUDGE_BASE_URL/KEY/MODEL
 bash install_dependencies.sh                 # promptfoo, air-gapped
 
 python ../_shared/build_corpus.py --tier smoke   # build the corpus (~30 cases)
@@ -160,7 +184,7 @@ python ../_shared/summarize.py results.json      # F1 / recall / FPR / ASR + bre
 The `local/` LiteLLM proxy ships mock target models and a mock guardrail, so you can
 exercise the full pipeline offline:
 ```bash
-bash local/start_proxy.sh &                  # mock gateway on :4000
+bash targets/proxy/start_proxy.sh &                  # mock gateway on :4000
 # point a skill's TARGET_URL/GUARDRAIL_URL at the mock and run as above
 ```
 

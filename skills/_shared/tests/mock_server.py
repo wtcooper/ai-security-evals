@@ -63,6 +63,10 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/echo":
             # echo the received body back (for verifying shim param injection)
             return self._send(200, {"received": payload})
+        if path == "/v1/chat/completions":
+            # OpenAI-compatible route: acts as an always-pass judge so an
+            # `openai:chat:*` grader pointed at the mock works for keyless smokes.
+            return self._judge(payload)
         self._send(404, {"error": "no route"})
 
     def _target(self, payload):

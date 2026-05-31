@@ -58,9 +58,18 @@ gateway). Ask for and set in `.env`:
 ### 4. Choose the attack plan (`AskUserQuestion`)
 - **Plugins** (what to probe): `harmful`, `pii`, `prompt-extraction` (defaults). Add/
   remove per the user's risk concerns.
-- **Strategies** (how): multi-turn `crescendo` / `goat` / `mischievous-user`, plus
-  single-turn `jailbreak` / `prompt-injection`. Tune `maxTurns` / `maxBacktracks` for
-  depth vs cost.
+- **Strategies** (how). With remote generation disabled, strategies fall back to your
+  `redteam.provider` (the attacker model). Which run **fully local** vs **remote-only**:
+  - **Local-capable** (use your own attacker model, air-gapped): `crescendo` (adaptive
+    multi-turn), `custom` (write a natural-language multi-turn playbook), `jailbreak:tree`,
+    classic iterative `jailbreak` (pin the `iterative` provider, not the default),
+    `basic`, `prompt-injection`. **Prefer `crescendo` or `custom` for adaptive multi-turn.**
+  - **Remote-only** (throw under air-gap; need Promptfoo Cloud / `PROMPTFOO_REMOTE_GENERATION_URL`):
+    `goat`, `mischievous-user`, and **plain `jailbreak`** (it now aliases to `jailbreak:meta`).
+  - **Plugins:** the "unaligned" harmful/bias/medical/financial plugins are also
+    remote-only; use `intent` (custom seeds) or `pii`/`prompt-extraction` for local runs.
+  Tune `maxTurns`/`stateful`. Tell the user the trade-off: crescendo/custom give
+  air-gapped adaptive multi-turn; goat/mischievous-user need the hosted service.
 - **Scope/size:** start small (few plugins, `maxTurns: 3`) for a first pass; expand
   once wiring is confirmed.
 Edit the `redteam:` block to reflect their choices. Validate:
@@ -74,8 +83,11 @@ set -a; . .env; set +a
 npx promptfoo redteam run -c promptfooconfig.yaml
 ```
 This is slow and adaptive (the attacker model drives many turns). Narrate that it's
-running live attacks. If generation fails, the attacker model env is usually the
-cause (remote generation is disabled by design; the local attacker must be reachable).
+running live attacks. Note: under `PROMPTFOO_DISABLE_REMOTE_GENERATION=true`, the
+local-capable strategies (crescendo/custom/jailbreak:tree/basic) run on your attacker
+model; the remote-only ones (goat/mischievous-user/plain jailbreak) error with
+"requires remote generation" — that's expected, switch to crescendo/custom or enable
+the hosted service.
 
 ---
 

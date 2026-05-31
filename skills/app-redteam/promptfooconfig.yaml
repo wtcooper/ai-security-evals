@@ -64,17 +64,24 @@ redteam:
       apiKey: "{{ env.ATTACKER_API_KEY }}"
 
   plugins:
+    # `pii` / `prompt-extraction` generate locally. NOTE: the "unaligned" harmful/bias/
+    # medical/financial plugins are remote-only — for an air-gapped run use `intent`
+    # (custom seeds) instead of `harmful`.
     - harmful
     - pii
     - prompt-extraction
 
-  # Genuine adaptive multi-turn (attacker adapts to real responses, backtracks):
+  # Adaptive multi-turn (attacker adapts to real responses). LOCAL-CAPABLE strategies
+  # use your `provider` (above) when PROMPTFOO_DISABLE_REMOTE_GENERATION=true:
   strategies:
-    - id: crescendo
+    - id: crescendo          # adaptive multi-turn, LOCAL-capable
       config: { maxTurns: 5, maxBacktracks: 5, stateful: false, continueAfterSuccess: false }
-    - id: goat
-      config: { maxTurns: 5, stateful: false }
-    - id: mischievous-user
-      config: { maxTurns: 5, stateful: false }
-    - jailbreak           # single-turn iterative
-    - prompt-injection
+    - id: jailbreak:tree     # iterative tree, LOCAL-capable
+    - prompt-injection       # static templates, LOCAL
+    # REMOTE-ONLY (need Promptfoo Cloud / PROMPTFOO_REMOTE_GENERATION_URL; throw under
+    # air-gap) — uncomment only with remote generation enabled:
+    # - id: goat
+    #   config: { maxTurns: 5, stateful: false }
+    # - id: mischievous-user
+    #   config: { maxTurns: 5, stateful: false }
+    # - jailbreak            # aliases to jailbreak:meta (remote-only)
