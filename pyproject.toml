@@ -31,9 +31,7 @@ package = false
 testpaths = [
     "skills/_shared/tests",
     "skills/control-bench/tests",
-    "skills/ai-guardrail-eval/tests",
 ]
 asyncio_mode = "auto"
-pythonpath = ["skills/_shared", "skills/ai-guardrail-eval"]
-python_classes = ["Test_*"]   # avoid picking up TestCase/TestResult dataclasses
+pythonpath = ["skills/_shared"]
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]
