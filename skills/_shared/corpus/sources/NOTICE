@@ -1,0 +1,34 @@
+Bundled adversarial corpus — sources, licenses, attribution.
+
+This skill vendors recognized, permissively-licensed academic safety benchmarks
+for DEFENSIVE evaluation (testing whether an application refuses/handles
+adversarial inputs). The prompts are attacker *requests* and benign controls —
+not operational instructions. Use only against systems you are authorized to test.
+
+PromptInject  (Perez & Ribeiro, 2022)  — MIT
+  https://github.com/agencyenterprise/PromptInject
+  injection (goal hijacking), data_leakage (prompt leaking), benign controls.
+  Generated into JSONL by scripts/build_promptinject_corpus.py.
+
+AdvBench  (Zou et al., "Universal and Transferable Adversarial Attacks")  — MIT
+  https://github.com/llm-attacks/llm-attacks  (data/advbench/harmful_behaviors.csv)
+  520 harmful behavior requests. Used as refusal targets (harmful_content).
+
+CyberSecEval / PurpleLlama  (Meta)  — MIT
+  https://github.com/meta-llama/PurpleLlama  (CybersecurityBenchmarks/datasets)
+  - prompt_injection/prompt_injection.json  (251 textual prompt-injection cases;
+    each case's native judge_question is reused as the per-test rubric).
+  - mitre_frr/mitre_frr.json  (750 benign security tasks; false-refusal controls).
+
+XSTest  (Röttger et al., 2023)  — CC-BY-4.0  (attribution required)
+  https://github.com/paul-rottger/xstest  (xstest_prompts.csv)
+  250 safe prompts (over-refusal controls) + 200 unsafe (harmful_content).
+
+NOT bundled (opt-in runtime fetch via scripts/build_corpus.py flags):
+  - deepset/prompt-injections (Apache-2.0)  — HF-hosted; --with-deepset
+  - SafeMTData / Attack_600 (MIT)           — HF-hosted; --with-safemtdata
+    Held out of the bundle by choice: it is the most acute multi-turn CBRN-
+    heavy set. Add it only under your own authorization and handling policy.
+
+Verify each license/version before redistributing. Apply access controls to the
+corpus and to result logs; do not surface payloads in user-facing output.
