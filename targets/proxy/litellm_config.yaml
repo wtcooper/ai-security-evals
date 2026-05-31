@@ -1,0 +1,108 @@
+# Shared LiteLLM AI gateway — the model + guardrail backend for the test apps
+# and the eval skills. Runs locally; no remote service to deploy.
+#
+# Ships mock target models, a mock judge, a mock guardrail, and LiteLLM's bundled
+# content-safety guardrail (content-filter) so the pipeline runs with zero API keys.
+#
+# To wire in REAL upstream models / guardrails:
+#   1. Add entries under model_list pointing at real providers. Store the
+#      real API keys in .env.local at the repo root (gitignored).
+#   2. Enable real guardrail entries below (lakera, bedrock, azure, …) per LiteLLM docs.
+#   3. Point an app's OpenAI base_url at http://localhost:4000/v1 and use a model_name.
+#
+# Start the proxy with: bash targets/proxy/start_proxy.sh
+
+model_list:
+  # ---- Mock targets (no API keys needed) -----------------------------------
+  - model_name: mock-target-compliant
+    litellm_params:
+      model: mock-target/compliant
+  - model_name: mock-target-refusal
+    litellm_params:
+      model: mock-target/refusal
+  - model_name: mock-target-policy-block
+    litellm_params:
+      model: mock-target/policy-block
+
+  # ---- Mock judge (no API keys needed) -------------------------------------
+  - model_name: mock-judge
+    litellm_params:
+      model: mock-judge/judge
+
+  # ---- Google AI Studio (Gemini) — free tier --------------------------------
+  # Uses LiteLLM's `gemini/` provider (AI Studio, not Vertex). Key from .env:
+  # GCP_AI_STUDIO_API_KEY. Use these as a real target or judge:
+  #   --model gemini-3.1-flash-lite   (or gemini-3-flash-preview)
+  - model_name: gemini-3.1-flash-lite
+    litellm_params:
+      model: gemini/gemini-3.1-flash-lite
+      api_key: os.environ/GCP_AI_STUDIO_API_KEY
+  - model_name: gemini-3-flash-preview
+    litellm_params:
+      model: gemini/gemini-3-flash-preview
+      api_key: os.environ/GCP_AI_STUDIO_API_KEY
+
+  # ---- Other real upstream examples (commented out; uncomment + set real keys) ---
+  # - model_name: gpt-4o-mini
+  #   litellm_params:
+  #     model: openai/gpt-4o-mini
+  #     api_key: os.environ/OPENAI_API_KEY
+  # - model_name: claude-haiku-4-5
+  #   litellm_params:
+  #     model: anthropic/claude-haiku-4-5
+  #     api_key: os.environ/ANTHROPIC_API_KEY
+
+litellm_settings:
+  custom_provider_map:
+    - provider: mock-target
+      custom_handler: mock_handlers.mock_target_llm
+    - provider: mock-judge
+      custom_handler: mock_handlers.mock_judge_llm
+
+guardrails:
+  # ---- Mock guardrail (no API keys; blocks on obvious adversarial patterns) ----
+  - guardrail_name: mock-guardrail
+    litellm_params:
+      guardrail: mock_handlers.MockBlockGuardrail
+      mode: pre_call
+
+  # ---- LiteLLM bundled content filter (LOCAL, no account) ----------------------
+  # Regex (prebuilt PII patterns) + banned-keyword matching, fully in-process.
+  # Named (NOT default_on) so the eval skills can toggle it per request via
+  # `"guardrails": ["content-filter"]` for A/B/C control testing. Set
+  # default_on: true to enforce it on every request through the gateway.
+  - guardrail_name: content-filter
+    litellm_params:
+      guardrail: litellm_content_filter
+      mode: ["pre_call", "post_call"]
+      patterns:
+        - { pattern_type: prebuilt, pattern_name: us_ssn, action: MASK }
+        - { pattern_type: prebuilt, pattern_name: email, action: MASK }
+      blocked_words:
+        - { keyword: confidential, action: BLOCK }
+
+  # ---- More bundled content-safety options (LOCAL, opt-in) ---------------------
+  # Prompt-injection detection (similarity-based, in-process). NOTE: this is a
+  # GLOBAL callback, not a per-request named guardrail — enabling it applies to
+  # ALL requests, which breaks per-request A/B/C toggling. Enable only for an
+  # always-on gateway baseline, not for control-isolate/control-bench arms:
+  #   litellm_settings:
+  #     callbacks: ["detect_prompt_injection"]
+  #
+  # Presidio PII (LOCAL, but requires two sidecar containers — analyzer +
+  # anonymizer; set PRESIDIO_ANALYZER_API_BASE / PRESIDIO_ANONYMIZER_API_BASE):
+  # - guardrail_name: presidio-pii
+  #   litellm_params: { guardrail: presidio, mode: pre_call, presidio_language: en }
+
+  # ---- Real (SaaS) guardrail examples (need a vendor account) ------------------
+  # - guardrail_name: lakera-pre
+  #   litellm_params: { guardrail: lakera_v2, mode: pre_call, api_key: os.environ/LAKERA_API_KEY }
+  # - guardrail_name: bedrock
+  #   litellm_params: { guardrail: bedrock, mode: pre_call,
+  #                     guardrailIdentifier: os.environ/BEDROCK_GUARDRAIL_ID, guardrailVersion: DRAFT }
+  # - guardrail_name: azure-content-safety
+  #   litellm_params: { guardrail: azure_content_guardrail, mode: pre_call,
+  #                     api_key: os.environ/AZURE_CONTENT_SAFETY_KEY, api_base: os.environ/AZURE_CONTENT_SAFETY_ENDPOINT }
+
+general_settings:
+  master_key: sk-mock
