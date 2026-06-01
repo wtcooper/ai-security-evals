@@ -22,8 +22,10 @@ assignees: ''
 
 ```bash
 # example
-LITELLM_BASE_URL=http://localhost:4000 LITELLM_API_KEY=sk-mock JUDGE_MODEL=mock-judge \
-uv run python skills/ai-guardrail-eval/run_eval.py --guardrail none ...
+cd skills/app-eval
+TARGET_URL=... JUDGE_BASE_URL=... JUDGE_MODEL=... \
+npx promptfoo eval -c promptfooconfig.yaml --output results.json
+python lib/summarize.py results.json
 ```
 
 ## Environment

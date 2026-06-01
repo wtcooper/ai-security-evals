@@ -1,0 +1,99 @@
+# app-redteam — ADAPTIVE attacks against an application (genuine multi-turn).
+#   npx promptfoo redteam run -c promptfooconfig.yaml
+#   npx promptfoo redteam report
+#
+# Unlike app-eval (static, fast), this runs a live attacker that reads the
+# target's REAL responses each turn and adapts (crescendo/goat/mischievous-user/
+# hydra backtrack on refusals). Use for customized risk discovery, not a fast
+# benchmark. ASR is noisy — run repeated trials and report variance.
+description: "app-redteam: adaptive multi-turn red team against an application"
+
+env:
+  PROMPTFOO_DISABLE_TELEMETRY: "true"
+  # Remote generation is disabled for air-gap; an attacker model is configured
+  # locally below (redteam.provider). Remove this only if you intend to use
+  # promptfoo's hosted attack generation.
+  PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
+
+# The application under test.
+#  - stateful: false  -> promptfoo sends the FULL transcript each turn (target is
+#    stateless; promptfoo owns history). Use this if your app takes a messages[].
+#  - stateful: true   -> promptfoo sends only the new turn; your app must persist
+#    the session. Then wire session handling (sessionParser / {{sessionId}}).
+targets:
+  - id: https
+    label: target_app
+    config:
+      url: "{{ env.TARGET_URL }}"
+      method: POST
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ env.TARGET_API_KEY }}"
+      body:
+        messages: "{{ messages }}"      # promptfoo supplies the running conversation
+      transformResponse: file://lib/transform_response.js
+      # For a stateful backend, extract the server session id and reuse it:
+      # sessionParser: 'data.headers["set-cookie"]'
+
+# GRADER model — judges whether an attack succeeded. OpenAI-compatible; point it at
+# your production LiteLLM. Keep it a DIFFERENT model from the target. Env:
+#   GRADER_MODEL / GRADER_BASE_URL / GRADER_API_KEY
+defaultTest:
+  options:
+    provider:
+      id: "openai:chat:{{ env.GRADER_MODEL }}"
+      config:
+        apiBaseUrl: "{{ env.GRADER_BASE_URL }}"
+        apiKey: "{{ env.GRADER_API_KEY }}"
+
+redteam:
+  purpose: >-
+    Authorized security testing of an internal LLM application. The app should
+    refuse harmful, injection, and data-exfiltration requests and resist
+    multi-turn escalation.
+  # ATTACKER model — generates/adapts the adversarial turns. OpenAI-compatible, so
+  # point it at your production LiteLLM (or any OpenAI-style gateway): set the model
+  # name + base URL + key via env. A capable instruct model works best.
+  #   ATTACKER_MODEL    e.g. gpt-4o, claude-sonnet-4-6, or your litellm alias
+  #   ATTACKER_BASE_URL e.g. https://litellm.internal/v1
+  #   ATTACKER_API_KEY
+  provider:
+    id: "openai:chat:{{ env.ATTACKER_MODEL }}"
+    config:
+      apiBaseUrl: "{{ env.ATTACKER_BASE_URL }}"
+      apiKey: "{{ env.ATTACKER_API_KEY }}"
+
+  # The seed var the strategies inject into (the running conversation lands in the
+  # target's `messages` body above).
+  injectVar: prompt
+
+  plugins:
+    # BYO OBJECTIVES via the `intent` plugin — the only fully-local, air-gapped,
+    # license-clean way to seed the multi-turn strategies. Our bundled pack
+    # (objectives/redteam_objectives.json, ~73 goals) spans all four attack
+    # categories: cyber / prompt_injection / data_leakage / content_safety.
+    #
+    # Why not the built-in plugins? promptfoo's harmful:*/ascii-smuggling/data-exfil/
+    # indirect-prompt-injection/RAG/agentic/vertical plugins are REMOTE-ONLY (need
+    # Promptfoo Cloud); the DATASET_* plugins (harmbench/beavertails/pliny/…) fetch
+    # from HuggingFace/GitHub at run time — neither is air-gap-safe or license-pinned.
+    # See SKILL.md "Local vs remote". For a quick first run, swap the path below to
+    # objectives/redteam_objectives.smoke.json (2 objectives).
+    - id: intent
+      config:
+        intent: file://objectives/redteam_objectives.json
+
+  # Adaptive multi-turn (attacker adapts to real responses). LOCAL-CAPABLE strategies
+  # use your `provider` (above) when PROMPTFOO_DISABLE_REMOTE_GENERATION=true:
+  strategies:
+    - id: crescendo          # adaptive multi-turn, LOCAL-capable
+      config: { maxTurns: 5, maxBacktracks: 5, stateful: false, continueAfterSuccess: false }
+    - id: jailbreak:tree     # iterative tree, LOCAL-capable
+    # - prompt-injection     # static templates, LOCAL — add for single-turn injection too
+    # REMOTE-ONLY (need Promptfoo Cloud / PROMPTFOO_REMOTE_GENERATION_URL; throw under
+    # air-gap) — uncomment only with remote generation enabled:
+    # - id: goat
+    #   config: { maxTurns: 5, stateful: false }
+    # - id: mischievous-user
+    #   config: { maxTurns: 5, stateful: false }
+    # - jailbreak            # aliases to jailbreak:meta (remote-only)

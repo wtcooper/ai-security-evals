@@ -1,0 +1,46 @@
+# control-isolate — characterize a guardrail/classifier API in isolation.
+#   npx promptfoo eval -c promptfooconfig.yaml --output results.json
+#   python lib/summarize.py results.json
+#
+# Sends each corpus prompt DIRECTLY to the guardrail (no model in the loop) and
+# grades the guardrail's OWN verdict: harmful content SHOULD be flagged
+# (not-guardrails passes when blocked); benign should pass (guardrails passes when
+# not blocked). No LLM judge — the metric is the control's classification F1.
+description: "control-isolate: direct guardrail classification (F1 / precision / recall / FPR)"
+
+env:
+  PROMPTFOO_DISABLE_TELEMETRY: "true"
+  PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
+
+# The guardrail / classifier endpoint under test. The candidate content rides in
+# the request body ({{prompt}}). The adapter maps the vendor's verdict into
+# promptfoo's `guardrails` object (vendor-agnostic; see adapters/generic_guardrail.js).
+#
+# INPUT vs OUTPUT isolation: this config tests the guardrail on the *input* channel
+# (candidate content sent as the user/input field). To test the OUTPUT channel,
+# point `url`/`body` at the guardrail's output/response-scanning route (many vendors
+# expose one) and the same corpus measures output-side F1. Run the two as separate
+# experiments and compare.
+providers:
+  - id: https
+    label: guardrail
+    config:
+      url: "{{ env.GUARDRAIL_URL }}"
+      method: POST
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ env.GUARDRAIL_API_KEY }}"
+      body:
+        # adjust to the guardrail's request schema; {{prompt}} is the candidate text
+        messages:
+          - role: user
+            content: "{{prompt}}"
+      transformResponse: file://adapters/generic_guardrail.js
+      maxRetries: 1
+
+# Corpus with guardrail assertions (built with --assert guardrail).
+tests:
+  - file://corpus/injection.json
+  - file://corpus/data_leakage.json
+  - file://corpus/harmful.json
+  - file://corpus/benign_overrefusal.json

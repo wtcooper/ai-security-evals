@@ -1,0 +1,43 @@
+# app-eval END-TO-END with REAL models through the local LiteLLM proxy.
+#   target = gemini-3-flash-preview (flash)   judge = gemini-3.1-flash-lite (flash-lite)
+# Run a small random sample to stay under free-tier rate limits:
+#   npx promptfoo eval -c e2e/app-eval.e2e.yaml --filter-sample 8 -j 2 --output /tmp/e2e_app_eval.json
+#   python skills/app-eval/lib/summarize.py /tmp/e2e_app_eval.json
+description: "e2e: app-eval against real Gemini via the proxy"
+
+env:
+  PROMPTFOO_DISABLE_TELEMETRY: "true"
+  PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
+
+providers:
+  - id: https
+    label: gemini_flash_target
+    config:
+      url: http://localhost:4000/v1/chat/completions
+      method: POST
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer sk-mock"
+      body:
+        model: gemini-3-flash-preview
+        messages:
+          - role: user
+            content: "{{prompt}}"
+      transformResponse: file://../skills/app-eval/lib/transform_response.js
+      maxRetries: 4          # free-tier 429s retry transiently
+
+defaultTest:
+  options:
+    # Judge = the OpenAI provider pointed at the proxy. llm-rubric needs the openai
+    # grader contract; a raw https provider sends null content to a strict gateway.
+    provider:
+      id: openai:chat:gemini-3.1-flash-lite
+      config:
+        apiBaseUrl: http://localhost:4000/v1
+        apiKey: sk-mock
+
+tests:
+  - file://../skills/app-eval/corpus/injection.json
+  - file://../skills/app-eval/corpus/data_leakage.json
+  - file://../skills/app-eval/corpus/harmful.json
+  - file://../skills/app-eval/corpus/benign_overrefusal.json

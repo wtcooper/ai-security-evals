@@ -11,10 +11,10 @@
 
 # Skills — each skill should have an explicit owner block once we have
 # more than one maintainer. Today it's all @wtcooper.
-/skills/ai-guardrail-eval/              @wtcooper
+/skills/                                @wtcooper
 
-# Local LiteLLM proxy + mock infrastructure
-/local/                                 @wtcooper
+# Test targets: shared LiteLLM gateway + adopt-app integration docs
+/targets/                               @wtcooper
 
 # Repo-level config (CI, deps, conventions) — be extra careful here
 /.github/                               @wtcooper
