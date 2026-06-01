@@ -80,17 +80,24 @@ provider** — for when the backend API isn't exposed.
 | Output | Inspect's native scores per arm — attack-success (risk ↓) and utility/FRR (over-block cost) |
 | Note | Inspect conflicts with `litellm[proxy]` deps → runs in its own `.venv-inspect` |
 
-**Multi-turn via M2S (the fast standardized multi-turn feature):** the static skills
-capture multi-turn *difficulty* without a live attack loop by **M2S** (multi-turn →
-single-turn, arXiv:2503.04856) — an ordered multi-turn attack is flattened into one
-prompt (hyphenize/numberize/pythonize), no fabricated assistant turns. The bundled
-source is **SafeMTData Attack_600 (MIT)**; M2S is dataset-agnostic, so teams can flatten
-their own multi-turn sequences too. Live adaptive escalation lives in `app-redteam`.
+---
 
-**Vendor-agnostic block handling:** each skill's `lib/status_policy.js` (a deterministic
-rules classifier) sorts every response **body-first, status-as-hint** — so a new vendor's
-block code (e.g. LiteLLM's **403** content-filter, recognized by its body) is caught with
-no config:
+## Cross-cutting capabilities
+
+These apply across **all** the skills, not just one.
+
+### Multi-turn via M2S (the fast standardized multi-turn feature)
+The static skills capture multi-turn *difficulty* without a live attack loop by **M2S**
+(multi-turn → single-turn, arXiv:2503.04856) — an ordered multi-turn attack is flattened
+into one prompt (hyphenize/numberize/pythonize), no fabricated assistant turns. The
+bundled source is **SafeMTData Attack_600 (MIT)**; M2S is dataset-agnostic, so teams can
+flatten their own multi-turn sequences too. Live adaptive escalation lives in
+`app-redteam`.
+
+### Vendor-agnostic block handling
+Each skill's `lib/status_policy.js` (a deterministic rules classifier) sorts every
+response **body-first, status-as-hint** — so a new vendor's block code (e.g. LiteLLM's
+**403** content-filter, recognized by its body) is caught with no config:
 
 | Class | How it's detected | What happens |
 |---|---|---|
