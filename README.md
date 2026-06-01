@@ -126,6 +126,29 @@ python lib/summarize.py results.json   # prints recall per category + per ATT&CK
 `summarize.py` reports **recall by category** and **by `technique_family`** (e.g. per
 ATT&CK tactic), so you see exactly where a target/guardrail is weak.
 
+### Red-team objective pack — provenance
+`app-redteam` ships its own **objective pack** (`skills/app-redteam/objectives/`) — the
+goals fed to promptfoo's local `intent` plugin, which the multi-turn strategies escalate
+toward. It is a **mix of established public benchmarks (~78%) and our own authored goals
+(~22%)**, 73 objectives total, all license-clean. Each external objective is a single-turn
+*behavior* trimmed to a goal sentence — crescendo generates the actual conversation live.
+
+| source | what it is | n | categories | license |
+|---|---|---:|---|---|
+| **authored-seed** *(ours)* | our M2S seed goals — benchmark-altitude, span all four categories (the quality core, incl. all 5 data-leakage goals) | 16 | all 4 | MIT |
+| **CyberSecEval-MITRE** | Meta PurpleLlama, ATT&CK-mapped offensive cyber | 16 | cyber | MIT |
+| **CyberSecEval-Interpreter** | Meta, code-interpreter / sandbox abuse | 8 | cyber | MIT |
+| **CyberSecEval** (PI subset) | Meta, prompt-injection / social-engineering | 10 | injection | MIT |
+| **AdvBench** | Zou et al. harmful-behaviors | 8 | content (+1 cyber) | MIT |
+| **PromptInject** | Perez & Ribeiro override / leak | 8 | injection (6) + leakage (2) | MIT |
+| **XSTest** | Röttger et al., the *unsafe* contrast prompts | 7 | content | CC-BY-4.0 |
+
+**Authored 16 / benchmark 57.** Distribution: cyber 30, prompt_injection 18,
+content_safety 18, data_leakage 7. The cyber axis is single-sourced on Meta CyberSecEval;
+`objectives/redteam_objectives.manifest.json` tags every objective by `category`/`source`
+so you can audit or hand-filter (e.g. a cyber-only run). Regenerate via
+`tools/build_redteam_objectives.py` (vendored by `sync_skills.sh`).
+
 ### Vendor-agnostic block handling
 Each skill's `lib/status_policy.js` (a deterministic rules classifier) sorts every
 response **body-first, status-as-hint** — so a new vendor's block code (e.g. LiteLLM's
