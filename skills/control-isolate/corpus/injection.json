@@ -15,7 +15,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -34,7 +35,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -53,7 +55,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -72,7 +75,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -91,7 +95,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -110,7 +115,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -129,7 +135,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -148,7 +155,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -167,7 +175,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -186,7 +195,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -205,7 +215,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -224,7 +235,8 @@
       "source": "PromptInject",
       "license": "MIT",
       "delivery": "user_input",
-      "technique_family": "goal_hijacking"
+      "technique_family": "goal_hijacking",
+      "category": "prompt_injection"
     }
   },
   {
@@ -244,7 +256,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -264,7 +277,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -284,7 +298,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -304,7 +319,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -324,7 +340,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -344,7 +361,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -364,7 +382,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -384,7 +403,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -404,7 +424,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -424,7 +445,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -444,7 +466,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -464,7 +487,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -484,7 +508,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -504,7 +529,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -524,7 +550,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -544,7 +571,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -564,7 +592,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -584,7 +613,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -604,7 +634,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -624,7 +655,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -644,7 +676,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -664,7 +697,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -684,7 +718,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -704,7 +739,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -724,7 +760,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -744,7 +781,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -764,7 +802,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -784,7 +823,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -804,7 +844,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -824,7 +865,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -844,7 +886,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -864,7 +907,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -884,7 +928,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -904,7 +949,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -924,7 +970,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -944,7 +991,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -964,7 +1012,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -984,7 +1033,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1004,7 +1054,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1024,7 +1075,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1044,7 +1096,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1064,7 +1117,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1084,7 +1138,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1104,7 +1159,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1124,7 +1180,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1144,7 +1201,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1164,7 +1222,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1184,7 +1243,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1204,7 +1264,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1224,7 +1285,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1244,7 +1306,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1264,7 +1327,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1284,7 +1348,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1304,7 +1369,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1324,7 +1390,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1344,7 +1411,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1364,7 +1432,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1384,7 +1453,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1404,7 +1474,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1424,7 +1495,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1444,7 +1516,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1464,7 +1537,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1484,7 +1558,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1504,7 +1579,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1524,7 +1600,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1544,7 +1621,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1564,7 +1642,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1584,7 +1663,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1604,7 +1684,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1624,7 +1705,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1644,7 +1726,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1664,7 +1747,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1684,7 +1768,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1704,7 +1789,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1724,7 +1810,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1744,7 +1831,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1764,7 +1852,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1784,7 +1873,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1804,7 +1894,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1824,7 +1915,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1844,7 +1936,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1864,7 +1957,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1884,7 +1978,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1904,7 +1999,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1924,7 +2020,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1944,7 +2041,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1964,7 +2062,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -1984,7 +2083,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2004,7 +2104,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2024,7 +2125,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2044,7 +2146,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2064,7 +2167,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2084,7 +2188,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2104,7 +2209,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2124,7 +2230,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2144,7 +2251,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2164,7 +2272,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2184,7 +2293,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2204,7 +2314,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2224,7 +2335,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2244,7 +2356,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2264,7 +2377,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2284,7 +2398,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2304,7 +2419,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2324,7 +2440,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2344,7 +2461,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2364,7 +2482,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2384,7 +2503,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2404,7 +2524,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2424,7 +2545,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2444,7 +2566,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2464,7 +2587,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2484,7 +2608,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2504,7 +2629,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2524,7 +2650,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2544,7 +2671,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2564,7 +2692,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2584,7 +2713,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2604,7 +2734,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2624,7 +2755,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2644,7 +2776,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2664,7 +2797,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2684,7 +2818,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2704,7 +2839,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2724,7 +2860,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2744,7 +2881,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2764,7 +2902,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2784,7 +2923,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2804,7 +2944,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2824,7 +2965,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2844,7 +2986,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2864,7 +3007,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2884,7 +3028,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2904,7 +3049,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2924,7 +3070,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2944,7 +3091,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2964,7 +3112,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -2984,7 +3133,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3004,7 +3154,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3024,7 +3175,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3044,7 +3196,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3064,7 +3217,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3084,7 +3238,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3104,7 +3259,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3124,7 +3280,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3144,7 +3301,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3164,7 +3322,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3184,7 +3343,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3204,7 +3364,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3224,7 +3385,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3244,7 +3406,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3264,7 +3427,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3284,7 +3448,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3304,7 +3469,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3324,7 +3490,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3344,7 +3511,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3364,7 +3532,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3384,7 +3553,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3404,7 +3574,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3424,7 +3595,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3444,7 +3616,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3464,7 +3637,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3484,7 +3658,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3504,7 +3679,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3524,7 +3700,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3544,7 +3721,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3564,7 +3742,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3584,7 +3763,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3604,7 +3784,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3624,7 +3805,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3644,7 +3826,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3664,7 +3847,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3684,7 +3868,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3704,7 +3889,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3724,7 +3910,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3744,7 +3931,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3764,7 +3952,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3784,7 +3973,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3804,7 +3994,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3824,7 +4015,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3844,7 +4036,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3864,7 +4057,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3884,7 +4078,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3904,7 +4099,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3924,7 +4120,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3944,7 +4141,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3964,7 +4162,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -3984,7 +4183,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4004,7 +4204,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4024,7 +4225,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
-      "risk": "logic-violating"
+      "risk": "logic-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4044,7 +4246,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4064,7 +4267,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4084,7 +4288,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4104,7 +4309,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4124,7 +4330,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4144,7 +4351,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4164,7 +4372,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4184,7 +4393,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4204,7 +4414,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4224,7 +4435,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4244,7 +4456,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4264,7 +4477,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4284,7 +4498,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4304,7 +4519,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4324,7 +4540,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4344,7 +4561,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4364,7 +4582,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4384,7 +4603,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4404,7 +4624,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4424,7 +4645,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4444,7 +4666,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4464,7 +4687,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4484,7 +4708,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4504,7 +4729,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4524,7 +4750,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4544,7 +4771,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4564,7 +4792,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4584,7 +4813,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4604,7 +4834,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4624,7 +4855,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4644,7 +4876,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4664,7 +4897,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4684,7 +4918,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4704,7 +4939,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4724,7 +4960,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4744,7 +4981,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4764,7 +5002,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4784,7 +5023,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4804,7 +5044,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4824,7 +5065,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4844,7 +5086,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4864,7 +5107,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4884,7 +5128,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4904,7 +5149,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4924,7 +5170,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4944,7 +5191,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4964,7 +5212,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -4984,7 +5233,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5004,7 +5254,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5024,7 +5275,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5044,7 +5296,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5064,7 +5317,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5084,7 +5338,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5104,7 +5359,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5124,7 +5380,8 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
-      "risk": "security-violating"
+      "risk": "security-violating",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5148,7 +5405,8 @@
       "strategy": "payload_split",
       "n_turns": 4,
       "flattened": true,
-      "citation": "Jigsaw Puzzles arXiv:2410.11459"
+      "citation": "Jigsaw Puzzles arXiv:2410.11459",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5172,7 +5430,8 @@
       "strategy": "payload_split",
       "n_turns": 4,
       "flattened": true,
-      "citation": "Jigsaw Puzzles arXiv:2410.11459"
+      "citation": "Jigsaw Puzzles arXiv:2410.11459",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5196,7 +5455,8 @@
       "strategy": "payload_split",
       "n_turns": 4,
       "flattened": true,
-      "citation": "Jigsaw Puzzles arXiv:2410.11459"
+      "citation": "Jigsaw Puzzles arXiv:2410.11459",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5220,7 +5480,8 @@
       "strategy": "payload_split",
       "n_turns": 4,
       "flattened": true,
-      "citation": "Jigsaw Puzzles arXiv:2410.11459"
+      "citation": "Jigsaw Puzzles arXiv:2410.11459",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5244,7 +5505,8 @@
       "strategy": "payload_split",
       "n_turns": 4,
       "flattened": true,
-      "citation": "Jigsaw Puzzles arXiv:2410.11459"
+      "citation": "Jigsaw Puzzles arXiv:2410.11459",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5268,7 +5530,8 @@
       "strategy": "payload_split",
       "n_turns": 4,
       "flattened": true,
-      "citation": "Jigsaw Puzzles arXiv:2410.11459"
+      "citation": "Jigsaw Puzzles arXiv:2410.11459",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5292,7 +5555,8 @@
       "strategy": "cipher",
       "n_turns": 3,
       "flattened": true,
-      "citation": "PyRIT cipher converters"
+      "citation": "PyRIT cipher converters",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5316,7 +5580,8 @@
       "strategy": "cipher",
       "n_turns": 3,
       "flattened": true,
-      "citation": "PyRIT cipher converters"
+      "citation": "PyRIT cipher converters",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5340,7 +5605,8 @@
       "strategy": "cipher",
       "n_turns": 3,
       "flattened": true,
-      "citation": "PyRIT cipher converters"
+      "citation": "PyRIT cipher converters",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5364,7 +5630,8 @@
       "strategy": "cipher",
       "n_turns": 3,
       "flattened": true,
-      "citation": "PyRIT cipher converters"
+      "citation": "PyRIT cipher converters",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5388,7 +5655,8 @@
       "strategy": "cipher",
       "n_turns": 3,
       "flattened": true,
-      "citation": "PyRIT cipher converters"
+      "citation": "PyRIT cipher converters",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5412,7 +5680,8 @@
       "strategy": "cipher",
       "n_turns": 3,
       "flattened": true,
-      "citation": "PyRIT cipher converters"
+      "citation": "PyRIT cipher converters",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5436,7 +5705,8 @@
       "strategy": "trust_override",
       "n_turns": 4,
       "flattened": true,
-      "citation": "trust->repeat->override (composed)"
+      "citation": "trust->repeat->override (composed)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5460,7 +5730,8 @@
       "strategy": "trust_override",
       "n_turns": 4,
       "flattened": true,
-      "citation": "trust->repeat->override (composed)"
+      "citation": "trust->repeat->override (composed)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5484,7 +5755,8 @@
       "strategy": "trust_override",
       "n_turns": 4,
       "flattened": true,
-      "citation": "trust->repeat->override (composed)"
+      "citation": "trust->repeat->override (composed)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5508,7 +5780,8 @@
       "strategy": "trust_override",
       "n_turns": 4,
       "flattened": true,
-      "citation": "trust->repeat->override (composed)"
+      "citation": "trust->repeat->override (composed)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5532,7 +5805,8 @@
       "strategy": "trust_override",
       "n_turns": 4,
       "flattened": true,
-      "citation": "trust->repeat->override (composed)"
+      "citation": "trust->repeat->override (composed)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5556,7 +5830,8 @@
       "strategy": "trust_override",
       "n_turns": 4,
       "flattened": true,
-      "citation": "trust->repeat->override (composed)"
+      "citation": "trust->repeat->override (composed)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5580,7 +5855,8 @@
       "strategy": "injection_smuggle",
       "n_turns": 3,
       "flattened": true,
-      "citation": "indirect prompt injection (Greshake et al.)"
+      "citation": "indirect prompt injection (Greshake et al.)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5604,7 +5880,8 @@
       "strategy": "injection_smuggle",
       "n_turns": 3,
       "flattened": true,
-      "citation": "indirect prompt injection (Greshake et al.)"
+      "citation": "indirect prompt injection (Greshake et al.)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5628,7 +5905,8 @@
       "strategy": "injection_smuggle",
       "n_turns": 3,
       "flattened": true,
-      "citation": "indirect prompt injection (Greshake et al.)"
+      "citation": "indirect prompt injection (Greshake et al.)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5652,7 +5930,8 @@
       "strategy": "injection_smuggle",
       "n_turns": 3,
       "flattened": true,
-      "citation": "indirect prompt injection (Greshake et al.)"
+      "citation": "indirect prompt injection (Greshake et al.)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5676,7 +5955,8 @@
       "strategy": "injection_smuggle",
       "n_turns": 3,
       "flattened": true,
-      "citation": "indirect prompt injection (Greshake et al.)"
+      "citation": "indirect prompt injection (Greshake et al.)",
+      "category": "prompt_injection"
     }
   },
   {
@@ -5700,7 +5980,8 @@
       "strategy": "injection_smuggle",
       "n_turns": 3,
       "flattened": true,
-      "citation": "indirect prompt injection (Greshake et al.)"
+      "citation": "indirect prompt injection (Greshake et al.)",
+      "category": "prompt_injection"
     }
   }
 ]

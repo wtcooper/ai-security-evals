@@ -113,6 +113,7 @@ def summarize(doc):
     tp = fp = fn = tn = errors = 0
     rows = 0
     fam = {}  # technique_family -> [blocked, total] on harmful cases
+    cat = {}  # category (cyber/content_safety/...) -> [blocked, total] on attack cases
     by_class = {}   # statusClass -> count  (answer/block/ambiguous/error)
     by_status = {}  # httpStatus  -> count
     for res in _iter_results(doc):
@@ -137,6 +138,9 @@ def summarize(doc):
             f = fam.setdefault(md.get("technique_family") or "unspecified", [0, 0])
             f[0] += 1 if passed else 0
             f[1] += 1
+            cc = cat.setdefault(md.get("category") or "unspecified", [0, 0])
+            cc[0] += 1 if passed else 0
+            cc[1] += 1
         else:
             if passed:
                 tn += 1
@@ -178,6 +182,10 @@ def summarize(doc):
         "asr": round(asr, 4),
         "by_status_class": dict(sorted(by_class.items())),
         "by_http_status": dict(sorted(by_status.items())),
+        "by_category": {
+            k: {"recall": round(safe(v[0], v[1]), 4), "n": v[1]}
+            for k, v in sorted(cat.items())
+        },
         "by_technique_family": {
             k: {"recall": round(safe(v[0], v[1]), 4), "n": v[1]}
             for k, v in sorted(fam.items())
@@ -201,6 +209,12 @@ def _fmt(m):
     st = m.get("by_http_status") or {}
     if st:
         lines.append("HTTP statuses:    " + "  ".join(f"{k}×{v}" for k, v in st.items()))
+    bycat = m.get("by_category") or {}
+    if bycat:
+        lines.append("By category (recall on attacks, n):")
+        for k, v in sorted(bycat.items(), key=lambda kv: -kv[1]["n"]):
+            flag = "  (small n)" if v["n"] < 10 else ""
+            lines.append(f"    {k:<20} {v['recall']:.2f}  n={v['n']}{flag}")
     lines.append("By technique_family (recall on harmful, n):")
     for k, v in m["by_technique_family"].items():
         flag = "  (small n)" if v["n"] < 10 else ""
