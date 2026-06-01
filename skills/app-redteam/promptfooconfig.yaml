@@ -63,13 +63,25 @@ redteam:
       apiBaseUrl: "{{ env.ATTACKER_BASE_URL }}"
       apiKey: "{{ env.ATTACKER_API_KEY }}"
 
+  # The seed var the strategies inject into (the running conversation lands in the
+  # target's `messages` body above).
+  injectVar: prompt
+
   plugins:
-    # `pii` / `prompt-extraction` generate locally. NOTE: the "unaligned" harmful/bias/
-    # medical/financial plugins are remote-only — for an air-gapped run use `intent`
-    # (custom seeds) instead of `harmful`.
-    - harmful
-    - pii
-    - prompt-extraction
+    # BYO OBJECTIVES via the `intent` plugin — the only fully-local, air-gapped,
+    # license-clean way to seed the multi-turn strategies. Our bundled pack
+    # (objectives/redteam_objectives.json, ~73 goals) spans all four attack
+    # categories: cyber / prompt_injection / data_leakage / content_safety.
+    #
+    # Why not the built-in plugins? promptfoo's harmful:*/ascii-smuggling/data-exfil/
+    # indirect-prompt-injection/RAG/agentic/vertical plugins are REMOTE-ONLY (need
+    # Promptfoo Cloud); the DATASET_* plugins (harmbench/beavertails/pliny/…) fetch
+    # from HuggingFace/GitHub at run time — neither is air-gap-safe or license-pinned.
+    # See SKILL.md "Local vs remote". For a quick first run, swap the path below to
+    # objectives/redteam_objectives.smoke.json (2 objectives).
+    - id: intent
+      config:
+        intent: file://objectives/redteam_objectives.json
 
   # Adaptive multi-turn (attacker adapts to real responses). LOCAL-CAPABLE strategies
   # use your `provider` (above) when PROMPTFOO_DISABLE_REMOTE_GENERATION=true:
@@ -77,7 +89,7 @@ redteam:
     - id: crescendo          # adaptive multi-turn, LOCAL-capable
       config: { maxTurns: 5, maxBacktracks: 5, stateful: false, continueAfterSuccess: false }
     - id: jailbreak:tree     # iterative tree, LOCAL-capable
-    - prompt-injection       # static templates, LOCAL
+    # - prompt-injection     # static templates, LOCAL — add for single-turn injection too
     # REMOTE-ONLY (need Promptfoo Cloud / PROMPTFOO_REMOTE_GENERATION_URL; throw under
     # air-gap) — uncomment only with remote generation enabled:
     # - id: goat
