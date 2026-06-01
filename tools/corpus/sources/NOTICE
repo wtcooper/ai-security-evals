@@ -50,3 +50,11 @@ Generated multi-turn (M2S) benchmark  — MIT (authored by this project)
   (2402.17262), Puzzler (2402.09091), Jigsaw/payload-split (2410.11459), GOAT
   (2410.01606), MHJ tactics (2408.15221), prompt-leak sycophancy (2404.16251), and
   PyRIT cipher converters. Authored test prompts, redistributable.
+
+CyberSecEval — MITRE ATT&CK + Interpreter abuse  (Meta / PurpleLlama)  — MIT
+  (CybersecurityBenchmarks/LICENSE is MIT). Offensive cyber-attack assistance prompts
+  mapped to MITRE ATT&CK tactics (C2/Exfil/Lateral Movement/Privilege Escalation/Recon/
+  Discovery/Execution/Persistence/Collection/Evasion) and code-interpreter abuse
+  (sandbox/container escape, post-exploitation, social engineering).
+  https://github.com/meta-llama/PurpleLlama
+  Vendored as raw/cyberseceval_mitre.json and raw/cyberseceval_interpreter.json.
