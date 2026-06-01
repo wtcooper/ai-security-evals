@@ -113,7 +113,7 @@ ai-security-evals/
 │   ├── control-isolate/            #   SKILL.md · promptfooconfig.yaml · adapters/ · lib/ · corpus/ · env.example
 │   └── control-bench/              #   SKILL.md · injection_shim.py · connectors/ · lib/ · runners/
 ├── targets/                        # things to point the skills at
-│   ├── proxy/                      #   shared LiteLLM AI gateway (mock + Gemini models, content-safety guardrails)
+│   ├── proxy/                      #   shared LiteLLM AI gateway (any provider via LiteLLM; content-safety guardrails)
 │   ├── aigoat/                     #   AIGoat (adopt): UI + API + defense levels — clone+run docs
 │   └── dvaa/                       #   DVAA (adopt): OpenAI-compatible + MCP — clone+run docs
 ├── tools/                          # MAINTAINER ONLY (not installed): canonical libs + corpus builder
@@ -175,8 +175,10 @@ mock guardrail, and LiteLLM's bundled content-filter — exercise the full pipel
 bash targets/proxy/start_proxy.sh &          # gateway on :4000
 # point a skill's TARGET_URL / GUARDRAIL_URL at the mock and run as above
 ```
-Add real models by editing `targets/proxy/litellm_config.yaml` (Gemini examples included;
-key from `.env`). The test apps ([AIGoat](targets/aigoat/), [DVAA](targets/dvaa/)) route
+Add real models by editing `targets/proxy/litellm_config.yaml` — LiteLLM fronts **any
+provider** (OpenAI, Anthropic, Google, Bedrock, your own gateway, …), so a skill points
+at one OpenAI-compatible endpoint regardless of backend; put your provider key in `.env`
+(examples included). The test apps ([AIGoat](targets/aigoat/), [DVAA](targets/dvaa/)) route
 their models through this gateway, so a guardrail can be toggled by name and A/B/C tested.
 
 ### control-bench (separate venv)
@@ -194,7 +196,7 @@ SHIM_GATEWAY_URL=http://localhost:4000 SHIM_GATEWAY_KEY=$KEY \
 
 ```bash
 bash scripts/run_tests.sh     # Node + Python unit tests + no-drift check, all offline
-bash e2e/run_e2e.sh all       # real-model end-to-end for all four skills (needs a Gemini key in .env)
+bash e2e/run_e2e.sh all       # real-model end-to-end for all four skills (any provider key in .env, via LiteLLM)
 ```
 CI (`.github/workflows/ci.yml`) runs the unit tests, the no-drift check, and validates
 every promptfoo config.
