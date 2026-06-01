@@ -27,4 +27,10 @@ vendor control-bench   status_policy.py
 $PY build_corpus.py --tier full --out "$ROOT/skills/app-eval/corpus" >/dev/null
 $PY build_corpus.py --tier full --assert guardrail --out "$ROOT/skills/control-isolate/corpus" >/dev/null
 
-echo "synced libs + corpus into app-eval, app-redteam, control-isolate, control-bench"
+# --- prebuilt red-team OBJECTIVE pack (drives promptfoo's local `intent` plugin) ---
+$PY build_redteam_objectives.py >/dev/null
+mkdir -p "$ROOT/skills/app-redteam/objectives"
+cp corpus/redteam_objectives.json corpus/redteam_objectives.smoke.json \
+   corpus/redteam_objectives.manifest.json "$ROOT/skills/app-redteam/objectives/"
+
+echo "synced libs + corpus + redteam objectives into app-eval, app-redteam, control-isolate, control-bench"
