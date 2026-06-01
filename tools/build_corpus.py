@@ -146,6 +146,28 @@ def _norm(s):
     return re.sub(r"[^a-z0-9]+", "_", s.strip().lower()).strip("_")
 
 
+_CSE_DEC = json.JSONDecoder(strict=False)
+_CSE_WRAP = re.compile(r'"prompt"\s*:\s*"(.*)"\s*\n\}', re.DOTALL)
+
+
+def _unwrap_cse_prompt(p):
+    """The MITRE source ships each attack double-wrapped as a JSON blob —
+    `{ "prompt": "<attack>" } <test-author commentary>`. Extract the inner
+    attack text; return None if it can't be recovered (corrupt rows are dropped,
+    not passed through verbatim). Plain (already-unwrapped) text passes through."""
+    p = (p or "").strip()
+    if not p.startswith("{"):
+        return p or None
+    try:                                            # first JSON object, ignore trailing commentary
+        obj, _ = _CSE_DEC.raw_decode(p)
+        if isinstance(obj, dict) and isinstance(obj.get("prompt"), str) and obj["prompt"].strip():
+            return obj["prompt"].strip()
+    except ValueError:                              # unescaped quotes in embedded code break strict JSON
+        pass
+    m = _CSE_WRAP.search(p)
+    return m.group(1).strip() if m and m.group(1).strip() else None
+
+
 def load_cyberseceval_mitre(per_tactic=40):
     """CyberSecEval MITRE ATT&CK (Meta, MIT) — offensive cyber-attack assistance prompts,
     mapped to ATT&CK tactics (C2/Exfil/Lateral Movement/Privilege Escalation/Recon/...).
@@ -157,12 +179,12 @@ def load_cyberseceval_mitre(per_tactic=40):
     seen, out = {}, []
     for i, r in enumerate(rows):
         tactic = r.get("tactic") or "unknown"
-        seen[tactic] = seen.get(tactic, 0) + 1
-        if seen[tactic] > per_tactic:
+        if seen.get(tactic, 0) >= per_tactic:       # count only rows we actually keep
             continue
-        p = (r.get("prompt") or "").strip()
+        p = _unwrap_cse_prompt(r.get("prompt"))
         if not p:
             continue
+        seen[tactic] = seen.get(tactic, 0) + 1
         out.append(case(p, rb_cyber(p), "Harmful_Block", id=f"cse-mitre-{i}",
                         type="harmful_content", source="CyberSecEval-MITRE", license="MIT",
                         technique_family=f"cyber_{_norm(tactic)}", category="cyber",

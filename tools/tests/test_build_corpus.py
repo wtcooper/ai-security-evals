@@ -101,3 +101,16 @@ def test_cyber_coverage_strong():
 def test_data_leakage_expanded():
     domains, _, _ = bc.build("full", out_dir=tempfile.mkdtemp())
     assert len(domains["data_leakage"]) >= 40  # was ~16 before the rebalance
+
+
+def test_mitre_prompts_unwrapped():
+    # The MITRE source ships each attack double-wrapped as `{ "prompt": "..." } commentary`.
+    # Every emitted cyber prompt must be the inner attack text, never the JSON wrapper.
+    domains, _, _ = bc.build("full", out_dir=tempfile.mkdtemp())
+    mitre = [c for v in domains.values() for c in v
+             if c["metadata"]["source"] == "CyberSecEval-MITRE"]
+    assert mitre, "MITRE cases missing"
+    for c in mitre:
+        p = c["vars"]["prompt"].lstrip()
+        assert not p.startswith("{"), p[:60]
+        assert '"prompt":' not in p[:40], p[:60]
