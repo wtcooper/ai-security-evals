@@ -67,12 +67,15 @@ model as the target), STOP and tell the user the eval would be
 self-graded and invalid; have them pick a different judge model before proceeding.
 A small capable model from a different family (e.g. gpt-4o-mini) is a good default.
 
-### 4. Choose how much of the corpus to run (`AskUserQuestion`)
-The **full corpus (~2000 cases) is bundled** in `corpus/` — no build step. Pick a
-run-time sample size to trade cost vs. confidence (add `--filter-sample N` in RUN):
-- **smoke** (`--filter-sample 30`) — wiring/cost check. Good first run.
-- **mid** (`--filter-sample 150`) — routine regression.
-- **full** (omit the flag) — comprehensive; final decisions.
+### 4. Choose how much / which of the corpus to run (`AskUserQuestion`)
+The **full corpus (~2900 cases) is bundled** in `corpus/` — no build step. It's tagged
+by `category` (cyber / prompt_injection / data_leakage / content_safety). Pick:
+- **Scope:** a whole-corpus sample (`--filter-sample 30|150` for smoke/mid, omit for full),
+  or a **category slice** for a focused audience — e.g. a cyber team:
+  `--filter-metadata category=cyber` (also `prompt_injection`, `data_leakage`).
+- Combine them (`--filter-metadata category=cyber --filter-sample 60`).
+Ask the user which axes they care about; cyber/security teams usually want
+cyber + injection + data_leakage, app teams the full spread.
 
 ### 5. (Optional) A/B/C a control
 If the app toggles a guardrail by a body param, duplicate `providers[0]` with a second
@@ -105,6 +108,7 @@ Present a short plain-text report and interpret it for the user:
   what the target returned and how each was bucketed (answer / block / error / ambiguous).
   Any `WARNING: … AMBIGUOUS …` means a non-2xx couldn't be auto-classified and was
   judged — eyeball those and, if a status is always a block, set `GUARDRAIL_BLOCK_STATUSES`.
+- **Read `by_category`** (cyber / prompt_injection / data_leakage / content_safety): call out which axis the target is weak on; for a cyber audience, lead with the cyber + injection + leakage numbers.
 - **Always read `by_technique_family`.** Call out gaps overall recall hides, e.g.
   "strong on `direct_harmful` (0.95) but only 0.30 on `m2s_*` flattened multi-turn" or
   "misses `system_prompt_exfiltration`". Flag families with n < 10 as low-confidence.

@@ -51,8 +51,8 @@ provider** — for when the backend API isn't exposed.
 ### `app-eval` — static security benchmark (promptfoo)
 | Aspect | Detail |
 |---|---|
-| Corpus | **Bundled, prebuilt, license-clean** (~2000 cases): prompt injection, harmful content, data leakage, over-refusal (benign negative class) + **M2S-flattened** multi-turn jailbreaks |
-| Sampling | Full corpus ships; pick a run-time sample with `--filter-sample N` (smoke ~30 / mid ~150 / full) |
+| Corpus | **Bundled, prebuilt, license-clean** (~2900 cases): cyber-offensive (MITRE ATT&CK + interpreter abuse), prompt injection, data leakage, content-safety, over-refusal (benign) + **M2S-flattened** multi-turn. Tagged by `category` (cyber/injection/leakage/content_safety) — see [Corpus coverage](#corpus-coverage--cyber-first-filterable) |
+| Sampling | Full corpus ships; sample with `--filter-sample N` (smoke ~30 / mid ~150 / full) or slice with `--filter-metadata category=cyber` |
 | Grading | LLM-as-judge (`llm-rubric`) via an OpenAI-compatible provider; gated against judge==target |
 | Metrics | F1, Recall (block rate), FPR (over-refusal), ASR, `by_technique_family`, per-status histogram |
 | A/B/C | Optional: duplicate the provider with a guardrail body param to compare control on/off |
@@ -102,6 +102,28 @@ license-clean (authored here, cited per strategy) and joined by **SafeMTData Att
 (MIT)**. Each case is tagged `technique_family=m2s_<strategy>` so the breakdown shows
 per-strategy recall. M2S is dataset-agnostic — teams can flatten their own sequences via
 `m2s.flatten()`. Live adaptive escalation lives in `app-redteam`.
+
+### Corpus coverage — cyber-first, filterable
+The bundled corpus spans four **attack categories**, each case tagged with a `category`
+axis so you can run and score any slice independently (not just one domain):
+
+| category | n | what it covers |
+|---|---:|---|
+| `cyber` | ~710 | offensive cyber assistance — **CyberSecEval MITRE ATT&CK** (all 10 tactics: C2 / Exfil / Lateral Movement / Privilege Escalation / Recon / Discovery / Execution / Persistence / Collection / Evasion), **interpreter abuse** (sandbox/container escape, post-exploitation), + cyber multi-turn (SQLi, RCE, exfil, credential theft, malware) |
+| `prompt_injection` | ~280 | direct + indirect injection, instruction override, payload-splitting, cipher smuggling |
+| `data_leakage` | ~65 | system-prompt extraction, secret/credential/PII exfiltration, training-data & conversation-history leakage (single- and multi-turn) |
+| `content_safety` | ~900 | CBRN, weapons, violence, hate, self-harm, illegal — the classic content-safety axis |
+| `benign` | ~1000 | the negative class (FPR / over-refusal) |
+
+So among *attack* cases, the **cyber-relevant axes (cyber + injection + data-leakage) are
+the majority** — not an afterthought to content safety. Run a cyber-only sweep with
+promptfoo's metadata filter:
+```bash
+npx promptfoo eval -c promptfooconfig.yaml --filter-metadata category=cyber --output results.json
+python lib/summarize.py results.json   # prints recall per category + per ATT&CK tactic
+```
+`summarize.py` reports **recall by category** and **by `technique_family`** (e.g. per
+ATT&CK tactic), so you see exactly where a target/guardrail is weak.
 
 ### Vendor-agnostic block handling
 Each skill's `lib/status_policy.js` (a deterministic rules classifier) sorts every
