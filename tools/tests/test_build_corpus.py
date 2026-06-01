@@ -77,3 +77,27 @@ def test_m2s_cases_present_and_flattened():
 def test_benign_negative_class_nonempty():
     domains, _, _ = bc.build("full", out_dir=tempfile.mkdtemp())
     assert len(domains["benign"]) > 100  # FPR/F1 needs a real negative class
+
+
+def test_category_axis_clean_and_complete():
+    domains, _, _ = bc.build("full", out_dir=tempfile.mkdtemp())
+    allc = [c for v in domains.values() for c in v]
+    cats = {c["metadata"]["category"] for c in allc}
+    assert all(c["metadata"].get("category") for c in allc)
+    assert cats <= {"cyber", "content_safety", "prompt_injection", "data_leakage", "benign"}
+
+
+def test_cyber_coverage_strong():
+    domains, _, _ = bc.build("full", out_dir=tempfile.mkdtemp())
+    allc = [c for v in domains.values() for c in v]
+    cyber = [c for c in allc if c["metadata"]["category"] == "cyber"]
+    fams = {c["metadata"].get("technique_family") for c in cyber}
+    for tactic in ("cyber_exfil", "cyber_lateral_movement", "cyber_privilege_escalation",
+                   "cyber_c2", "cyber_recon"):
+        assert tactic in fams, tactic
+    assert len(cyber) > 300  # cyber is a first-class slice, not a rounding error
+
+
+def test_data_leakage_expanded():
+    domains, _, _ = bc.build("full", out_dir=tempfile.mkdtemp())
+    assert len(domains["data_leakage"]) >= 40  # was ~16 before the rebalance
