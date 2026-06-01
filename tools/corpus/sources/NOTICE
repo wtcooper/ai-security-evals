@@ -41,3 +41,12 @@ SafeMTData / Attack_600  (Ren et al., "Derail Yourself: Multi-turn LLM Jailbreak
 
 MHJ  (ScaleAI, Multi-turn Human Jailbreaks)  — CC-BY-NC-4.0 (NON-COMMERCIAL)
   NOT bundled / NOT redistributable. Opt-in local dev only (--with-mhj).
+
+Generated multi-turn (M2S) benchmark  — MIT (authored by this project)
+  Our own multi-turn attack scaffolds (tools/m2s_strategies.py), flattened via M2S
+  (arXiv:2503.04856), covering prompt injection, jailbreak, data leakage, and
+  toxic/harmful. Templates are authored from published methods (cited per strategy
+  in the module): Crescendo (2404.01833), ActorAttack (2410.10700), Speak-Out-of-Turn
+  (2402.17262), Puzzler (2402.09091), Jigsaw/payload-split (2410.11459), GOAT
+  (2410.01606), MHJ tactics (2408.15221), prompt-leak sycophancy (2404.16251), and
+  PyRIT cipher converters. Authored test prompts, redistributable.

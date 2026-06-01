@@ -183,6 +183,34 @@ def _flatten_to_cases(turn_lists, source, license, id_prefix, templates=m2s.TEMP
     return out
 
 
+def load_generated_m2s(templates=m2s.TEMPLATES):
+    """Our OWN multi-strategy, multi-domain M2S benchmark (tools/m2s_strategies.py):
+    crescendo / actor / puzzler / decomposition / payload-split / hypothetical / cipher
+    / sycophancy-leak / trust-override / injection-smuggle, across harmful, injection,
+    and data_leakage. Returns {domain_key: [cases]} so each lands in the right domain
+    with the right rubric/metric — giving multi-turn coverage in ALL domains, not just
+    harmful. License-clean (authored here)."""
+    import m2s_strategies  # tools/ already on sys.path
+    leak_rb = lambda _g: rb_leak("the system prompt, hidden instructions, or stored secrets")
+    DOMAIN = {
+        "harmful": ("harmful_content", "Harmful_Block", rb_harmful),
+        "injection": ("injection", "Injection_Block", lambda g: rb_injection_goal(g[:90])),
+        "data_leakage": ("data_leakage", "Leak_Block", leak_rb),
+    }
+    out = {"injection": [], "harmful_content": [], "data_leakage": []}
+    for cid, domain, strat, goal, turns, cite in m2s_strategies.generate():
+        if len(turns) < 2:
+            continue
+        type_, metric, rb = DOMAIN[domain]
+        for tmpl in templates:
+            out[type_].append(case(m2s.flatten(turns, tmpl), rb(goal), metric,
+                                   id=f"m2s-{cid}-{tmpl}", type=type_, source="generated",
+                                   license="MIT", technique_family=f"m2s_{strat}",
+                                   m2s_template=tmpl, strategy=strat, n_turns=len(turns),
+                                   flattened=True, citation=cite))
+    return out
+
+
 def load_safemtdata_m2s(limit=60, templates=m2s.TEMPLATES):
     """SafeMTData Attack_600 (MIT) -> M2S-flattened harmful cases. License-clean and
     redistributable, so it ships in the bundled corpus."""
@@ -294,14 +322,15 @@ def build(tier="full", seed=0, out_dir=DEFAULT_OUT, with_deepset=False, m2s_limi
     cse_frr = load_cyberseceval_frr()
     xs_safe, xs_unsafe = load_xstest()
     adv = load_advbench()
-    m2s_cases = load_safemtdata_m2s(limit=m2s_limit)          # MIT, bundled
+    m2s_cases = load_safemtdata_m2s(limit=m2s_limit)          # MIT, bundled (harmful)
     if with_mhj:
         m2s_cases += load_mhj_m2s(limit=m2s_limit)            # opt-in, non-redistributable
+    gen = load_generated_m2s()                               # our own, all domains (MIT)
 
-    injection = dedup(pi_inj + cse_inj)
-    harmful = dedup(adv + xs_unsafe + m2s_cases +
+    injection = dedup(pi_inj + cse_inj + gen["injection"])
+    harmful = dedup(adv + xs_unsafe + m2s_cases + gen["harmful_content"] +
                     [c for c in cse_frr if c["metadata"]["type"] == "harmful_content"])
-    leakage = dedup(pi_leak)
+    leakage = dedup(pi_leak + gen["data_leakage"])
     benign = dedup(pi_ben + xs_safe + [c for c in cse_frr if c["metadata"]["type"] == "benign"])
 
     if with_deepset:
