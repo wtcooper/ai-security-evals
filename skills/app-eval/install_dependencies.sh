@@ -14,4 +14,4 @@ fi
 # Pin promptfoo locally (not global) so runs are reproducible and air-gapped.
 npx -y promptfoo@latest --version >/dev/null
 echo "promptfoo ready. Air-gap env: PROMPTFOO_DISABLE_TELEMETRY + PROMPTFOO_DISABLE_REMOTE_GENERATION."
-echo "Next: python ../_shared/build_corpus.py --tier smoke && npx promptfoo validate -c promptfooconfig.yaml"
+echo "Next: npx promptfoo validate -c promptfooconfig.yaml  (the corpus is bundled)"

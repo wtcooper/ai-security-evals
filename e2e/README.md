@@ -39,7 +39,7 @@ summarizes, and reports PASS/FAIL.
    "unaligned" harmful/bias/medical/financial *plugins* are remote-only — use `intent`
    seeds locally.
 3. **The control-bench shim is now body-aware** (uses the shared classifier
-   `_shared/status_policy.py`), so it converts a 403 content-filter block to a refusal
+   `control-bench/lib/status_policy.py`), so it converts a 403 content-filter block to a refusal
    with **no `GUARDRAIL_BLOCK_STATUSES` config** — matching the JS skills.
 
 ## Notes

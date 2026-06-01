@@ -55,13 +55,10 @@ Gather:
 `cp env.example .env`; fill `GUARDRAIL_URL`, `GUARDRAIL_API_KEY`, and any block-signal
 overrides. Validate: `npx promptfoo validate -c promptfooconfig.yaml`.
 
-### 3. Choose the corpus tier (`AskUserQuestion`)
-smoke (~30) / mid (~150) / full (~2000). Build with **guardrail assertions**:
-```
-python ../_shared/build_corpus.py --tier <tier> --assert guardrail --out corpus
-```
-(`--assert guardrail` makes harmful cases assert `not-guardrails` (pass = blocked) and
-benign assert `guardrails` (pass = allowed).)
+### 3. Choose how much of the corpus to run (`AskUserQuestion`)
+The labeled corpus is **bundled** in `corpus/` (guardrail-assertion variant: harmful →
+`not-guardrails`/pass-when-blocked, benign → `guardrails`/pass-when-allowed). Pick a
+run-time sample (add `--filter-sample N` in RUN): smoke `30` / mid `150` / full (omit).
 
 ### 4. (Optional) Vendor comparison
 To compare guardrail vendors, plan one run per vendor (separate `.env` / `GUARDRAIL_URL`)
@@ -81,7 +78,7 @@ manual curl (the adapter only flags what it can recognize).
 
 ## ANALYZE
 ```
-python ../_shared/summarize.py results.json
+python lib/summarize.py results.json
 ```
 Present and interpret:
 - **F1 / precision / recall / FPR.** Recall = catch rate on attacks; FPR = over-block
@@ -104,5 +101,5 @@ bump the tier.
 - This measures the classifier, not end-to-end app risk (use control-bench for that).
 - AWS Bedrock: use the `ApplyGuardrail` API (assesses text with no model call). Azure
   Content Safety: map `categoriesAnalysis` severities to a block.
-- MHJ `mhj-m2s-*` cases are research-only — confirm authorization before sharing a
-  built corpus.
+- M2S `safemt-m2s-*` cases come from SafeMTData (MIT) — bundled and redistributable.
+

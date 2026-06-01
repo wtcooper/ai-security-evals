@@ -23,9 +23,9 @@ assignees: ''
 ```bash
 # example
 cd skills/app-eval
-TARGET_URL=... JUDGE_URL=... JUDGE_MODEL=... \
+TARGET_URL=... JUDGE_BASE_URL=... JUDGE_MODEL=... \
 npx promptfoo eval -c promptfooconfig.yaml --output results.json
-python ../_shared/summarize.py results.json
+python lib/summarize.py results.json
 ```
 
 ## Environment

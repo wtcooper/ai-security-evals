@@ -1,6 +1,6 @@
 # control-isolate — characterize a guardrail/classifier API in isolation.
 #   npx promptfoo eval -c promptfooconfig.yaml --output results.json
-#   python ../_shared/summarize.py results.json
+#   python lib/summarize.py results.json
 #
 # Sends each corpus prompt DIRECTLY to the guardrail (no model in the loop) and
 # grades the guardrail's OWN verdict: harmful content SHOULD be flagged

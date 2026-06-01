@@ -67,12 +67,12 @@ model as the target), STOP and tell the user the eval would be
 self-graded and invalid; have them pick a different judge model before proceeding.
 A small capable model from a different family (e.g. gpt-4o-mini) is a good default.
 
-### 4. Choose the corpus tier (`AskUserQuestion`)
-- **smoke** (~30) — wiring/cost check. Good first run.
-- **mid** (~150) — routine regression.
-- **full** (~2000) — comprehensive; final decisions.
-Build it: `python ../_shared/build_corpus.py --tier <tier>`. It prints the
-available-vs-emitted split (injection / harmful / leakage / benign).
+### 4. Choose how much of the corpus to run (`AskUserQuestion`)
+The **full corpus (~2000 cases) is bundled** in `corpus/` — no build step. Pick a
+run-time sample size to trade cost vs. confidence (add `--filter-sample N` in RUN):
+- **smoke** (`--filter-sample 30`) — wiring/cost check. Good first run.
+- **mid** (`--filter-sample 150`) — routine regression.
+- **full** (omit the flag) — comprehensive; final decisions.
 
 ### 5. (Optional) A/B/C a control
 If the app toggles a guardrail by a body param, duplicate `providers[0]` with a second
@@ -84,7 +84,7 @@ the report compares them per case.
 ## RUN
 ```
 set -a; . .env; set +a
-npx promptfoo eval -c promptfooconfig.yaml --output results.json
+npx promptfoo eval -c promptfooconfig.yaml --output results.json   # add --filter-sample N
 ```
 Stream progress. **If everything errors**, stop and diagnose before continuing —
 usually (a) wrong body schema, (b) auth, (c) judge URL not a chat-completions
@@ -95,7 +95,7 @@ endpoint, or (d) the target returns a non-2xx the transform treats as operationa
 
 ## ANALYZE
 ```
-python ../_shared/summarize.py results.json
+python lib/summarize.py results.json
 ```
 Present a short plain-text report and interpret it for the user:
 - **Headline:** F1, Recall (block rate on attacks), FPR (over-refusal on benign), ASR.
@@ -116,8 +116,8 @@ End by offering next steps: bump the tier for a firmer number, add their own cus
 prompts to the corpus, or move to `app-redteam` for adaptive attacks.
 
 ## Notes
-- Don't report bundled-mock numbers as a real app's.
-- M2S `mhj-m2s-*` cases derive from the research-only MHJ set — confirm authorization
-  before sharing a built corpus.
-- At smoke tier the CI on Recall is wide (±~8 pts); don't call a small gap real —
-  push to mid/full before a vendor or release decision.
+- The bundled corpus is license-clean (AdvBench/CyberSecEval/XSTest/PromptInject MIT/
+  CC-BY + SafeMTData MIT for the M2S `safemt-m2s-*` multi-turn cases) — redistributable.
+- At a small sample the CI on Recall is wide (±~8 pts at ~30); don't call a small gap
+  real — run more cases before a vendor or release decision.
+- To regenerate/extend the corpus, see `tools/` (maintainer tooling).

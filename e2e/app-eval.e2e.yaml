@@ -2,7 +2,7 @@
 #   target = gemini-3-flash-preview (flash)   judge = gemini-3.1-flash-lite (flash-lite)
 # Run a small random sample to stay under free-tier rate limits:
 #   npx promptfoo eval -c e2e/app-eval.e2e.yaml --filter-sample 8 -j 2 --output /tmp/e2e_app_eval.json
-#   python skills/_shared/summarize.py /tmp/e2e_app_eval.json
+#   python skills/app-eval/lib/summarize.py /tmp/e2e_app_eval.json
 description: "e2e: app-eval against real Gemini via the proxy"
 
 env:
@@ -23,7 +23,7 @@ providers:
         messages:
           - role: user
             content: "{{prompt}}"
-      transformResponse: file://../skills/_shared/transform_response.js
+      transformResponse: file://../skills/app-eval/lib/transform_response.js
       maxRetries: 4          # free-tier 429s retry transiently
 
 defaultTest:
@@ -37,7 +37,7 @@ defaultTest:
         apiKey: sk-mock
 
 tests:
-  - file://../skills/_shared/corpus/promptfoo/injection.json
-  - file://../skills/_shared/corpus/promptfoo/data_leakage.json
-  - file://../skills/_shared/corpus/promptfoo/harmful.json
-  - file://../skills/_shared/corpus/promptfoo/benign_overrefusal.json
+  - file://../skills/app-eval/corpus/injection.json
+  - file://../skills/app-eval/corpus/data_leakage.json
+  - file://../skills/app-eval/corpus/harmful.json
+  - file://../skills/app-eval/corpus/benign_overrefusal.json

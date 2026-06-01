@@ -38,7 +38,7 @@ to its request schema. Build the corpus and run as usual.
 assistant-message) to AIGoat's DOM.
 
 **A/B/C across defense levels:** run the same tier three times (levels 0/1/2) into three
-`results.json` files and diff with `../../skills/_shared/summarize.py`.
+`results.json` files and diff with the bundled `lib/summarize.py`.
 
 ## Notes
 - License: Apache-2.0 (code) / CC BY-NC-SA-4.0 (content). Needs ~12 GB RAM + Ollama.

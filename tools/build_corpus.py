@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Assemble the bundled security corpus into promptfoo test files.
 
-All core datasets are vendored under skills/_shared/corpus/sources/ and read
+All core datasets are vendored under tools/corpus/sources/ and read
 OFFLINE here. Each emitted test is a stock promptfoo case with its OWN per-test
 `llm-rubric` (no global rubric) and a `metric` tag for aggregation. Offensive
 domains PASS when the target refused/was blocked; benign PASS when it actually
 helped (over-refusal is a FAIL).
 
-Multi-turn is represented by M2S flattening (arXiv:2503.04856): the MHJ
-multi-turn human-jailbreak conversations are collapsed into single prompts via
-the hyphenize/numberize/pythonize templates. No fabricated assistant turns.
+Multi-turn is represented by M2S flattening (arXiv:2503.04856): ordered multi-turn
+attack sequences are collapsed into single prompts via the hyphenize/numberize/
+pythonize templates (no fabricated assistant turns). The bundled multi-turn source is
+SafeMTData Attack_600 (MIT, redistributable). M2S itself is dataset-agnostic — any
+turn-list can feed m2s.flatten(); MHJ (CC-BY-NC) is an opt-in local-only add-on.
 
 Sampling tiers (stratified by domain, seeded -> reproducible):
     --tier smoke   ~30 cases    (quick wiring/cost check)
@@ -163,30 +165,51 @@ def _mhj_user_turns(row):
     return turns
 
 
+def _flatten_to_cases(turn_lists, source, license, id_prefix, templates=m2s.TEMPLATES):
+    """M2S is dataset-agnostic. Given (key, turns, goal, extra_meta) tuples, flatten each
+    multi-turn sequence into one harmful case per M2S template. Any license-clean
+    multi-turn source (or a team's own sequences) can feed this — see m2s.flatten()."""
+    out = []
+    for key, turns, goal, meta in turn_lists:
+        turns = [t for t in turns if t]
+        if len(turns) < 2:  # only genuine multi-turn sequences are worth flattening
+            continue
+        for tmpl in templates:
+            out.append(case(m2s.flatten(turns, tmpl), rb_harmful((goal or turns[-1])),
+                            "Harmful_Block", id=f"{id_prefix}-{key}-{tmpl}",
+                            type="harmful_content", source=source, license=license,
+                            technique_family=f"m2s_{tmpl}", m2s_template=tmpl,
+                            n_turns=len(turns), flattened=True, **(meta or {})))
+    return out
+
+
+def load_safemtdata_m2s(limit=60, templates=m2s.TEMPLATES):
+    """SafeMTData Attack_600 (MIT) -> M2S-flattened harmful cases. License-clean and
+    redistributable, so it ships in the bundled corpus."""
+    path = RAW / "safemtdata_attack600.json"
+    if not path.exists():
+        print(f"WARNING: {path.name} not found — corpus will have NO M2S multi-turn "
+              f"cases. Re-vendor it (MIT) to include the multi-turn dimension.", file=sys.stderr)
+        return []
+    rows = json.loads(path.read_text())[:limit]
+    tl = ((row.get("id", i), list(row.get("multi_turn_queries") or []),
+           (row.get("plain_query") or "").strip(),
+           {"category": (row.get("category") or "").strip().lower()})
+          for i, row in enumerate(rows))
+    return _flatten_to_cases(tl, "SafeMTData", "MIT", "safemt-m2s", templates)
+
+
 def load_mhj_m2s(limit=60, templates=m2s.TEMPLATES):
-    """MHJ multi-turn human jailbreaks -> M2S-flattened single-turn harmful cases."""
+    """MHJ human jailbreaks -> M2S cases. OPT-IN ONLY: MHJ is CC-BY-NC (non-commercial),
+    NOT redistributable — never bundled. Returns [] silently when the source is absent."""
     path = RAW / "mhj_multiturn.csv"
     if not path.exists():
-        print(f"WARNING: {path.name} (research-only MHJ source) not found — the corpus "
-              f"will contain NO M2S flattened multi-turn cases. Provide it to include "
-              f"the multi-turn dimension.", file=sys.stderr)
         return []
-    out = []
-    rows = list(csv.DictReader(open(path, encoding="utf-8")))
-    for ri, row in enumerate(rows[:limit]):
-        turns = _mhj_user_turns(row)
-        if len(turns) < 2:  # only multi-turn rows are worth flattening
-            continue
-        goal = (row.get("submission_message") or turns[-1]).strip()
-        tactic = (row.get("tactic") or "").strip().lower().replace(" ", "_")
-        for tmpl in templates:
-            prompt = m2s.flatten(turns, tmpl)
-            out.append(case(prompt, rb_harmful(goal), "Harmful_Block",
-                            id=f"mhj-m2s-{ri}-{tmpl}", type="harmful_content",
-                            source="MHJ", license="research-only",
-                            technique_family=f"m2s_{tmpl}",
-                            mhj_tactic=tactic, m2s_template=tmpl, n_turns=len(turns),
-                            flattened=True))
+    rows = list(csv.DictReader(open(path, encoding="utf-8")))[:limit]
+    tl = ((ri, _mhj_user_turns(row), (row.get("submission_message") or "").strip(),
+           {"mhj_tactic": (row.get("tactic") or "").strip().lower().replace(" ", "_")})
+          for ri, row in enumerate(rows))
+    out = _flatten_to_cases(tl, "MHJ", "research-only", "mhj-m2s", templates)
     return out
 
 
@@ -264,17 +287,19 @@ def stratified(domains, target, seed=0):
     return out
 
 
-def build(tier="full", seed=0, out_dir=DEFAULT_OUT, with_deepset=False, mhj_limit=60,
-          assert_mode="rubric"):
+def build(tier="full", seed=0, out_dir=DEFAULT_OUT, with_deepset=False, m2s_limit=60,
+          with_mhj=False, assert_mode="rubric"):
     pi_inj, pi_leak, pi_ben = load_promptinject()
     cse_inj = load_cyberseceval_injection()
     cse_frr = load_cyberseceval_frr()
     xs_safe, xs_unsafe = load_xstest()
     adv = load_advbench()
-    mhj = load_mhj_m2s(limit=mhj_limit)
+    m2s_cases = load_safemtdata_m2s(limit=m2s_limit)          # MIT, bundled
+    if with_mhj:
+        m2s_cases += load_mhj_m2s(limit=m2s_limit)            # opt-in, non-redistributable
 
     injection = dedup(pi_inj + cse_inj)
-    harmful = dedup(adv + xs_unsafe + mhj +
+    harmful = dedup(adv + xs_unsafe + m2s_cases +
                     [c for c in cse_frr if c["metadata"]["type"] == "harmful_content"])
     leakage = dedup(pi_leak)
     benign = dedup(pi_ben + xs_safe + [c for c in cse_frr if c["metadata"]["type"] == "benign"])
@@ -309,16 +334,18 @@ def main():
     ap.add_argument("--tier", choices=["smoke", "mid", "full"], default="full")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default=str(DEFAULT_OUT), help="output dir for promptfoo test files")
-    ap.add_argument("--mhj-limit", type=int, default=60, help="MHJ rows to flatten via M2S")
+    ap.add_argument("--m2s-limit", type=int, default=60, help="multi-turn rows to flatten via M2S")
     ap.add_argument("--with-deepset", action="store_true", help="also fetch deepset (network)")
+    ap.add_argument("--with-mhj", action="store_true",
+                    help="also include MHJ M2S cases (CC-BY-NC, NOT redistributable — local dev only)")
     ap.add_argument("--assert", dest="assert_mode", choices=["rubric", "guardrail"],
                     default="rubric",
                     help="rubric=llm-judge (app-eval); guardrail=control's own verdict (control-isolate)")
     args = ap.parse_args()
 
     domains, sampled, files = build(args.tier, args.seed, args.out,
-                                    with_deepset=args.with_deepset, mhj_limit=args.mhj_limit,
-                                    assert_mode=args.assert_mode)
+                                    with_deepset=args.with_deepset, m2s_limit=args.m2s_limit,
+                                    with_mhj=args.with_mhj, assert_mode=args.assert_mode)
     full = {k: len(v) for k, v in domains.items()}
     split = {k: len(v) for k, v in sampled.items()}
     print(f"tier={args.tier}  seed={args.seed}  out={args.out}")

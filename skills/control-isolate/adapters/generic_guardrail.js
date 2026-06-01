@@ -3,7 +3,7 @@
  *
  * Maps a guardrail/classifier API's response into promptfoo's native `guardrails`
  * object (for `guardrails` / `not-guardrails` assertions) using the SHARED status
- * policy (../../_shared/status_policy.js) — body-signal first, status as a hint:
+ * policy (../lib/status_policy.js) — body-signal first, status as a hint:
  *
  *   answer (2xx, no block signal) -> allowed (flagged: false)
  *   block (body signal or hint status) -> flagged: true
@@ -20,7 +20,7 @@
  * GUARDRAIL_BLOCK_FIELD (dotted path) + GUARDRAIL_BLOCK_VALUE for odd shapes.
  */
 
-const { classify } = require('../../_shared/status_policy.js');
+const { classify } = require('../lib/status_policy.js');
 
 module.exports = (json, text, context) => {
   const status = context && context.response && context.response.status;

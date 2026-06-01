@@ -229,13 +229,22 @@ temp/
 # corpus_v1.json stays in version control.
 /data/
 
-# --- security-eval skills: generated artifacts (rebuild via build_corpus.py) ---
-skills/_shared/corpus/promptfoo/
-skills/control-isolate/corpus/
+# --- security-eval: build scratch + run artifacts ---
+# The Python template's `lib/` rule (above) would swallow our vendored runtime dirs —
+# re-include them (they ARE committed: the self-contained-skill source of truth).
+!skills/**/lib/
+!skills/**/lib/**
+!tools/lib/
+!tools/lib/**
+# The per-skill corpus (skills/*/corpus/) IS committed (prebuilt, license-clean).
+# Only the maintainer build scratch dir is ignored.
+tools/corpus/promptfoo/
 skills/*/results.json
-skills/**/__pycache__/
-# MHJ multi-turn jailbreaks are research-only — not redistributable. Fetch locally.
-skills/_shared/corpus/sources/raw/mhj_multiturn.csv
+e2e/redteam.yaml
+**/__pycache__/
+# MHJ multi-turn jailbreaks are CC-BY-NC (non-commercial) — not redistributable.
+# Opt-in local dev only (build_corpus --with-mhj).
+tools/corpus/sources/raw/mhj_multiturn.csv
 
 # per-skill secrets
 skills/**/.env

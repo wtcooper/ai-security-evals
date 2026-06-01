@@ -61,10 +61,11 @@ def test_seed_reproducible():
 def test_m2s_cases_present_and_flattened():
     import pytest
     domains, _, _ = bc.build("full", out_dir=tempfile.mkdtemp())
-    m2s_cases = [c for c in domains["harmful_content"] if c["metadata"].get("source") == "MHJ"]
-    if not (bc.RAW / "mhj_multiturn.csv").exists():
-        pytest.skip("MHJ (research-only) not present; M2S cases unavailable")
+    m2s_cases = [c for c in domains["harmful_content"] if c["metadata"].get("flattened")]
+    if not (bc.RAW / "safemtdata_attack600.json").exists():
+        pytest.skip("SafeMTData not vendored; M2S cases unavailable")
     assert len(m2s_cases) > 0
+    assert all(c["metadata"]["license"] == "MIT" for c in m2s_cases)  # bundled = redistributable
     for c in m2s_cases:
         assert c["metadata"]["m2s_template"] in ("hyphenize", "numberize", "pythonize")
         assert c["metadata"]["flattened"] is True

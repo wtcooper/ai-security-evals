@@ -2,7 +2,7 @@
 # Each candidate is sent through the proxy with guardrails:["content-filter"]; the
 # filter BLOCKS on the "confidential" keyword (HTTP 403) and ALLOWS clean prompts.
 #   npx promptfoo eval -c e2e/control-isolate.e2e.yaml -j 2 --output /tmp/e2e_ci.json
-#   python skills/_shared/summarize.py /tmp/e2e_ci.json
+#   python skills/control-isolate/lib/summarize.py /tmp/e2e_ci.json
 description: "e2e: control-isolate against the real LiteLLM content-filter (403 blocks)"
 
 env:

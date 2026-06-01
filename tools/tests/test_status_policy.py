@@ -1,6 +1,6 @@
 import sys, pathlib
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "lib"))
 import status_policy as sp
 
 k = lambda status, body=None, text="": sp.classify(status, body if body is not None else {}, text)["kind"]

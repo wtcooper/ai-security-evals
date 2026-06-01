@@ -29,9 +29,8 @@ package = false
 
 [tool.pytest.ini_options]
 testpaths = [
-    "skills/_shared/tests",
+    "tools/tests",
     "skills/control-bench/tests",
 ]
 asyncio_mode = "auto"
-pythonpath = ["skills/_shared"]
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]

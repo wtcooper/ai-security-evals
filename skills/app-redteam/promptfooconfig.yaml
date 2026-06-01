@@ -31,7 +31,7 @@ targets:
         Authorization: "Bearer {{ env.TARGET_API_KEY }}"
       body:
         messages: "{{ messages }}"      # promptfoo supplies the running conversation
-      transformResponse: file://../_shared/transform_response.js
+      transformResponse: file://lib/transform_response.js
       # For a stateful backend, extract the server session id and reuse it:
       # sessionParser: 'data.headers["set-cookie"]'
 

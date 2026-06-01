@@ -2,7 +2,7 @@
 # promptfoo's Playwright browser provider, for when the backend API isn't exposed.
 #   npm install playwright @playwright/browser-chromium playwright-extra puppeteer-extra-plugin-stealth
 #   npx promptfoo eval -c promptfooconfig.browser.yaml --output results.json
-#   python ../_shared/summarize.py results.json
+#   python lib/summarize.py results.json
 #
 # Browser automation is ~10-100x slower than the HTTP path and Chromium-only — use
 # the HTTP config (promptfooconfig.yaml) when the API IS reachable; use this when the
@@ -63,10 +63,10 @@ defaultTest:
           messages:
             - role: user
               content: "{{prompt}}"
-        transformResponse: file://../_shared/transform_response.js
+        transformResponse: file://lib/transform_response.js
 
 tests:
-  - file://../_shared/corpus/promptfoo/injection.json
-  - file://../_shared/corpus/promptfoo/data_leakage.json
-  - file://../_shared/corpus/promptfoo/harmful.json
-  - file://../_shared/corpus/promptfoo/benign_overrefusal.json
+  - file://corpus/injection.json
+  - file://corpus/data_leakage.json
+  - file://corpus/harmful.json
+  - file://corpus/benign_overrefusal.json

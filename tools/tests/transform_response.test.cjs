@@ -1,9 +1,9 @@
 /**
  * Tests for the app-skill transformResponse (classify-driven). Run:
- *   node skills/_shared/tests/transform_response.test.cjs
+ *   node tools/tests/transform_response.test.cjs
  */
 const path = require('path');
-const transform = require(path.join(__dirname, '..', 'transform_response.js'));
+const transform = require(path.join(__dirname, '..', 'lib', 'transform_response.js'));
 
 let pass = 0, fail = 0;
 function check(name, cond) { cond ? pass++ : (fail++, console.error('FAIL:', name)); }

@@ -32,3 +32,12 @@ NOT bundled (opt-in runtime fetch via scripts/build_corpus.py flags):
 
 Verify each license/version before redistributing. Apply access controls to the
 corpus and to result logs; do not surface payloads in user-facing output.
+
+SafeMTData / Attack_600  (Ren et al., "Derail Yourself: Multi-turn LLM Jailbreak
+  Attack through Self-discovered Clues" / ActorAttack, 2024)  — MIT
+  https://huggingface.co/datasets/SafeMTData/SafeMTData
+  Multi-turn attack sequences (multi_turn_queries) flattened via M2S
+  (arXiv:2503.04856). Vendored as raw/safemtdata_attack600.json.
+
+MHJ  (ScaleAI, Multi-turn Human Jailbreaks)  — CC-BY-NC-4.0 (NON-COMMERCIAL)
+  NOT bundled / NOT redistributable. Opt-in local dev only (--with-mhj).

@@ -24,19 +24,19 @@ jobs:
       - name: Python env
         run: uv sync --extra dev
 
-      - name: Build corpora (smoke) — exercises the builder offline
-        run: |
-          uv run python skills/_shared/build_corpus.py --tier smoke
-          uv run python skills/_shared/build_corpus.py --tier smoke --assert guardrail --out skills/control-isolate/corpus
-
       - name: Node tests
         run: |
-          node skills/_shared/tests/status_policy.test.cjs
-          node skills/_shared/tests/transform_response.test.cjs
+          node tools/tests/status_policy.test.cjs
+          node tools/tests/transform_response.test.cjs
           node skills/control-isolate/tests/generic_guardrail.test.cjs
 
       - name: Python tests
-        run: uv run pytest skills/_shared/tests skills/control-bench/tests -q
+        run: uv run pytest tools/tests skills/control-bench/tests -q
+
+      - name: No drift — vendored skill copies match tools/
+        run: |
+          bash tools/sync_skills.sh
+          git diff --exit-code -- skills/*/lib skills/app-eval/corpus skills/control-isolate/corpus
 
       - name: Validate promptfoo configs
         run: |

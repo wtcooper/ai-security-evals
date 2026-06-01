@@ -27,7 +27,6 @@ bash targets/proxy/start_proxy.sh >/tmp/e2e_proxy.log 2>&1 &
 for i in $(seq 1 40); do curl -s -o /dev/null http://127.0.0.1:4000/health/readiness && break; sleep 2; done
 [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4000/health/readiness)" = "200" ] \
   && echo "  gateway up" || { echo "  gateway failed; see /tmp/e2e_proxy.log"; exit 1; }
-$PY skills/_shared/build_corpus.py --tier smoke >/dev/null 2>&1
 
 run_app_eval() {
   note "app-eval  (real target gemini-flash + judge gemini-flash-lite)"
@@ -35,7 +34,7 @@ run_app_eval() {
   # retries 429 transiently, but keep the footprint small or runs crawl.
   npx promptfoo eval -c e2e/app-eval.e2e.yaml --filter-sample 4 -j 1 \
     --output /tmp/e2e_app_eval.json --no-progress-bar --no-cache >/tmp/e2e_app_eval.log 2>&1
-  $PY skills/_shared/summarize.py /tmp/e2e_app_eval.json | tee /tmp/e2e_app_eval.summary
+  $PY skills/app-eval/lib/summarize.py /tmp/e2e_app_eval.json | tee /tmp/e2e_app_eval.summary
   grep -q "errors excluded: 0" /tmp/e2e_app_eval.summary && grep -q "answer" /tmp/e2e_app_eval.summary \
     && ok "app-eval ran with real models, no errors" || bad "app-eval (see /tmp/e2e_app_eval.log)"
 }
@@ -44,7 +43,7 @@ run_control_isolate() {
   note "control-isolate  (real LiteLLM content-filter, 403 blocks)"
   npx promptfoo eval -c e2e/control-isolate.e2e.yaml -j 2 \
     --output /tmp/e2e_ci.json --no-progress-bar --no-cache >/tmp/e2e_ci.log 2>&1
-  $PY skills/_shared/summarize.py /tmp/e2e_ci.json | tee /tmp/e2e_ci.summary
+  $PY skills/control-isolate/lib/summarize.py /tmp/e2e_ci.json | tee /tmp/e2e_ci.summary
   grep -q "block 3" /tmp/e2e_ci.summary && grep -q "403" /tmp/e2e_ci.summary \
     && ok "content-filter 403 blocks auto-classified (no env)" || bad "control-isolate (see /tmp/e2e_ci.log)"
 }

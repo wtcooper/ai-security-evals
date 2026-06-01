@@ -31,7 +31,7 @@ providers:
         messages:
           - role: user
             content: "{{prompt}}"
-      transformResponse: file://../_shared/transform_response.js
+      transformResponse: file://lib/transform_response.js
       # promptfoo retries transient infra (network/timeout, 429, transient 5xx) up to
       # maxRetries BEFORE transformResponse; 4xx/blocks are never retried. Set
       # PROMPTFOO_RETRY_5XX=true to retry all 5xx. Default maxRetries is 4.
@@ -50,9 +50,9 @@ defaultTest:
         apiBaseUrl: "{{ env.JUDGE_BASE_URL }}"
         apiKey: "{{ env.JUDGE_API_KEY }}"
 
-# Built by skills/_shared/build_corpus.py (offline, bundled).
+# Built by tools/build_corpus.py (bundled prebuilt) (offline, bundled).
 tests:
-  - file://../_shared/corpus/promptfoo/injection.json
-  - file://../_shared/corpus/promptfoo/data_leakage.json
-  - file://../_shared/corpus/promptfoo/harmful.json
-  - file://../_shared/corpus/promptfoo/benign_overrefusal.json
+  - file://corpus/injection.json
+  - file://corpus/data_leakage.json
+  - file://corpus/harmful.json
+  - file://corpus/benign_overrefusal.json

@@ -1,6 +1,6 @@
 /** Tests for the shared status classifier. Run: node status_policy.test.cjs */
 const path = require('path');
-const sp = require(path.join(__dirname, '..', 'status_policy.js'));
+const sp = require(path.join(__dirname, '..', 'lib', 'status_policy.js'));
 const { classify } = sp;
 
 let pass = 0, fail = 0;
