@@ -61,6 +61,7 @@ provider** — for when the backend API isn't exposed.
 | Aspect | Detail |
 |---|---|
 | Attacks | Multi-turn `crescendo` (adaptive, **runs on your own attacker model, air-gapped**), `custom`, `jailbreak:tree`, plus `prompt-injection` |
+| Objectives | **Bring-our-own pack** (`objectives/redteam_objectives.json`, ~73 goals across cyber / injection / data-leakage / content-safety) fed to promptfoo's local `intent` plugin. promptfoo's `harmful:*`/`ascii-smuggling`/RAG/agentic plugins are **remote-only**, and its `DATASET_*` plugins **fetch from HuggingFace at run time** — so neither is air-gap-safe; we drive everything through our own objectives instead |
 | Remote-only | `goat` / `mischievous-user` / plain `jailbreak`(→`jailbreak:meta`) need promptfoo's hosted generation — not air-gapped |
 | Models | Attacker + grader are OpenAI-compatible — point at your production LiteLLM (`ATTACKER_*`, `GRADER_*`) |
 | Output | `promptfoo redteam report` vuln UI; flags which strategies succeeded. ASR is noisy — repeat trials |
