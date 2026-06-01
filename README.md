@@ -3,11 +3,12 @@
 Distributable **AI skills** for evaluating the security of LLM applications and the
 controls that protect them — fast, standardized, license-clean.
 
-Each skill is an interactive **Plan → Run → Analyze** runbook that Claude Code executes
-on your behalf — it gathers your target endpoint/auth/body schema, picks how much of the
-corpus or which benchmark to run and the judge/attacker models, writes the config +
-`.env`, runs the eval, and summarizes the metrics. You don't hand-edit YAML; the skill
-drives it.
+Each skill is a portable **Agent Skill** (a `SKILL.md` runbook + bundled assets) that
+any compatible agent harness can run. It drives an interactive **Plan → Run → Analyze**
+flow — gather your target endpoint/auth/body schema, pick how much of the corpus or
+which benchmark to run and the judge/attacker models, write the config + `.env`, run the
+eval, and summarize the metrics. You don't hand-edit YAML; the skill drives it. (Every
+step is also runnable by hand — see Quick start.)
 
 Engines are off-the-shelf: **promptfoo** for app testing and guardrail isolation,
 **Inspect** (`inspect_ai` + `inspect_evals`) for control effectiveness inside real
@@ -145,15 +146,16 @@ uv sync                       # Python deps for the tools/tests
 bash scripts/run_tests.sh     # verify everything offline (no keys): Node + Python + no-drift
 ```
 
-### Run a skill (via Claude Code)
-Open the repo in Claude Code and invoke the skill — it runs the Plan → Run → Analyze
-runbook and asks for the details it needs:
-```
-/app-eval        # benchmark an app
-/app-redteam     # adaptive red team
-/control-isolate # test a guardrail API
-/control-bench   # A/B/C a control inside a benchmark
-```
+### Run a skill (via an agent harness)
+Point your agent at a skill directory (each holds a `SKILL.md` runbook); the agent runs
+the Plan → Run → Analyze flow and asks for the details it needs:
+- `app-eval` — benchmark an app
+- `app-redteam` — adaptive red team
+- `control-isolate` — test a guardrail API
+- `control-bench` — A/B/C a control inside a benchmark
+
+Skills follow the standard `SKILL.md` format, so any compatible harness can load them;
+no harness, no problem — every step is plain CLI (next).
 
 ### Run a skill manually (app-eval example)
 ```bash
