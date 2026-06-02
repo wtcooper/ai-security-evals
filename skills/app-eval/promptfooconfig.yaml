@@ -50,7 +50,7 @@ defaultTest:
         apiBaseUrl: "{{ env.JUDGE_BASE_URL }}"
         apiKey: "{{ env.JUDGE_API_KEY }}"
 
-# Built by tools/build_corpus.py (bundled prebuilt) (offline, bundled).
+# Bundled, prebuilt corpus (offline — no build step at run time).
 tests:
   - file://corpus/injection.json
   - file://corpus/data_leakage.json

@@ -1,17 +1,12 @@
 ---
 name: control-bench
 description: >-
-  Measure the risk reduction from enabling a security control inside ANY Inspect
-  benchmark (inspect_ai + inspect_evals — AgentDojo for indirect prompt injection
-  during tool calling, CyberSecEval MITRE/FRR for cyber-attack assistance, or any
-  other inspect_evals task). Runs a tiny param-injection shim that adds a guardrail
-  (model + guardrail name) per arm at the model boundary, then lets Inspect run the
-  A/B/C sweep natively (multiple `openai-api/<arm>/<model>` providers in one eval)
-  and compare native scores. Vendor-agnostic gateway connectors (litellm first).
-  Triggers: "does our guardrail help on AgentDojo / CyberSecEval", "A/B/C control
-  test", "measure risk reduction from a control", "indirect prompt injection
-  defense", "agent tool-call security". For a guardrail in isolation use
-  control-isolate; for an app benchmark use app-eval.
+  Measure the risk reduction from enabling a security control inside any Inspect
+  benchmark (AgentDojo for indirect prompt injection during tool calling,
+  CyberSecEval MITRE/FRR, or any inspect_evals task): a param-injection shim adds a
+  guardrail per arm at the model boundary and Inspect runs the A/B/C sweep natively,
+  comparing scores. Vendor-agnostic gateway connectors (litellm first). For a
+  guardrail in isolation use control-isolate; for an app benchmark use app-eval.
 disable-model-invocation: true
 user-invocable: true
 allowed-tools:

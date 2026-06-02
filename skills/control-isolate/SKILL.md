@@ -1,17 +1,13 @@
 ---
 name: control-isolate
 description: >-
-  Characterize a security guardrail / classifier API in isolation — no model in
-  the loop. Sends a bundled labeled corpus (harmful = should-block, benign =
-  should-pass) plus M2S-flattened multi-turn attacks directly to the guardrail
-  and grades its own verdict, reporting classification F1 / precision / recall /
-  FPR with a per-technique breakdown. Use to measure a guardrail's catch rate and
-  over-block rate, compare guardrail vendors head-to-head, or test input-side vs
-  output-side separately. Vendor-agnostic: maps any guardrail's response (HTTP
-  status or JSON verdict) into a normalized block signal. Triggers: "test our
-  guardrail", "Bedrock/Prisma/Lakera/Azure guardrail F1", "guardrail false
-  positive rate", "compare guardrail vendors". For end-to-end app testing use
-  app-eval; for control effect inside an agent/framework use control-bench.
+  Characterize a guardrail / classifier API in isolation (no model in the loop):
+  sends a bundled labeled corpus (harmful vs benign + M2S multi-turn) straight to
+  the guardrail and grades its verdict, reporting F1 / precision / recall / FPR by
+  technique. Vendor-agnostic: maps any HTTP status or JSON verdict to a normalized
+  block signal. Use to measure catch vs over-block rate or compare guardrail
+  vendors (Bedrock/Prisma/Lakera/Azure). For end-to-end app testing use app-eval;
+  for control effect inside a benchmark use control-bench.
 disable-model-invocation: true
 user-invocable: true
 argument-hint: "[smoke|mid|full]"
@@ -35,7 +31,7 @@ No LLM judge is involved — the metric is the control's own verdict. Use
 ## PLAN
 
 ### 1. Preflight
-`bash ../app-eval/install_dependencies.sh` (promptfoo). Confirm python + node.
+`bash install_dependencies.sh` (installs promptfoo locally). Confirm python + node.
 
 ### 2. Profile the guardrail — ask, then write the config
 Gather:

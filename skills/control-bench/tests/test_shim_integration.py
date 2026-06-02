@@ -4,7 +4,7 @@ from http.server import ThreadingHTTPServer
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT.parent.parent / "tools" / "tests"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))  # local mock_server
 
 import mock_server  # noqa: E402
 import injection_shim as shim  # noqa: E402

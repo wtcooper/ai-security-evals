@@ -1,16 +1,12 @@
 ---
 name: app-eval
 description: >-
-  Fast static security benchmark for an LLM application. Runs a bundled,
-  license-clean adversarial corpus (prompt injection, harmful content, data
-  leakage, over-refusal) plus M2S-flattened multi-turn jailbreaks through
-  promptfoo eval, then reports F1 / recall / FPR / ASR with a per-technique
-  breakdown. Use to benchmark an app or chatbot's defenses quickly, compare
-  models or app versions, or A/B/C a param-based guardrail (control on vs off) —
-  without a live red-team engine. Triggers: "benchmark our chatbot", "is our app
-  safe", "injection/jailbreak benchmark", "F1 / FRR / recall", "compare guardrail
-  configs". For adaptive multi-turn attacks use app-redteam; to test a guardrail
-  API in isolation use control-isolate.
+  Fast static security benchmark for an LLM app: runs a bundled, license-clean
+  adversarial corpus (prompt injection, harmful, data leakage, over-refusal +
+  M2S multi-turn) through promptfoo eval and reports F1 / recall / FPR / ASR by
+  technique. Use to benchmark defenses, compare models/versions, or A/B/C a
+  param-based guardrail. For live multi-turn attacks use app-redteam; for a
+  guardrail API alone use control-isolate.
 disable-model-invocation: true
 user-invocable: true
 argument-hint: "[smoke|mid|full]"
@@ -124,4 +120,5 @@ prompts to the corpus, or move to `app-redteam` for adaptive attacks.
   CC-BY + SafeMTData MIT for the M2S `safemt-m2s-*` multi-turn cases) — redistributable.
 - At a small sample the CI on Recall is wide (±~8 pts at ~30); don't call a small gap
   real — run more cases before a vendor or release decision.
-- To regenerate/extend the corpus, see `tools/` (maintainer tooling).
+- The corpus ships prebuilt; extend it by adding cases to `corpus/*.json` (or
+  appending your own test prompts in the same shape).

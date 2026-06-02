@@ -1,15 +1,12 @@
 ---
 name: app-redteam
 description: >-
-  Adaptive, customized red teaming of an LLM application using promptfoo's live
-  attack engine — genuine multi-turn attacks (crescendo, GOAT, mischievous-user)
-  where the attacker reads the target's REAL responses each turn and backtracks on
-  refusals, plus jailbreak and prompt-injection strategies. Use when someone wants
-  to actively discover vulnerabilities, run a real (not static) red team, customize
-  attack objectives, or stress-test multi-turn robustness. Triggers: "red team our
-  app", "adaptive jailbreak", "multi-turn attack", "crescendo / GOAT", "find
-  vulnerabilities". For a fast reproducible benchmark use app-eval; for a guardrail
-  in isolation use control-isolate.
+  Adaptive live red team of an LLM app via promptfoo's attack engine: genuine
+  multi-turn attacks (crescendo, jailbreak:tree) that read the target's real
+  responses and adapt on refusals, seeded by a bundled cross-domain objective
+  pack. Use to actively find vulnerabilities or stress-test multi-turn robustness.
+  For a fast reproducible benchmark use app-eval; for a guardrail in isolation use
+  control-isolate.
 disable-model-invocation: true
 user-invocable: true
 dependencies:
@@ -31,7 +28,7 @@ calls** to the target — confirm the user is authorized before running.
 ## PLAN
 
 ### 1. Preflight
-`bash ../app-eval/install_dependencies.sh` (or any promptfoo install). Confirm node.
+`bash install_dependencies.sh` (installs promptfoo locally, sets air-gap env). Confirm node.
 
 ### 2. Profile the target — ask, then write the config
 Gather (the user may paste a `curl`):
@@ -57,37 +54,25 @@ gateway). Ask for and set in `.env`:
 
 ### 4. Choose the attack plan (`AskUserQuestion`)
 
-**What to probe — bring our own objectives (the default).** The config ships with the
-`intent` plugin pointed at a bundled, license-clean **objective pack**
-(`objectives/redteam_objectives.json`, ~73 goals) spanning all four attack categories
-— **cyber / prompt_injection / data_leakage / content_safety**. The local multi-turn
-strategies escalate toward each objective using *your* attacker model. This is the
-default because **promptfoo's built-in plugins don't survive an air gap**:
+**What to probe.** The config already points the local `intent` plugin at the bundled
+objective pack (`objectives/redteam_objectives.json`, ~73 goals across cyber /
+prompt_injection / data_leakage / content_safety); the strategies escalate toward each.
+This is the air-gapped default — promptfoo's built-in plugins are remote-only or fetch
+datasets at run time (the config comment explains why). One limit to note to the user:
+`intent` goals can't replicate the *structural* plugins (`bfla`/`bola`/`ssrf`/`mcp`/RAG),
+which need the app's own tools.
 
-| plugin class | examples | local-only run |
-|---|---|---|
-| **Remote-only** (need Promptfoo Cloud) | `harmful:*` synthesis, `ascii-smuggling`, `data-exfil`, `indirect-prompt-injection`, `system-prompt-override`, `bfla`/`bola`/`ssrf`, `mcp`, RAG/agentic, vertical packs | **throws** |
-| **Dataset** (fetch at run time) | `harmbench`, `beavertails`, `pliny`, `cyberseceval`, `xstest` | hits HuggingFace/GitHub — **not air-gapped, not license-pinned** |
-| **Config-required (BYO)** | **`intent`**, `policy` | **fully local** ✅ |
+**Strategies** — with remote generation disabled, these run on your `redteam.provider`:
+- **Local-capable:** `crescendo` (default), `jailbreak:tree`, `custom`, classic iterative
+  `jailbreak` (pin `iterative`), `basic`, `prompt-injection`.
+- **Remote-only (throw air-gapped):** `goat`, `mischievous-user`, plain `jailbreak` (→`jailbreak:meta`).
 
-So we drive everything through `intent` + our pack. (`intent` objectives express
-harmful/cyber/injection/leakage *goals*; they can't replicate the *structural* plugins
-— `bfla`/`bola`/`ssrf`/`mcp`/RAG — which need the app's tools. Note that limit to the user.)
+**Scope.** ~73 objectives × multi-turn is a big run. First pass: point `intent` at
+`objectives/redteam_objectives.smoke.json` (2 goals) or set `numTests` low + `maxTurns: 3`.
+Filter to one audience (e.g. cyber) via the category tags in
+`objectives/redteam_objectives.manifest.json`.
 
-**How (strategies).** With remote generation disabled they run on your `redteam.provider`:
-  - **Local-capable** (air-gapped): `crescendo` (adaptive multi-turn, the default),
-    `jailbreak:tree`, `custom` (natural-language multi-turn playbook), classic iterative
-    `jailbreak` (pin the `iterative` provider), `basic`, `prompt-injection`.
-  - **Remote-only** (throw under air-gap): `goat`, `mischievous-user`, plain `jailbreak`
-    (aliases to `jailbreak:meta`).
-
-**Scope/size.** ~73 objectives × multi-turn strategies is a big run. For a **first pass**,
-point `intent` at `objectives/redteam_objectives.smoke.json` (2 objectives) or set
-`numTests` low and `maxTurns: 3`; expand once wiring is confirmed. To focus on one
-audience (e.g. a cyber team), hand-filter the pack to the `cyber` entries — the
-`objectives/redteam_objectives.manifest.json` sidecar tags every objective by category.
-
-Edit the `redteam:` block to reflect their choices. Validate:
+Edit the `redteam:` block to reflect their choices, then validate:
 `npx promptfoo validate -c promptfooconfig.yaml`.
 
 ---

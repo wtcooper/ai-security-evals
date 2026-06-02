@@ -23,6 +23,12 @@ vendor app-redteam     status_policy.js transform_response.js
 vendor control-isolate status_policy.js summarize.py
 vendor control-bench   status_policy.py
 
+# --- promptfoo setup script: each promptfoo skill ships its OWN copy (no cross-skill
+#     reference) so a skill folder is copy-paste self-contained ---
+for s in app-eval app-redteam control-isolate; do
+  cp install_dependencies.sh "$ROOT/skills/$s/install_dependencies.sh"
+done
+
 # --- prebuilt, license-clean corpus (full tier; skills sample at run time) ---
 $PY build_corpus.py --tier full --out "$ROOT/skills/app-eval/corpus" >/dev/null
 $PY build_corpus.py --tier full --assert guardrail --out "$ROOT/skills/control-isolate/corpus" >/dev/null
