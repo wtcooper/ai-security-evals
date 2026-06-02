@@ -38,9 +38,9 @@ python lib/summarize.py results.json
 
 ## Logs / output
 
-<!-- Paste the relevant snippet of stderr/stdout. For judge classification
-     issues, paste 1-3 lines from .evals/experiments/<name>/transcript.jsonl
-     so we can see the judge envelope. Redact any secrets. -->
+<!-- Paste the relevant snippet of stderr/stdout. For judge/verdict issues, paste
+     1-3 lines from .evals/<skill>/<experiment>/transcripts/transcript.jsonl so we can
+     see the prompt/response/verdict. Redact any secrets. -->
 
 ```
 ```

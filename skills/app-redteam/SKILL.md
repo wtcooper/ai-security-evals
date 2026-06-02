@@ -75,13 +75,24 @@ Filter to one audience (e.g. cyber) via the category tags in
 Edit the `redteam:` block to reflect their choices, then validate:
 `npx promptfoo validate -c promptfooconfig.yaml`.
 
+### 5. Open an experiment folder (captures this run)
+Propose a short legible label (target + attack, e.g. `acme-prod-crescendo`), confirm it,
+then `bash new_experiment.sh app-redteam "<label>"`. It prints `EXP=<path>` under
+`.evals/app-redteam/<label>_<date>/` and snapshots the config + objective pack +
+redacted `.env`. Use that `<EXP>` path below.
+
 ---
 
 ## RUN
 ```
 set -a; . .env; set +a
-npx promptfoo redteam run -c promptfooconfig.yaml
+npx promptfoo redteam run -c promptfooconfig.yaml -d "<label>" \
+  --output "<EXP>/inputs/generated_probes.yaml"
+npx promptfoo export eval latest -o "<EXP>/results/redteam.results.json"   # results + transcripts
 ```
+`redteam run`'s `--output` saves the generated attack probes; `export eval latest`
+writes the run's results (with multi-turn transcripts) into the experiment. Record the
+command + choices in `<EXP>/manifest.json`.
 This is slow and adaptive (the attacker model drives many turns). Narrate that it's
 running live attacks. Note: under `PROMPTFOO_DISABLE_REMOTE_GENERATION=true`, the
 local-capable strategies (crescendo/custom/jailbreak:tree/basic) run on your attacker
@@ -93,6 +104,7 @@ the hosted service.
 
 ## ANALYZE
 ```
+node lib/extract_transcript.js "<EXP>/results/redteam.results.json" > "<EXP>/transcripts/transcript.jsonl"
 npx promptfoo redteam report     # opens the vulnerability report UI
 ```
 Summarize for the user in plain text:
@@ -103,6 +115,8 @@ Summarize for the user in plain text:
 - **State the caveat plainly: ASR is noisy.** A single run is a sample. For any number
   you'll report or act on, **run repeated trials and report the variance** — don't
   treat one run's success rate as the truth.
+- Point to `<EXP>/` — `transcripts/transcript.jsonl` (turn-by-turn), `results/` (native),
+  and the report UI.
 
 End by offering: a deeper run (more turns/plugins), a focused run on the one strategy
 that worked, or `app-eval` for a fast reproducible regression number.
