@@ -18,15 +18,20 @@ vendor() {  # vendor <skill> <lib-file>...
 }
 
 # --- runtime libs per skill (only what each one uses) ---
-vendor app-eval        status_policy.js transform_response.js summarize.py
-vendor app-redteam     status_policy.js transform_response.js
-vendor control-isolate status_policy.js summarize.py
+vendor app-eval        status_policy.js transform_response.js summarize.py extract_transcript.js
+vendor app-redteam     status_policy.js transform_response.js extract_transcript.js
+vendor control-isolate status_policy.js summarize.py extract_transcript.js
 vendor control-bench   status_policy.py
 
 # --- promptfoo setup script: each promptfoo skill ships its OWN copy (no cross-skill
 #     reference) so a skill folder is copy-paste self-contained ---
 for s in app-eval app-redteam control-isolate; do
   cp install_dependencies.sh "$ROOT/skills/$s/install_dependencies.sh"
+done
+
+# --- experiment scaffolder: every skill ships its own copy (self-contained) ---
+for s in app-eval app-redteam control-isolate control-bench; do
+  cp new_experiment.sh "$ROOT/skills/$s/new_experiment.sh"
 done
 
 # --- prebuilt, license-clean corpus (full tier; skills sample at run time) ---

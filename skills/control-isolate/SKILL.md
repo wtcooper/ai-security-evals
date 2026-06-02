@@ -60,21 +60,29 @@ run-time sample (add `--filter-sample N` in RUN): smoke `30` / mid `150` / full 
 To compare guardrail vendors, plan one run per vendor (separate `.env` / `GUARDRAIL_URL`)
 and diff the F1 / FPR tables in Analyze.
 
+### 5. Open an experiment folder (captures this run)
+Propose a short legible label (guardrail + scope, e.g. `prisma-airs-pi-smoke`), confirm
+it, then `bash new_experiment.sh control-isolate "<label>"`. It prints `EXP=<path>` under
+`.evals/control-isolate/<label>_<date>/` and snapshots the config + redacted `.env`. Use
+that `<EXP>` path below.
+
 ---
 
 ## RUN
 ```
 set -a; . .env; set +a
-npx promptfoo eval -c promptfooconfig.yaml --output results.json
+npx promptfoo eval -c promptfooconfig.yaml --output "<EXP>/results/results.json"
 ```
-If everything errors, recheck the request schema and the block-signal mapping with a
-manual curl (the adapter only flags what it can recognize).
+Record the command + corpus filter in `<EXP>/manifest.json`. If everything errors,
+recheck the request schema and the block-signal mapping with a manual curl (the adapter
+only flags what it can recognize).
 
 ---
 
 ## ANALYZE
 ```
-python lib/summarize.py results.json
+python lib/summarize.py "<EXP>/results/results.json" | tee "<EXP>/summary.txt"
+node lib/extract_transcript.js "<EXP>/results/results.json" > "<EXP>/transcripts/transcript.jsonl"
 ```
 Present and interpret:
 - **F1 / precision / recall / FPR.** Recall = catch rate on attacks; FPR = over-block
@@ -88,7 +96,8 @@ Present and interpret:
   0.9 but `m2s_*` flattened multi-turn 0.2" or "misses `system_prompt_exfiltration`".
 - For input-vs-output runs or vendor comparisons, put the F1/FPR numbers side by side
   and state the tradeoff (catch rate vs over-block).
-- Point to `results.json` + `npx promptfoo view` for per-case verdicts.
+- Point to `<EXP>/` — `summary.txt`, `transcripts/transcript.jsonl`, and
+  `results/results.json` — plus `npx promptfoo view` for per-case verdicts.
 
 End by offering: test the other channel (input vs output), compare another vendor, or
 bump the tier.

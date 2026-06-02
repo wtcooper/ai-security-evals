@@ -78,13 +78,23 @@ If the app toggles a guardrail by a body param, duplicate `providers[0]` with a 
 `label` and set that param in its `body` — promptfoo runs every case against both and
 the report compares them per case.
 
+### 6. Open an experiment folder (captures this run)
+Propose a short legible label (target + scope, e.g. `acme-prod-cyber-smoke`), confirm
+it with the user, then:
+```
+bash new_experiment.sh app-eval "<label>"
+```
+It prints `EXP=<path>` under `.evals/app-eval/<label>_<date>/` and snapshots your config
++ redacted `.env`. Use that `<EXP>` path in RUN/ANALYZE below.
+
 ---
 
 ## RUN
 ```
 set -a; . .env; set +a
-npx promptfoo eval -c promptfooconfig.yaml --output results.json   # add --filter-sample N
+npx promptfoo eval -c promptfooconfig.yaml --output "<EXP>/results/results.json"   # add --filter-sample N / --filter-metadata category=cyber
 ```
+Then record what was run in `<EXP>/manifest.json` (the exact command + corpus filter).
 Stream progress. **If everything errors**, stop and diagnose before continuing —
 usually (a) wrong body schema, (b) auth, (c) judge URL not a chat-completions
 endpoint, or (d) the target returns a non-2xx the transform treats as operational
@@ -94,7 +104,8 @@ endpoint, or (d) the target returns a non-2xx the transform treats as operationa
 
 ## ANALYZE
 ```
-python lib/summarize.py results.json
+python lib/summarize.py "<EXP>/results/results.json" | tee "<EXP>/summary.txt"
+node lib/extract_transcript.js "<EXP>/results/results.json" > "<EXP>/transcripts/transcript.jsonl"
 ```
 Present a short plain-text report and interpret it for the user:
 - **Headline:** F1, Recall (block rate on attacks), FPR (over-refusal on benign), ASR.
@@ -109,8 +120,9 @@ Present a short plain-text report and interpret it for the user:
   "strong on `direct_harmful` (0.95) but only 0.30 on `m2s_*` flattened multi-turn" or
   "misses `system_prompt_exfiltration`". Flag families with n < 10 as low-confidence.
 - For an A/B/C run, diff the arms and state the marginal effect of the control.
-- Point the user to `results.json` and `npx promptfoo view` to spot-check any judge
-  decision.
+- Point the user to the experiment folder `<EXP>/` — `summary.txt` (headline),
+  `transcripts/transcript.jsonl` (per-case prompt/response/verdict), and
+  `results/results.json` (full native output) — plus `npx promptfoo view` to spot-check.
 
 End by offering next steps: bump the tier for a firmer number, add their own custom
 prompts to the corpus, or move to `app-redteam` for adaptive attacks.

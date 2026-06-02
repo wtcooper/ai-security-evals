@@ -64,6 +64,12 @@ Any `inspect_evals` task works; priority ones:
 - Others: `cyse2_prompt_injection`, `cyse2_interpreter_abuse`, …
 Pick task(s) + a `--limit` for a first pass (keep it small; agentdojo runs many calls).
 
+### 5. Open an experiment folder (captures this run)
+Propose a short legible label (control(s) + benchmark, e.g. `prisma-vs-baseline-agentdojo`),
+confirm it, then `bash new_experiment.sh control-bench "<label>" inspect`. It prints
+`EXP=<path>` under `.evals/control-bench/<label>_<date>/` and snapshots `arms.json` +
+redacted env. Use that `<EXP>` path below.
+
 ---
 
 ## RUN
@@ -82,19 +88,22 @@ Export the printed `*_BASE_URL` / `*_API_KEY` vars, set `MODEL`, then run the ch
 task once across all arms (using the `.venv-inspect` python/inspect):
 ```
 .venv-inspect/bin/inspect eval inspect_evals/agentdojo \
-  --model "openai-api/baseline/$MODEL,openai-api/prisma/$MODEL" --limit 50
+  --model "openai-api/baseline/$MODEL,openai-api/prisma/$MODEL" --limit 50 \
+  --log-dir "<EXP>/results/logs"
 ```
-Swap the task name for any other inspect_evals task — no skill changes.
+Swap the task name for any other inspect_evals task — no skill changes. Inspect's
+`.eval` logs ARE the full per-sample transcripts. Record the command + arms in
+`<EXP>/manifest.json`.
 
 ---
 
 ## ANALYZE
-Compare arms with `inspect view`, or pull scores in Python (find scorer names first
-with `inspect log dump file://<log>.eval | jq '.results.scores[].name'`):
+Compare arms with `inspect view --log-dir "<EXP>/results/logs"`, or pull scores in
+Python (find scorer names first with `inspect log dump file://<log>.eval | jq '.results.scores[].name'`):
 ```
-.venv-inspect/bin/python - <<'PY'
+.venv-inspect/bin/python - <<'PY' | tee "<EXP>/summary.txt"
 from inspect_ai.log import list_eval_logs, read_eval_log
-for p in list_eval_logs("./logs"):
+for p in list_eval_logs("<EXP>/results/logs"):
     log = read_eval_log(p)
     print(log.eval.model, {s.name: s.metrics for s in (log.results.scores or [])})
 PY

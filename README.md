@@ -163,6 +163,25 @@ response **body-first, status-as-hint** — so a new vendor's block code (e.g. L
 
 `summarize.py` prints a **per-status histogram** every run, so mis-bucketing is visible.
 
+### Experiment outputs (`.evals/`)
+Every run is captured in one auditable, legibly-named folder so you can go back and see
+exactly what was tested. `bash new_experiment.sh <skill> "<label>"` (vendored in each
+skill) opens it and snapshots the inputs; RUN/ANALYZE write the rest:
+
+```
+.evals/<skill>/<label>_<date>/         # e.g. .evals/app-eval/acme-prod-cyber-smoke_2026-06-02/
+  manifest.json        # skill · time · git commit · engine · host · command · corpus choices
+  inputs/              # exact config snapshot + redacted .env + objective pack
+  results/             # engine-NATIVE output: promptfoo results.json | Inspect *.eval logs
+  transcripts/         # transcript.jsonl — per-case prompt · response · verdict
+  summary.txt          # the metrics headline
+```
+
+The engine-native output (promptfoo JSON, Inspect `.eval`) already contains full
+transcripts; `transcript.jsonl` is the slim readable view. The root resolves to
+`$EVALS_DIR` → git top-level `.evals/` → `./.evals/` (so a copied-out skill still works),
+and `.evals/` is gitignored. Same-day reruns of a label get a `-N` suffix.
+
 ---
 
 ## Repository layout
