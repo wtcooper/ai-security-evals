@@ -26,4 +26,8 @@ fi
 echo "  ok"
 
 echo
+echo "== Skills are copy-paste self-contained (no escaping references) =="
+bash scripts/check_independence.sh
+
+echo
 echo "All skill tests passed."

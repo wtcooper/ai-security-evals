@@ -28,6 +28,7 @@ jobs:
         run: |
           node tools/tests/status_policy.test.cjs
           node tools/tests/transform_response.test.cjs
+          node tools/tests/extract_transcript.test.cjs
           node skills/control-isolate/tests/generic_guardrail.test.cjs
 
       - name: Python tests
@@ -36,7 +37,11 @@ jobs:
       - name: No drift — vendored skill copies match tools/
         run: |
           bash tools/sync_skills.sh
-          git diff --exit-code -- skills/*/lib skills/app-eval/corpus skills/control-isolate/corpus
+          git diff --exit-code -- skills/*/lib skills/app-eval/corpus skills/control-isolate/corpus \
+            skills/*/new_experiment.sh skills/*/install_dependencies.sh skills/app-redteam/objectives
+
+      - name: Skills are copy-paste self-contained
+        run: bash scripts/check_independence.sh
 
       - name: Validate promptfoo configs
         run: |
