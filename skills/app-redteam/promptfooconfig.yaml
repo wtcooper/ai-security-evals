@@ -1,11 +1,14 @@
-# app-redteam — ADAPTIVE attacks against an application (genuine multi-turn).
-#   npx promptfoo redteam run -c promptfooconfig.yaml
-#   npx promptfoo redteam report
+# app-redteam — ADAPTIVE multi-turn attacks against an application.
+# Two-phase, fully local (see SKILL.md):
+#   1. generate once -> cache objectives:
+#        npx promptfoo redteam generate -c promptfooconfig.yaml -o objectives.generated.yaml
+#   2. eval the cache (repeatable, offline):
+#        npx promptfoo redteam eval -c objectives.generated.yaml --output results.json
 #
-# Unlike app-eval (static, fast), this runs a live attacker that reads the
-# target's REAL responses each turn and adapts (crescendo/goat/mischievous-user/
-# hydra backtrack on refusals). Use for customized risk discovery, not a fast
-# benchmark. ASR is noisy — run repeated trials and report variance.
+# Unlike app-eval (static, single-turn), this runs a live attacker (crescendo)
+# that reads the target's REAL responses and escalates/backtracks on refusals.
+# Use for customized risk discovery, not a fast benchmark. ASR is noisy — run
+# repeated trials and report variance.
 description: "app-redteam: adaptive multi-turn red team against an application"
 
 env:
@@ -30,7 +33,15 @@ targets:
         Content-Type: application/json
         Authorization: "Bearer {{ env.TARGET_API_KEY }}"
       body:
-        messages: "{{ messages }}"      # promptfoo supplies the running conversation
+        # OpenAI-style chat envelope. CRITICAL: use the bare "{{prompt}}" token —
+        # for a multi-turn strategy promptfoo replaces it with the running
+        # conversation ARRAY ([{role,content},...]); for single-turn it's a string.
+        # Do NOT use "{{messages}}" (no such var — sends EMPTY input, silently
+        # breaking every attack). Adjust this envelope to your app, keeping
+        # "{{prompt}}" where the conversation goes. Delete `model` if your app
+        # doesn't take one.
+        model: "{{ env.TARGET_MODEL }}"
+        messages: "{{ prompt }}"
       transformResponse: file://lib/transform_response.js
       # For a stateful backend, extract the server session id and reuse it:
       # sessionParser: 'data.headers["set-cookie"]'
@@ -45,6 +56,8 @@ defaultTest:
       config:
         apiBaseUrl: "{{ env.GRADER_BASE_URL }}"
         apiKey: "{{ env.GRADER_API_KEY }}"
+        response_format:           # raw JSON for the grader too (same fence issue)
+          type: json_object
 
 redteam:
   purpose: >-
@@ -62,38 +75,54 @@ redteam:
     config:
       apiBaseUrl: "{{ env.ATTACKER_BASE_URL }}"
       apiKey: "{{ env.ATTACKER_API_KEY }}"
+      # Force raw JSON. Crescendo's attacker emits JSON; without this, smaller local
+      # models (e.g. gemma) wrap it in ```json fences and crescendo throws
+      # "Expected a JSON object". Remove only if your attacker model rejects it.
+      response_format:
+        type: json_object
 
   # The seed var the strategies inject into (the running conversation lands in the
   # target's `messages` body above).
   injectVar: prompt
 
   plugins:
-    # BYO OBJECTIVES via the `intent` plugin — the only fully-local, air-gapped,
-    # license-clean way to seed the multi-turn strategies. Our bundled pack
-    # (objectives/redteam_objectives.json, ~73 goals) spans all four attack
-    # categories: cyber / prompt_injection / data_leakage / content_safety.
+    # APP-SPECIFIC OBJECTIVES via the `intent` plugin — fully-local, air-gapped,
+    # license-clean. Edit objectives/redteam_objectives.json to add goals specific
+    # to THIS app (the bundled ~73 span cyber / prompt_injection / data_leakage /
+    # content_safety; you can also paste in goals from the docs cyber pack). For a
+    # quick first run, point at objectives/redteam_objectives.smoke.json (2 goals).
     #
-    # Why not the built-in plugins? promptfoo's harmful:*/ascii-smuggling/data-exfil/
-    # indirect-prompt-injection/RAG/agentic/vertical plugins are REMOTE-ONLY (need
-    # Promptfoo Cloud); the DATASET_* plugins (harmbench/beavertails/pliny/…) fetch
-    # from HuggingFace/GitHub at run time — neither is air-gap-safe or license-pinned.
-    # See SKILL.md "Local vs remote". For a quick first run, swap the path below to
-    # objectives/redteam_objectives.smoke.json (2 objectives).
+    # ALTERNATIVE — app-tailored generation (FREE community service, NOT enterprise):
+    # promptfoo's community remote generation writes app-specific objectives from
+    # `purpose` + real plugins (rbac/bola/pii/harmful/…). To use it, swap `intent`
+    # for those plugins and run the GENERATE step WITHOUT
+    # PROMPTFOO_DISABLE_REMOTE_GENERATION (online, once); then eval offline. The
+    # built-in plugins are remote-only for generation, which is why air-gapped runs
+    # use `intent`. See SKILL.md step 4.
     - id: intent
       config:
         intent: file://objectives/redteam_objectives.json
 
-  # Adaptive multi-turn (attacker adapts to real responses). LOCAL-CAPABLE strategies
-  # use your `provider` (above) when PROMPTFOO_DISABLE_REMOTE_GENERATION=true:
+  # Adaptive MULTI-TURN strategies — the attacker reads each real response and
+  # escalates. crescendo is the local-capable default and runs on your `provider`
+  # (above) when PROMPTFOO_DISABLE_REMOTE_GENERATION=true. It injects a conversation
+  # ARRAY into "{{prompt}}", which the OpenAI-style body above expects.
+  #
+  # maxTurns/maxBacktracks tune attack depth (and cost): more backtracks = more
+  # rephrasing after refusals = higher success but slower. Local models: 5/5 is a
+  # reasonable start; raise for harder targets.
   strategies:
-    - id: crescendo          # adaptive multi-turn, LOCAL-capable
+    - id: basic              # suppress the single-turn base probe: it injects a
+      config: { enabled: false }   # STRING (invalid for the messages[] body). Multi-turn only here.
+    - id: crescendo          # adaptive multi-turn, LOCAL-capable (the default)
       config: { maxTurns: 5, maxBacktracks: 5, stateful: false, continueAfterSuccess: false }
-    - id: jailbreak:tree     # iterative tree, LOCAL-capable
-    # - prompt-injection     # static templates, LOCAL — add for single-turn injection too
-    # REMOTE-ONLY (need Promptfoo Cloud / PROMPTFOO_REMOTE_GENERATION_URL; throw under
-    # air-gap) — uncomment only with remote generation enabled:
+    # NOTE on single-turn strategies (jailbreak:tree, prompt-injection, basic):
+    # they inject a STRING into "{{prompt}}", which is INVALID for an OpenAI
+    # messages[] body — use app-eval for single-turn coverage, or give those a
+    # separate target whose body wraps the string (messages:[{role:user,content:...}]).
+    # REMOTE-ONLY multi-turn (need Promptfoo Cloud; throw under air-gap) — uncomment
+    # only with remote generation enabled:
     # - id: goat
     #   config: { maxTurns: 5, stateful: false }
     # - id: mischievous-user
     #   config: { maxTurns: 5, stateful: false }
-    # - jailbreak            # aliases to jailbreak:meta (remote-only)
