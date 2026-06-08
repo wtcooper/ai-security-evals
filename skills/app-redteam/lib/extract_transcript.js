@@ -23,14 +23,39 @@ for (const r of rows) {
   const md = (r.testCase && r.testCase.metadata) || r.metadata || {};
   const vars = r.vars || (r.testCase && r.testCase.vars) || {};
   const resp = r.response || {};
+  const rmeta = resp.metadata || {};
   const out = typeof resp.output === 'string' ? resp.output : JSON.stringify(resp.output ?? '');
   const gr = r.gradingResult || {};
+
+  // Multi-turn strategies (crescendo) record the running conversation under
+  // response.metadata.messages — surface it as turn-by-turn so the transcript is
+  // readable, not just the final reply. Single-turn cases have no `messages`.
+  const turns = Array.isArray(rmeta.messages)
+    ? rmeta.messages.map((m) => ({ role: m.role ?? null, content: m.content ?? null }))
+    : null;
+  // crescendo escalation stats, when present.
+  const multiturn = (rmeta.crescendoRoundsCompleted != null || turns)
+    ? {
+        rounds: rmeta.crescendoRoundsCompleted ?? null,
+        backtracks: rmeta.crescendoBacktrackCount ?? null,
+        stopReason: rmeta.stopReason ?? null,
+        attackSucceeded: rmeta.crescendoResult ?? null,
+      }
+    : null;
+
   process.stdout.write(JSON.stringify({
     id: md.id ?? null,
     category: md.category ?? null,
     technique_family: md.technique_family ?? null,
+    pluginId: md.pluginId ?? null,
+    strategyId: md.strategyId ?? null,
+    goal: md.goal ?? null,
     prompt: vars.prompt ?? null,
-    response: out,
+    turns,              // [{role,content}, ...] for multi-turn; null for single-turn
+    multiturn,          // {rounds, backtracks, stopReason, attackSucceeded} | null
+    response: out,      // final target reply (or block sentinel)
+    httpStatus: rmeta.httpStatus ?? null,
+    statusClass: rmeta.statusClass ?? null,
     pass: 'success' in r ? r.success : (gr.pass ?? null),
     score: r.score ?? gr.score ?? null,
     reason: gr.reason ?? null,
