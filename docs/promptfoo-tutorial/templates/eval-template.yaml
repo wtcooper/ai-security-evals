@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# ===========================================================================
+# EVAL TEMPLATE — model quality testing with LLM-as-judge (single-turn).
+# Run:  npx promptfoo@latest eval --config docs/promptfoo-tutorial/templates/eval-template.yaml
+#       npx promptfoo@latest view
+# ===========================================================================
+description: eval-template (llm-rubric quality check)
+
+# Run-level toggles -----------------------------------------------------------
+evaluateOptions:
+  cache: false          # false = never reuse cached responses (always re-run).
+  maxConcurrency: 2      # parallel requests. Local models: keep 1-2.
+  repeat: 1              # run each test N times (raise for variance/flakiness testing).
+
+# PROVIDERS = the model(s) under test. List >1 to get a side-by-side comparison.
+# Point these at ANY model. Three styles (pick one per provider):
+#   A) Ollama direct:   id: ollama:chat:llama3.3   (base URL via OLLAMA_BASE_URL)
+#   B) OpenAI-compatible (gateway/cloud), shown below: id: openai:chat:<model> + apiBaseUrl
+#   C) HTTP endpoint:   id: https  + config.url/method/body/transformResponse
+# Below uses (B) via the local LiteLLM gateway (start: bash targets/proxy/start_proxy.sh).
+providers:
+  - id: openai:chat:gemma4          # model name comes after the 2nd colon
+    config:
+      apiBaseUrl: http://localhost:4000/v1   # swap for any OpenAI-style URL (vLLM, OpenAI, ...)
+      apiKey: sk-mock                          # real key for a cloud provider
+  - id: openai:chat:gemma4:e2b      # second model for comparison (delete if not needed)
+    config:
+      apiBaseUrl: http://localhost:4000/v1
+      apiKey: sk-mock
+  # --- Alternative A: talk to Ollama directly, no gateway ------------------
+  # - id: ollama:chat:llama3.3
+  # --- Alternative C: hit your own HTTP app -------------------------------
+  # - id: https
+  #   config:
+  #     url: https://your-app.example.com/chat
+  #     method: POST
+  #     headers: { 'Content-Type': 'application/json' }
+  #     body: { message: '{{prompt}}' }
+  #     transformResponse: 'json.reply'
+
+# PROMPT template — {{var}} slots are filled from each test's `vars`.
+prompts:
+  - '{{prompt}}'
+
+# TESTS — each is an input + the assertions that define pass/fail.
+tests:
+  # --- Exact-match style (cheap, deterministic) ----------------------------
+  - vars:
+      prompt: 'Answer in one word: the capital of France.'
+    assert:
+      - type: icontains          # case-insensitive substring
+        value: Paris
+
+  # --- LLM-as-judge with an expected answer baked into the rubric ----------
+  - vars:
+      prompt: What is the refund window for a standard order?
+    assert:
+      - type: llm-rubric
+        value: >-
+          The answer must state refunds are available within 30 days.
+          Mark FAIL if it gives any other number or refuses to answer.
+
+  # --- LLM-as-judge for open-ended quality ---------------------------------
+  - vars:
+      prompt: Explain quantum entanglement to a 10-year-old.
+    assert:
+      - type: llm-rubric
+        value: >-
+          Uses a child-friendly analogy, avoids unexplained jargon, 50-150 words.
+
+# defaultTest applies to every test unless overridden.
+defaultTest:
+  options:
+    # SCORER / judge model for all `llm-rubric` asserts. Local => offline grading.
+    # Delete this block to fall back to promptfoo's hosted grader (needs cloud).
+    provider:
+      id: openai:chat
+      config:
+        apiBaseUrl: http://localhost:4000/v1
+        apiKey: sk-mock
+        model: gemma4
+        response_format:
+          type: json_object       # raw JSON => reliable rubric parsing

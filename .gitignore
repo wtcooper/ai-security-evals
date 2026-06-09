@@ -240,6 +240,7 @@ temp/
 # Only the maintainer build scratch dir is ignored.
 tools/corpus/promptfoo/
 skills/*/results.json
+skills/*/objectives.generated.yaml
 e2e/redteam.yaml
 **/__pycache__/
 # MHJ multi-turn jailbreaks are CC-BY-NC (non-commercial) — not redistributable.

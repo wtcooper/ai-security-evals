@@ -60,11 +60,12 @@ provider** — for when the backend API isn't exposed.
 ### `app-redteam` — adaptive red team (promptfoo)
 | Aspect | Detail |
 |---|---|
-| Attacks | Multi-turn `crescendo` (adaptive, **runs on your own attacker model, air-gapped**), `custom`, `jailbreak:tree`, plus `prompt-injection` |
-| Objectives | **Bring-our-own pack** (`objectives/redteam_objectives.json`, ~73 goals across cyber / injection / data-leakage / content-safety) fed to promptfoo's local `intent` plugin. promptfoo's `harmful:*`/`ascii-smuggling`/RAG/agentic plugins are **remote-only**, and its `DATASET_*` plugins **fetch from HuggingFace at run time** — so neither is air-gap-safe; we drive everything through our own objectives instead |
+| Flow | **Generate once → `redteam eval`**, fully local. Objectives are cached to a file, then the cache is eval'd offline — reproducible and no cloud at run time. |
+| Attacks | Multi-turn `crescendo` (adaptive, **runs on your own attacker model, air-gapped**). The target uses an OpenAI `messages[]` body, so single-turn strategies (which inject a string) are suppressed here — use `app-eval` for those. |
+| Objectives | **App-specific.** Author goals in `objectives/redteam_objectives.json` (bundled ~73 across cyber / injection / data-leakage / content-safety) fed to promptfoo's local `intent` plugin; paste in cross-domain cyber goals too. For app-tailored generation, promptfoo's **free community** service writes objectives from your `purpose` + real plugins (online once — **no enterprise license needed**), then eval offline. |
 | Remote-only | `goat` / `mischievous-user` / plain `jailbreak`(→`jailbreak:meta`) need promptfoo's hosted generation — not air-gapped |
-| Models | Attacker + grader are OpenAI-compatible — point at your production LiteLLM (`ATTACKER_*`, `GRADER_*`) |
-| Output | `promptfoo redteam report` vuln UI; flags which strategies succeeded. ASR is noisy — repeat trials |
+| Models | Attacker + grader are OpenAI-compatible. **Fully local** via the gateway (`gemma4`, no key/spend — Profile A in `env.example`), or point at your production LiteLLM (`ATTACKER_*` / `GRADER_*`). |
+| Output | `promptfoo redteam report` vuln UI + `lib/extract_transcript.js` (turn-by-turn multi-turn transcripts). Refusals, guardrail blocks (400/403), and infra errors are scored distinctly. ASR is noisy — repeat trials. |
 
 ### `control-isolate` — direct guardrail classification (promptfoo)
 | Aspect | Detail |
@@ -249,18 +250,30 @@ python lib/summarize.py results.json         # F1 / recall / FPR / ASR + per-sta
 ```
 The corpus is **bundled** — no build step. (Web UI instead? use `promptfooconfig.browser.yaml`.)
 
-### Try it with zero API keys (local mock gateway)
-[`targets/proxy/`](targets/proxy/) is a local LiteLLM gateway with mock target models, a
-mock guardrail, and LiteLLM's bundled content-filter — exercise the full pipeline offline:
+### Run it with no API key — mock, local Ollama, or a real provider
+[`targets/proxy/`](targets/proxy/) is a local LiteLLM gateway that fronts **any backend**
+behind one OpenAI-compatible endpoint (`:4000`). Three ways to drive it, no key required
+for the first two:
+
 ```bash
 bash targets/proxy/start_proxy.sh &          # gateway on :4000
-# point a skill's TARGET_URL / GUARDRAIL_URL at the mock and run as above
 ```
-Add real models by editing `targets/proxy/litellm_config.yaml` — LiteLLM fronts **any
-provider** (OpenAI, Anthropic, Google, Bedrock, your own gateway, …), so a skill points
-at one OpenAI-compatible endpoint regardless of backend; put your provider key in `.env`
-(examples included). The test apps ([AIGoat](targets/aigoat/), [DVAA](targets/dvaa/)) route
-their models through this gateway, so a guardrail can be toggled by name and A/B/C tested.
+
+| Backend | Setup | Use for |
+|---------|-------|---------|
+| **Mock models** (`mock-target-*`, `mock-judge`) | nothing | instant, deterministic pipeline smoke tests offline |
+| **Local Ollama** (`gemma4`, `gemma4:e2b`, `qwen3.5`) | `ollama serve` + pull the model | real LLM behavior — develop & red-team against an actual model **with no API key or spend** |
+| **Real provider** (OpenAI, Anthropic, Google, Bedrock, …) | put the key in `.env` | production-representative runs |
+
+The local Ollama models are pre-registered in
+[`targets/proxy/litellm_config.yaml`](targets/proxy/litellm_config.yaml) — point a skill or
+promptfoo config at `model: gemma4:e2b` (target) / `gemma4` (attacker, grader) and everything
+runs locally. To add or swap a provider, edit the same file; skills always point at the one
+gateway endpoint regardless of backend. The test apps ([AIGoat](targets/aigoat/),
+[DVAA](targets/dvaa/)) route through this gateway too, so guardrails toggle by name and A/B/C test.
+
+> New to promptfoo here? See [`docs/promptfoo-tutorial/`](docs/promptfoo-tutorial/) for a
+> quickstart on evals vs. red teaming, including fully-local config templates.
 
 ### control-bench (separate venv)
 ```bash

@@ -42,6 +42,26 @@ model_list:
       model: gemini/gemini-3-flash-preview
       api_key: os.environ/GCP_AI_STUDIO_API_KEY
 
+  # ---- Local Ollama models (no API keys; Ollama must be running) ---------------
+  - model_name: gemma4
+    litellm_params:
+      model: ollama/gemma4
+      api_base: http://localhost:11434
+      timeout: 600
+      num_ctx: 16384
+  - model_name: gemma4:e2b
+    litellm_params:
+      model: ollama/gemma4:e2b
+      api_base: http://localhost:11434
+      timeout: 600
+      num_ctx: 16384
+  - model_name: qwen3.5
+    litellm_params:
+      model: ollama/qwen3.5
+      api_base: http://localhost:11434
+      timeout: 600
+      num_ctx: 16384
+
   # ---- Other real upstream examples (commented out; uncomment + set real keys) ---
   # - model_name: gpt-4o-mini
   #   litellm_params:

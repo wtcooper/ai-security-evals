@@ -27,7 +27,10 @@ providers:
         Content-Type: application/json
         Authorization: "Bearer {{ env.TARGET_API_KEY }}"
       body:
-        # adjust to your app's schema; {{prompt}} is the per-test user input
+        # adjust to your app's schema; {{prompt}} is the per-test user input.
+        # `model` is needed for an OpenAI-style endpoint (e.g. the local gateway);
+        # delete it if your app doesn't take one.
+        model: "{{ env.TARGET_MODEL }}"
         messages:
           - role: user
             content: "{{prompt}}"

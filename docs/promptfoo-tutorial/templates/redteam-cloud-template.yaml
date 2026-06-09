@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# ===========================================================================
+# RED TEAM TEMPLATE — MODE A: COMMUNITY (cloud generation + cloud grading).
+#
+# Easiest start. promptfoo's hosted service generates attacks (GPT-4 class) and
+# grades them. Free up to 10k probes/month. No local attacker/scorer needed.
+#
+# Run:  npx promptfoo@latest redteam run \
+#         --config docs/promptfoo-tutorial/templates/redteam-cloud-template.yaml
+#       npx promptfoo@latest view
+# ===========================================================================
+description: redteam-cloud (community generation)
+
+# TARGET — the only model you supply. The system under test.
+# Point at ANY model — three styles (pick one):
+#   A) Ollama direct:    id: ollama:chat:llama3.3   (base URL via OLLAMA_BASE_URL)
+#   B) OpenAI-compatible (gateway/cloud), shown below
+#   C) HTTP endpoint:    id: https + config.url/method/body/transformResponse
+targets:
+  - id: openai:chat
+    label: gemma4-e2b-target
+    config:
+      apiBaseUrl: http://localhost:4000/v1   # swap for any OpenAI-style URL, or delete for cloud default
+      apiKey: sk-mock                          # real key for a cloud provider
+      model: gemma4:e2b
+      delay: 0           # ms pause inside the provider between calls
+  # --- Alternative A: Ollama directly -------------------------------------
+  # - id: ollama:chat:llama3.3
+  #   label: llama-target
+  # --- Alternative C: your own app behind HTTP ----------------------------
+  # - id: https
+  #   label: my-app
+  #   config:
+  #     url: https://your-app.example.com/chat
+  #     method: POST
+  #     headers: { 'Content-Type': 'application/json' }
+  #     body: { message: '{{prompt}}' }
+  #     transformResponse: 'json.reply'
+
+prompts:
+  - '{{prompt}}'
+
+redteam:
+  # Describe the app so the generator crafts relevant attacks.
+  purpose: >-
+    A general-purpose AI assistant that answers user questions and must refuse
+    harmful, illegal, or policy-violating requests.
+
+  # NO `provider:` here => attack generation uses promptfoo cloud (community).
+
+  plugins:
+    - id: harmful:cybercrime                    # LLM-generated goals (crescendo-compatible)
+    - id: harmful:chemical-biological-weapons
+    # See https://promptfoo.dev/docs/red-team/plugins/ for the full catalog,
+    # or use a preset: `owasp:llm`, `owasp:agentic`, `nist:ai:measure`, `mitre:atlas`.
+
+  strategies:
+    - id: basic                  # single direct probe per objective
+    - id: crescendo              # multi-turn escalation (cloud attacker in this mode)
+      config:
+        stateful: false          # resend full history each turn
+        maxTurns: 5              # escalation turns before giving up
+        maxBacktracks: 5         # retreat+rephrase attempts after a refusal
+        continueAfterSuccess: false  # stop at first success
+    # Community mode unlocks remote-only strategies too, e.g.:
+    # - id: jailbreak            # iterative single-turn jailbreak (cloud)
+    # - id: jailbreak:composite  # layered jailbreak (cloud)
+
+  numTests: 2                    # objectives per plugin (before strategy expansion)
+  maxConcurrency: 2              # parallel probes at eval
+
+defaultTest:
+  vars: {}
+  options:
+    transformVars: '{ ...vars, sessionId: context.uuid }'  # unique session per test
+    # NO scorer `provider:` => grading uses promptfoo cloud.
