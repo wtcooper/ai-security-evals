@@ -18,7 +18,7 @@ teams just the control skills, with no cross-skill dependencies.
 
 ---
 
-## The four skills
+## The five skills
 
 Split by **what is under test**. Each is independently installable.
 
@@ -28,6 +28,7 @@ Split by **what is under test**. Each is independently installable.
 | [`app-redteam`](skills/app-redteam/) | An app endpoint — adaptive attacks | promptfoo `redteam` | which strategies broke through (vuln report) |
 | [`control-isolate`](skills/control-isolate/) | A guardrail API by itself (no model) | promptfoo `eval` | classification F1 / precision / recall / FPR |
 | [`control-bench`](skills/control-bench/) | A control's effect inside a real benchmark | Inspect + inspect_evals | risk-reduction Δ vs baseline (A/B/C) |
+| [`control-codegen`](skills/control-codegen/) | A rules file's effect on **code the agent writes** | git-branch A/B/C + scan ensemble | per-CWE / correct-AND-secure Δ vs no-rules |
 
 Each app skill also has a **web-UI variant** (`promptfooconfig.browser.yaml`) that runs
 the same corpus/attacks through a chat front-end via promptfoo's Playwright **browser
@@ -43,6 +44,8 @@ provider** — for when the backend API isn't exposed.
 | Compare guardrail vendors head-to-head | `control-isolate` |
 | Prove "enabling guardrail X reduces risk on AgentDojo/CyberSecEval" | `control-bench` |
 | Measure indirect-prompt-injection defense during agent tool calls | `control-bench` |
+| Prove your `CLAUDE.md`/Cursor/Copilot security rules make the agent write safer code | `control-codegen` |
+| Compare rule-file variants (generic vs CWE-specific) before rolling them out | `control-codegen` |
 
 ---
 
@@ -81,6 +84,15 @@ provider** — for when the backend API isn't exposed.
 | Mechanism | A param-injection **shim** adds `model`+`guardrail` per arm at the model boundary; Inspect runs the A/B/C sweep natively across `openai-api/<arm>/<model>` providers and diffs scores |
 | Output | Inspect's native scores per arm — attack-success (risk ↓) and utility/FRR (over-block cost) |
 | Note | Inspect conflicts with `litellm[proxy]` deps → runs in its own `.venv-inspect` |
+
+### `control-codegen` — secure-code-generation A/B/C (git branches)
+| Aspect | Detail |
+|---|---|
+| Question | Do security **rule/instruction files** (`CLAUDE.md`, `AGENTS.md`, `.cursor/rules`, Copilot instructions) make a coding agent generate more secure code from a spec? |
+| Method | A read-only `starting-state` git branch holds a sink-dense spec + a fixed, security-neutral build prompt; each experiment branch adds one rule-file config at the agent's path, the agent builds the app, and the **only** pre-build diff between arms is the rules |
+| Specs | **5 bundled, sink-dense specs** (file service, job runner, multi-tenant analytics, marketplace, C binary parser) in SDD structure — chosen so the path-of-least-resistance build is insecure by default |
+| Scoring | Held-constant ensemble — **LLM review (`security-review`) and/or BaxBench dynamic probes** lead (they see taint flows); Semgrep is a supplementary per-CWE distribution metric. Metrics: per-CWE-class, severity-weighted, exploitable, **correct-AND-secure** |
+| Conditions | A (none) / B (generic) / C (CWE-specific); optional scale-out via BaxBench `--safety_prompt none/generic/specific` |
 
 ---
 
@@ -193,7 +205,8 @@ ai-security-evals/
 │   ├── app-eval/                   #   SKILL.md · promptfooconfig{,.browser}.yaml · lib/ · corpus/ · env.example
 │   ├── app-redteam/                #   SKILL.md · promptfooconfig{,.browser}.yaml · lib/ · env.example
 │   ├── control-isolate/            #   SKILL.md · promptfooconfig.yaml · adapters/ · lib/ · corpus/ · env.example
-│   └── control-bench/              #   SKILL.md · injection_shim.py · connectors/ · lib/ · runners/
+│   ├── control-bench/              #   SKILL.md · injection_shim.py · connectors/ · lib/ · runners/
+│   └── control-codegen/            #   SKILL.md · build-prompt.md · specs/ (5 sink-dense) · new_experiment.sh
 ├── targets/                        # things to point the skills at
 │   ├── proxy/                      #   shared LiteLLM AI gateway (any provider via LiteLLM; content-safety guardrails)
 │   ├── aigoat/                     #   AIGoat (adopt): UI + API + defense levels — clone+run docs
