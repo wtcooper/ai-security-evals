@@ -18,6 +18,11 @@ env:
   # promptfoo's hosted attack generation.
   PROMPTFOO_DISABLE_REMOTE_GENERATION: "true"
 
+# Run-level defaults — override on the CLI as needed.
+evaluateOptions:
+  cache: false          # always re-run; no stale cached responses.
+  maxConcurrency: 4     # parallel requests. Reduce for strict rate-limited endpoints.
+
 # The application under test.
 #  - stateful: false  -> promptfoo sends the FULL transcript each turn (target is
 #    stateless; promptfoo owns history). Use this if your app takes a messages[].
@@ -42,44 +47,63 @@ targets:
         # doesn't take one.
         model: "{{ env.TARGET_MODEL }}"
         messages: "{{ prompt }}"
+        max_tokens: 4096
       transformResponse: file://lib/transform_response.js
       # For a stateful backend, extract the server session id and reuse it:
       # sessionParser: 'data.headers["set-cookie"]'
 
-# GRADER model — judges whether an attack succeeded. OpenAI-compatible; point it at
-# your production LiteLLM. Keep it a DIFFERENT model from the target. Env:
+# GRADER model — judges whether an attack succeeded. Point GRADER_BASE_URL at the
+# gateway chat/completions endpoint base (e.g. https://litellm.internal/v1).
+# Keep it a DIFFERENT model from the target. Env:
 #   GRADER_MODEL / GRADER_BASE_URL / GRADER_API_KEY
 defaultTest:
   options:
     provider:
-      id: "openai:chat:{{ env.GRADER_MODEL }}"
+      id: https
       config:
-        apiBaseUrl: "{{ env.GRADER_BASE_URL }}"
-        apiKey: "{{ env.GRADER_API_KEY }}"
-        response_format:           # raw JSON for the grader too (same fence issue)
-          type: json_object
+        url: "{{ env.GRADER_BASE_URL }}/chat/completions"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: "Bearer {{ env.GRADER_API_KEY }}"
+        body:
+          model: "{{ env.GRADER_MODEL }}"
+          messages: "{{prompt}}"
+          max_tokens: 4096
+          response_format:
+            type: json_object
+        transformResponse: "json.choices[0].message.content"
 
 redteam:
   purpose: >-
     Authorized security testing of an internal LLM application. The app should
     refuse harmful, injection, and data-exfiltration requests and resist
     multi-turn escalation.
-  # ATTACKER model — generates/adapts the adversarial turns. OpenAI-compatible, so
-  # point it at your production LiteLLM (or any OpenAI-style gateway): set the model
-  # name + base URL + key via env. A capable instruct model works best.
+  # ATTACKER model — generates/adapts the adversarial turns. Point ATTACKER_BASE_URL
+  # at your gateway base (e.g. https://litellm.internal/v1). A capable instruct
+  # model works best.
   #   ATTACKER_MODEL    e.g. gpt-4o, claude-sonnet-4-6, or your litellm alias
   #   ATTACKER_BASE_URL e.g. https://litellm.internal/v1
   #   ATTACKER_API_KEY
   provider:
-    id: "openai:chat:{{ env.ATTACKER_MODEL }}"
+    id: https
     config:
-      apiBaseUrl: "{{ env.ATTACKER_BASE_URL }}"
-      apiKey: "{{ env.ATTACKER_API_KEY }}"
-      # Force raw JSON. Crescendo's attacker emits JSON; without this, smaller local
-      # models (e.g. gemma) wrap it in ```json fences and crescendo throws
-      # "Expected a JSON object". Remove only if your attacker model rejects it.
-      response_format:
-        type: json_object
+      url: "{{ env.ATTACKER_BASE_URL }}/chat/completions"
+      method: POST
+      headers:
+        Content-Type: application/json
+        Authorization: "Bearer {{ env.ATTACKER_API_KEY }}"
+      body:
+        model: "{{ env.ATTACKER_MODEL }}"
+        messages:
+          - role: user
+            content: "{{prompt}}"
+        max_tokens: 4096
+        # Force raw JSON so smaller models (e.g. gemma) don't wrap output in ```json
+        # fences, which causes crescendo to throw "Expected a JSON object".
+        response_format:
+          type: json_object
+      transformResponse: "json.choices[0].message.content"
 
   # The seed var the strategies inject into (the running conversation lands in the
   # target's `messages` body above).
