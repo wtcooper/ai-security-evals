@@ -1,0 +1,18 @@
+{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"scan-code","rules":[
+ {"id":"F1","name":"Path traversal in download endpoint","shortDescription":{"text":"Path traversal in download endpoint"},
+  "properties":{"security-severity":"10.0","category":"file handling"},"defaultConfiguration":{"level":"error"}},
+ {"id":"F2","name":"URL import allows internal targets","shortDescription":{"text":"URL import allows internal targets"},
+  "properties":{"security-severity":"8.0","category":"SSRF"},"defaultConfiguration":{"level":"error"}},
+ {"id":"F3","name":"Weird thing","shortDescription":{"text":"Weird thing"},
+  "properties":{"security-severity":"2.0","category":"misc"},"defaultConfiguration":{"level":"note"}}
+]}},"results":[
+ {"ruleId":"F1","level":"error","message":{"text":"open(os.path.join(root, name)) with user name"},
+  "locations":[{"physicalLocation":{"artifactLocation":{"uri":"app/files.py"},"region":{"startLine":40}}}],
+  "properties":{"severity":"critical","confidence":"high","category":"file handling"}},
+ {"ruleId":"F2","level":"error","message":{"text":"requests.get(url) without allowlist"},
+  "locations":[{"physicalLocation":{"artifactLocation":{"uri":"app/imports.py"},"region":{"startLine":12}}}],
+  "properties":{"severity":"high","confidence":"medium","category":"SSRF"}},
+ {"ruleId":"F3","level":"note","message":{"text":"nothing recognisable"},
+  "locations":[{"physicalLocation":{"artifactLocation":{"uri":"app/x.py"},"region":{"startLine":1}}}],
+  "properties":{"severity":"low","confidence":"low","category":"misc"}}
+]}]}

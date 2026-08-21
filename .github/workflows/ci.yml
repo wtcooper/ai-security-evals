@@ -38,7 +38,8 @@ jobs:
         run: |
           bash tools/sync_skills.sh
           git diff --exit-code -- skills/*/lib skills/app-eval/corpus skills/control-isolate/corpus \
-            skills/*/new_experiment.sh skills/*/install_dependencies.sh skills/app-redteam/objectives
+            skills/*/new_experiment.sh skills/*/ephemeral_repo.sh skills/*/install_dependencies.sh \
+            skills/app-redteam/objectives
 
       - name: Skills are copy-paste self-contained
         run: bash scripts/check_independence.sh

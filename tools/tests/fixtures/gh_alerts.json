@@ -1,0 +1,8 @@
+[
+ {"number":1,"state":"open","rule":{"id":"js/path-injection","severity":"error","security_severity_level":"high","description":"Uncontrolled data used in path expression","tags":["security","external/cwe/cwe-022"]},
+  "most_recent_instance":{"ref":"refs/heads/exp/A/sample1","message":{"text":"path"},"location":{"path":"src/files.js","start_line":31,"end_line":31}}},
+ {"number":2,"state":"open","rule":{"id":"js/request-forgery","severity":"error","security_severity_level":"critical","description":"SSRF","tags":["security","external/cwe/cwe-918"]},
+  "most_recent_instance":{"ref":"refs/heads/exp/A/sample1","message":{"text":"ssrf"},"location":{"path":"src/import.js","start_line":8}}},
+ {"number":3,"state":"dismissed","rule":{"id":"js/xss","severity":"error","security_severity_level":"medium","tags":["external/cwe/cwe-079"]},
+  "most_recent_instance":{"location":{"path":"src/view.js","start_line":5}}}
+]

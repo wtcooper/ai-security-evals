@@ -19,7 +19,8 @@ echo
 echo "== Vendored copies in sync with tools/ (no drift) =="
 bash tools/sync_skills.sh >/dev/null
 if ! git diff --quiet -- skills/*/lib skills/app-eval/corpus skills/control-isolate/corpus \
-       skills/*/new_experiment.sh skills/*/install_dependencies.sh skills/app-redteam/objectives; then
+       skills/*/new_experiment.sh skills/*/ephemeral_repo.sh skills/*/install_dependencies.sh \
+       skills/app-redteam/objectives; then
   echo "DRIFT: a skill's vendored lib/corpus/script differs from tools/. Commit the sync output." >&2
   exit 1
 fi
