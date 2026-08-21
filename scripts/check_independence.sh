@@ -7,10 +7,10 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-# `tools/` is the maintainer build layer — never referenced from a skill. `targets/` is repo-root
-# fixtures, BUT a skill may have its own targets/ subdir (tool-pentest) and the tool-* skills write
-# to a runtime $EXP/targets/ (preceded by `/` or `$`, exempted here); so bare `targets/` is only
-# flagged for skills without their own targets/ dir. `# payload` tags intentional attack strings.
+# `tools/` is the maintainer build layer — never referenced from a skill. Repo-root `targets/`
+# (proxy/dvaa/aigoat) must not be referenced either, EXCEPT by the harness skills whose runbooks
+# emit a runtime experiment tree at $EXP/targets/ (a path they create, not a repo reference) —
+# those are allowlisted below. `# payload` tags intentional attack strings in probe suites.
 escape_base='\.\./\.\.|\.\./(app-eval|app-redteam|control-isolate|control-bench|control-codegen|tool-[a-z]+)|(^|[^a-zA-Z._/$-])tools/|/_shared|/Users/|/home/[a-z]'
 targets_rule='(^|[^a-zA-Z._/$-])targets/'
 
@@ -18,7 +18,10 @@ fail=0
 for d in skills/*/; do
   s=$(basename "$d")
   escape="$escape_base"
-  [ -d "${d}targets" ] || escape="${escape_base}|${targets_rule}"
+  case "$s" in
+    control-codegen | tool-*) : ;;                       # emit a runtime $EXP/targets/ tree
+    *) escape="${escape_base}|${targets_rule}" ;;
+  esac
   hits=$(grep -rnE "$escape" "$d" \
     --include='*.md' --include='*.yaml' --include='*.yml' --include='*.js' \
     --include='*.cjs' --include='*.py' --include='*.sh' --include='*.json' 2>/dev/null \

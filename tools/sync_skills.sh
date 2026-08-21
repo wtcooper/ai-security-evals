@@ -43,7 +43,7 @@ for s in app-eval app-redteam control-isolate control-bench $SPINE_SKILLS \
 done
 
 # --- ephemeral GitHub repo + CodeQL driver: skills that push branches for scoring ---
-REPO_SKILLS="control-codegen tool-codescan tool-remediate"
+REPO_SKILLS="control-codegen tool-codescan"
 for s in $REPO_SKILLS; do
   [ -d "$ROOT/skills/$s" ] && cp ephemeral_repo.sh "$ROOT/skills/$s/ephemeral_repo.sh"
 done
