@@ -1,0 +1,9 @@
+{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"Semgrep OSS","rules":[
+ {"id":"python.lang.security.audit.dangerous-subprocess-use","properties":{"cwe":["CWE-78: Improper Neutralization of Special Elements used in an OS Command"],"tags":["CWE-78"]},"defaultConfiguration":{"level":"warning"}},
+ {"id":"generic.secrets.security.detected-generic-secret","properties":{"cwe":["CWE-798: Use of Hard-coded Credentials"]},"defaultConfiguration":{"level":"warning"}}
+]}},"results":[
+ {"ruleId":"python.lang.security.audit.dangerous-subprocess-use","level":"warning","message":{"text":"subprocess"},
+  "locations":[{"physicalLocation":{"artifactLocation":{"uri":"/tmp/wt/app/run.py"},"region":{"startLine":10}}}]},
+ {"ruleId":"generic.secrets.security.detected-generic-secret","level":"warning","message":{"text":"secret"},
+  "locations":[{"physicalLocation":{"artifactLocation":{"uri":"/tmp/wt/app/config.py"},"region":{"startLine":3}}}]}
+]}]}
