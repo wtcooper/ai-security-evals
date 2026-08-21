@@ -43,7 +43,7 @@ tools/
 skills/
   control-codegen/           + lib/ (vendored spine), build_sample.sh, score_branch.sh, setup_codeguard.sh,
                                make_sbp.sh, probes/spec-0N/, acceptance/spec-0N/, arms/E/, SKILL.md rewrite
-  tool-codescan/  tool-pentest/  tool-assetscan/  tool-remediate/   (P2–P5; same shape, see below)
+  tool-codescan/  tool-pentest/  tool-assetscan/   (P2–P4; same shape + adapters/ per tool, see below)
 targets/                     + compose wrappers/oracles for pentest (P4)
 ```
 
@@ -109,8 +109,8 @@ Files under `skills/control-codegen/`:
 ---
 
 ## P2 — `skills/tool-codescan/` (design §4)
-- Vendors spine + `ephemeral_repo.sh`. New: `fetch_targets.sh` (LiveCVEBench/CVE-Factory post-cutoff slice, RealVuln, CWE-Bench-Java at pinned commits), `mutate.py` (identifier/route renaming + rename map for label translation), `match.py` (§2.4: CWE family + file→function→line±5; emits `ground_truth_id/matched`; adjudication CSV for unmatched sample ≥30), `run_scancode.sh` (`run_scan.py` ×3 in standalone mode; also agent mode).
-- SKILL.md: arms = scanners (`codeql`, `scan-code`×3, `union`); optional model sweep via gateway; complement analysis + flip rate + clean/contaminated + original/mutant strata (all computed by `evalstats.py`; add `--group-by tool` and complement table).
+- Vendors spine + `ephemeral_repo.sh`. New: `fetch_targets.sh` (LiveCVEBench/CVE-Factory post-cutoff slice, RealVuln, CWE-Bench-Java at pinned commits), `mutate.py` (identifier/route renaming + rename map for label translation), `match.py` (§2.4: CWE family + file→function→line±5; emits `ground_truth_id/matched`; adjudication CSV for unmatched sample ≥30), `adapters/<name>.sh` + `run_scanner.sh --arm <name>` (codeql / semgrep / an LLM reviewer shipped; one file per new scanner).
+- SKILL.md: opens by asking which scanners to compare; arms = those scanners (e.g. `codeql`, `semgrep`, an LLM reviewer ×3, `union`); optional model sweep via gateway; complement analysis + flip rate + clean/contaminated + original/mutant strata (all computed by `evalstats.py`; add `--group-by tool` and complement table).
 - Tier-3 tie-in: score P1 arm-A samples labeled by probe oracle.
 - Done when: one summary per tier-1 benchmark with recall/precision(lower-bound + adjudicated)/F1 per CWE family and complement table.
 
@@ -119,12 +119,14 @@ Files under `skills/control-codegen/`:
 - Order per design §10: skill scanner first (known to flip), then MCP, then model. Configs: static-only / judge-only / combined; k=5 at default T and T=0. Doc guidance: κ<0.6 ⇒ "unusable for CI gating".
 
 ## P4 — `skills/tool-pentest/` (design §5) — most infra-heavy
-- New: `targets/` compose wrappers (CVE-Bench subset zero-day mode, Vulhub post-cutoff list + `oracle.sh` per env (canary file/callback/DB row/marker header), XBEN mutator fork, Duck Store checks if source is available), profile templates per target, `validate.py` (rerun PoCs from Strix `vulnerabilities.json` against the oracle; different-family LLM validator only when no scripted oracle), `run_strix.sh` (fixed version, `--scan-mode quick→standard`, `--max-budget`, gateway model, **black-box URL only**, k=3).
+- New: `targets/` compose wrappers (CVE-Bench subset zero-day mode, Vulhub post-cutoff list + `oracle.sh` per env (canary file/callback/DB row/marker header), XBEN mutator fork, Duck Store checks if source is available), profile templates per target, `validate.py --arm <tool>` (rerun PoCs from the tool's PoC file against the oracle; different-family LLM validator only when no scripted oracle), `run_dast.sh --arm <tool>` driving `adapters/<tool>.sh` (strix / nuclei / zap shipped; fixed versions, `--max-budget`, gateway model, **black-box URL only**, k=3).
 - Metrics via evalstats: recall@vuln (oracle-confirmed), precision, $/verified finding, time-to-first-finding; zero-day vs one-day strata; canary probe + trace audit per target.
 
-## P5 — `skills/tool-remediate/` (design §7)
-- New: `fetch_targets.sh` (Vul4Py, PatchEval dockerized subset, AutoPatchBench sample), `verify_fix.sh` (exploit oracle **and** functional tests; flags exploit-only fixes; checks regression test added and that it fails on pre-fix commit), `run_fix.sh` (`fix-findings` from SARIF; baseline arm = plain "ask the model to fix"; no-fix arm).
-- Closed loop: P1 arm-A samples → `fix-findings` → re-run `score_branch.sh` → exploitable↓ / acceptance still passes.
+## P5 — `skills/tool-remediate/` — **built then removed (Aug 2026)**
+- Shipped in 86ef9ea, removed in this branch: a repair harness is a different question from the
+  detection/comparison the other tool-* harnesses answer, and it hard-coupled the repo to one vendor's
+  `fix-findings`. See design §7. The closed loop (P1 arm-A samples → any fixer → `score_branch.sh`)
+  still covers repair validity without a dedicated skill.
 
 ## P6 — robustness (design §3.2.2–4, §8, §11 open items)
 - BaxBench "generate externally, evaluate in-harness" adapter (`baxbench_adapter.sh`: drop arm build into `results/<model>/<scenario>/…/code`, run `--mode test/evaluate`); AutoBaxBench private batch (private repo + local CodeQL CLI).

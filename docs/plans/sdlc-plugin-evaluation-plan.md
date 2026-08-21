@@ -19,10 +19,9 @@ sibling harnesses for the other plugins.
 | sdlc plugin | Skills | Question the eval must answer | Eval type | Harness (this repo) |
 |---|---|---|---|---|
 | **secure-plan** | `security-profile`, `secure-build-plan` (+ Project CodeGuard rules) | Does having rules / a Secure Build Plan present at build time reduce critical/high vulns in the code an agent writes — without breaking functionality? | Controlled A/B/C, generation | `control-codegen` (extend) |
-| **code-scan** | `scan-code` (LLM), `codeql-ci` + `codeql-report` | Recall / precision of each scanner (and their union) on code with known vulnerabilities; what does the LLM scanner catch that CodeQL misses and vice versa? | Detection benchmark | **new** `tool-codescan` |
-| **pentest** | `pentest-app` (Strix) | Recall of known vulns with oracle-verified PoCs, false-positive rate, cost/time, black-box | Detection benchmark (dynamic) | **new** `tool-pentest` |
-| **asset-scan** | `scan-mcp`, `scan-skill`, `scan-model` | TPR / FPR / judge nondeterminism on labeled malicious + benign assets | Classification benchmark | **new** `tool-assetscan` |
-| **remediate** | `fix-findings` | Do fixes make the exploit stop working *and* keep tests green; how often does "scanner says fixed" ≠ fixed | Repair benchmark | **new** `tool-remediate` |
+| **code-scan** | any code scanners the user names (CodeQL, Semgrep, an LLM reviewer such as `scan-code`, bring-your-own) | Recall / precision of each scanner (and their union) on code with known vulnerabilities; **what does adding scanner X buy over Y** (complement analysis) | Detection benchmark | **new** `tool-codescan` |
+| **pentest** | any black-box pentest tools the user names (Strix / `pentest-app`, Nuclei, ZAP, bring-your-own) | Recall of known vulns with oracle-verified PoCs, false-positive rate, cost/time, black-box | Detection benchmark (dynamic) | **new** `tool-pentest` |
+| **asset-scan** | any asset scanners the user names (`scan-mcp`/`scan-skill`/`scan-model`, YARA, ModelScan, bring-your-own) | TPR / FPR / judge nondeterminism on labeled malicious + benign assets; **what the judge catches beyond signatures** | Classification benchmark | **new** `tool-assetscan` |
 | **ai-evals / ai-redteam** | `eval-baseline`, `eval-security`, `redteam-app` | Do the profile-driven configs the skills write actually surface planted weaknesses in a known-vulnerable LLM app? | Meta-eval | existing `app-eval` / `app-redteam` / `control-bench` targets (DVAA/AIGoat) |
 
 Not in scope: evaluating the underlying OSS tools' *features*; we measure the tool **as our skill drives it**
@@ -174,11 +173,13 @@ BaxBench replication.
 
 ---
 
-## 4. code-scan — recall/precision of `scan-code` (LLM) and CodeQL
+## 4. code-scan — recall/precision of **any** code scanners the user compares
 
 **Question:** on code with known vulnerabilities, what fraction does each scanner find (recall), how much
-noise (precision), and what is the union/complement (the repo's thesis is that the LLM scan catches classes
-CodeQL cannot, e.g. LLM tool-argument taint). Also: LLM run-to-run variance.
+noise (precision), and what is the union/complement — i.e. **what does adding scanner X buy over Y**. The
+scanner set is chosen by the user at run time (the skill asks first); a common thesis to test is that an LLM
+reviewer catches classes a signature/dataflow engine cannot (e.g. LLM tool-argument taint, business-logic
+authz). Also: run-to-run variance for any nondeterministic scanner.
 
 ### 4.1 Targets (2026 picks; old goats excluded as saturated)
 | Tier | Target | Why | Langs | Notes |
@@ -193,29 +194,35 @@ CodeQL cannot, e.g. LLM tool-argument taint). Also: LLM run-to-run variance.
 | Smoke only | XBOW validation-benchmarks (self-declared saturated), OWASP Benchmark v1.2, Juliet, NodeGoat/WebGoat/Juice Shop | plumbing tests; **never** in headline numbers | | |
 
 ### 4.2 Design
-- Fixed target set + version pins; one ephemeral repo per benchmark (import the snapshot, push, CodeQL on
-  push; `scan-code` locally with `run_scan.py` and in agent mode).
-- Arms are **scanners**, not treatments: `codeql` (security-extended), `scan-code` (model M, T=0) × 3 repeats,
-  `union`. Optional model sweep (local `gemma4`/`qwen3.5` via the gateway vs a frontier model) — the skill is
-  model-agnostic and users will ask "which model is good enough".
+- Fixed target set + version pins. Each scanner is driven by a small `adapters/<name>.sh` (one function:
+  scan a tree → SARIF), so the harness never knows which tool produced a finding. CodeQL may run via the
+  local CLI adapter or through an ephemeral repo + GitHub code-scanning (keeps the scanner config out of the
+  agent's view); both paths yield identical `findings.jsonl` rows.
+- Arms are **scanners**, not treatments — whichever the user picks: e.g. `codeql` (security-extended),
+  `semgrep`, an LLM reviewer (model M, T=0) × 3 repeats, `union`, plus bring-your-own. Deterministic scanners
+  run once; nondeterministic ones ×3 so flip rate/κ are measurable. Optional model sweep for LLM reviewers.
 - Matching per §2.4; adjudicate unmatched findings; report recall / precision / F1 / severity-weighted, per
-  CWE family, per language, per benchmark tier, plus **complement analysis** (found by LLM only / CodeQL only /
-  both) and **run-to-run flip rate** for `scan-code`.
+  CWE family, per language, per benchmark tier, plus **complement analysis** (found by tool A only / tool B
+  only / both / union — the headline) and **run-to-run flip rate** for any nondeterministic scanner.
 - Contamination stratum: report each metric on `clean` vs `contaminated` (canary probe positive) targets and
   on original vs mutated pairs.
 - Cost: tokens and $ per KLOC scanned; wall-clock.
 
 ### 4.3 Deliverables
-- `skills/tool-codescan/`: SKILL.md (Plan→Run→Analyze), `fetch_targets.sh` (LiveCVEBench / RealVuln /
-  CWE-Bench-Java at pinned commits), `mutate.py` (identifier/route renaming with a rename map for label
-  translation), `match.py` (SARIF ↔ ground truth), `canary_probe.py`.
+- `skills/tool-codescan/`: SKILL.md (Plan→Run→Analyze, opening with "which scanners?"), `adapters/` +
+  `run_scanner.sh --arm <name>` (codeql / semgrep / an LLM reviewer shipped; add your own in one file),
+  `fetch_targets.sh` (LiveCVEBench / RealVuln / CWE-Bench-Java at pinned commits), `mutate.py`
+  (identifier/route renaming with a rename map for label translation), `match.py` (SARIF ↔ ground truth),
+  `canary_probe.py`.
 
 ---
 
-## 5. pentest — does `pentest-app` (Strix) find what it should?
+## 5. pentest — do the black-box pentest tools the user compares find what they should?
 
-**Question:** black-box, from a profile + RoE written by our skill, what fraction of known vulnerabilities does
-Strix report **with an oracle-confirmed PoC**, how many findings are unreproducible (FP), at what cost/time.
+**Question:** black-box, from a profile + RoE, what fraction of known vulnerabilities does each tool report
+**with an oracle-confirmed PoC**, how many findings are unreproducible (FP), at what cost/time. Tools are
+chosen by the user at run time (agentic pentesters such as Strix/`pentest-app`, Nuclei, ZAP, bring-your-own);
+where an agentic tool is driven by a security profile, that profile is part of the system under test.
 
 ### 5.1 Targets
 | Tier | Target | Why | Ground truth / oracle | Contamination |
@@ -245,13 +252,14 @@ Strix report **with an oracle-confirmed PoC**, how many findings are unreproduci
   paired delta on the XBEN fork.
 
 ### 5.3 Deliverables
-- `skills/tool-pentest/`: SKILL.md, `targets/` (compose wrappers: cve-bench subset, vulhub post-cutoff list
-  with `oracle.sh` per env, xben-mutator, duck-store checks), `validate.py` (rerun PoCs from
-  `vulnerabilities.json` against the oracle), profile templates per target.
+- `skills/tool-pentest/`: SKILL.md, `adapters/` + `run_dast.sh --arm <tool>` (strix / nuclei / zap shipped;
+  add your own in one file), `targets/` (compose wrappers: cve-bench subset, vulhub post-cutoff list with
+  `oracle.sh` per env, xben-mutator, duck-store checks), `validate.py --arm <tool>` (rerun each tool's PoCs
+  against the oracle — the oracle, not the tool, is the arbiter), profile templates per target.
 
 ---
 
-## 6. asset-scan — `scan-mcp`, `scan-skill`, `scan-model`
+## 6. asset-scan — skill / MCP / model-file scanners the user compares
 
 **Question:** TPR / FPR / severity calibration on labeled positives and negatives, and how much the LLM-judge
 component flips between runs (we already saw `skill-scan` flip clean→flag→clean on an unchanged skill).
@@ -294,30 +302,22 @@ TPR/FPR with Wilson CIs, per-run flip rate, Fleiss' κ across runs, severity Kri
 | `hf_harvest` caveat | JFrog: ~96% of HF "unsafe" flags are FPs — HF flags are **not** ground truth; evaluate `hf_harvest.py`'s summarization against PickleBall/SafePickle labels for the same repo ids | | |
 
 ### 6.4 Deliverables
-- `skills/tool-assetscan/`: SKILL.md, `fetch_sets.sh` (pinned), `mutate_{mcp,skill,pickle}.py`,
-  `yara_filter.sh`, `score.py` (TPR/FPR/CI/κ), sandbox `Dockerfile` (no network) for the pickle work.
+- `skills/tool-assetscan/`: SKILL.md, `adapters/` + `run_scanner.sh --arm <label> --adapter <file>`
+  (sdlc scan-skill/mcp/model, plus the YARA and ModelScan signature baselines that isolate an LLM-judge's
+  value; add your own in one file), `fetch_sets.sh` (pinned), `mutate_{mcp,skill,pickle}.py`,
+  `yara_filter.sh`, `score_assets.py` (TPR/FPR/CI/κ, segmented per scanner arm), sandbox `Dockerfile`
+  (no network) for the pickle work.
 
 ---
 
-## 7. remediate — does `fix-findings` actually fix things?
+## 7. remediate — **dropped (Aug 2026)**
 
-**Question:** given SARIF from the scanners, do the fixes (a) make the exploit stop, (b) keep the functional
-suite green, (c) add a regression test, and (d) how often does the scanner report "fixed" while the exploit
-still works (scanner-gaming).
-
-| Tier | Target | Oracle |
-|---|---|---|
-| 1 | **Vul4Py** (Aug 2026; 100 Python vulns / 60 CWEs, paired exploit + pytest oracles — the paired oracle rejected 15/119 exploit-only "fixes") | exploit fails **and** tests pass |
-| 1 | **PatchEval** (ByteDance; 1,000 CVEs Go/JS/Py, 230 dockerized) — dockerized subset | security + functional tests in sandbox |
-| 2 | **AutoPatchBench** (Meta, 136 C/C++ ARVO vulns) / **SEC-bench** | crash no longer reproduces + differential tests |
-| 3 (closed loop, ours) | findings from §3 arm-A samples → `fix-findings` → re-run §3.3 ensemble (CodeQL + probes + acceptance) | exploitable count ↓, acceptance still passes, regression test present |
-
-Metrics: fix rate (both oracles), exploit-only-fix rate (flag as failure), functional regressions introduced,
-regression test added (yes/no, and does it fail on the pre-fix commit), scanner-says-fixed-but-exploit-works
-rate, diff size, cost. Compare against "no-fix" and against a plain "ask the model to fix" baseline so we
-measure what the skill's triage/regression steps add.
-
-Deliverable: `skills/tool-remediate/` (SKILL.md, `fetch_targets.sh`, `verify_fix.sh` running both oracles).
+A `tool-remediate` harness (fix rate under paired exploit+functional oracles on Vul4Py / PatchEval /
+AutoPatchBench, plus a closed loop on §3 arm-A samples) was built and then removed: measuring a *repair*
+skill is a different question from the detection/comparison question the other tool-* harnesses answer, and
+it hard-coupled the eval repo to one vendor's `fix-findings` implementation. Repair validity is still
+reachable through §3's closed loop (arm-A samples → any fixer → re-run the §3.3 ensemble) without a
+dedicated harness. Revisit only with a scanner-agnostic fixer contract, as in §4–§6.
 
 ---
 
@@ -339,10 +339,9 @@ planted-weakness manifest per target.
 ```
 skills/
   control-codegen/        (existing; add arms B/D, SBP step, CodeQL-on-push scorer, probe suites, modern-stack spec)
-  tool-codescan/          (new)  scan-code + CodeQL recall/precision
-  tool-pentest/           (new)  Strix recall/FP/cost with oracles
-  tool-assetscan/         (new)  mcp / skill / model scanner TPR/FPR/κ
-  tool-remediate/         (new)  fix-findings repair validity
+  tool-codescan/          (new)  code-scanner recall/precision + complement (adapters/ per scanner)
+  tool-pentest/           (new)  black-box pentest recall/FP/cost with oracles (adapters/ per tool)
+  tool-assetscan/         (new)  skill / MCP / model scanner TPR/FPR/κ (adapters/ per scanner)
 tools/
   new_experiment.sh       (generalize from control-codegen; manifest schema shared)
   evalstats.py            (paired bootstrap / McNemar / Wilcoxon / mixed-effects; Wilson CIs; κ)

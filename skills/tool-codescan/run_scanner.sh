@@ -10,24 +10,26 @@
 # want --repeats 3 so we can report run-to-run flip rate and cost.
 set -euo pipefail
 exp="${1:?}"; tid="${2:?}"; tree="${3:?}"; shift 3
-arm=""; repeats=1; extra=()
+arm=""; adapter=""; repeats=1; extra=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --arm) arm="$2"; shift 2;;
+    --adapter) adapter="$2"; shift 2;;
     --repeats) repeats="$2"; shift 2;;
     --) shift; extra=("$@"); break;;
     *) echo "unknown $1" >&2; exit 2;;
   esac
 done
-[ -n "$arm" ] || { echo "--arm <adapter> required (see adapters/)" >&2; exit 2; }
+[ -n "$arm" ] || { echo "--arm <name> required (see adapters/)" >&2; exit 2; }
+[ -n "$adapter" ] || adapter="$arm"
 here="$(cd "$(dirname "$0")" && pwd)"
-adapter="$here/adapters/$arm.sh"
-[ -f "$adapter" ] || { echo "no adapter for '$arm' — write adapters/$arm.sh from adapters/README.md" >&2; exit 1; }
+ad="$here/adapters/$adapter.sh"
+[ -f "$ad" ] || { echo "no adapter '$adapter' — write adapters/$adapter.sh from adapters/README.md" >&2; exit 1; }
 run=$(basename "$exp"); out="$exp/results/$arm/$tid"; mkdir -p "$out"
 t0=$(date +%s)
 for r in $(seq 1 "$repeats"); do
   d="$out/run$r"; mkdir -p "$d"
-  if ! bash "$adapter" "$tree" "$d" "${extra[@]}" > "$d/adapter.log" 2>&1; then
+  if ! bash "$ad" "$tree" "$d" "${extra[@]}" > "$d/adapter.log" 2>&1; then
     echo "  run$r: adapter '$arm' failed (see $d/adapter.log)" >&2; continue
   fi
   sarif=$(ls "$d"/*.sarif 2>/dev/null | head -1)

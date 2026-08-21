@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Classification scoring for the asset scanners (scan-mcp / scan-skill / scan-model) — design §6.
+"""Classification scoring for asset scanners (skill / MCP / model-file classifiers) — scanner-agnostic.
 Each asset has a label (malicious|benign); a scanner run over it yields a verdict (flag|clean).
 Reports TPR/FPR with Wilson CIs, per-run flip rate, Fleiss κ across runs, and severity agreement,
 split by config (static-only / judge-only / combined) and by held-out mutated stratum.
@@ -28,25 +28,37 @@ def load(p: Path) -> list[dict]:
 
 
 def build_verdicts_from_findings(findings, labels, severity_gate="low"):
-    """findings.jsonl rows (tool=scanner, target=asset, tool_run=run) + {asset: {label, stratum, yara_hit}}
-    -> verdict rows. An asset flags on a run iff it has a finding >= gate on that run."""
+    """findings.jsonl rows (arm=scanner label, target=asset, tool_run=run) + {asset: {label, stratum, yara_hit}}
+    -> verdict rows, one row per (scanner arm, asset, run). An asset flags on a run iff that scanner
+    has a finding >= gate on that run. `config` is the scanner arm (e.g. scan-skill-combined, yara),
+    so `--by config` compares scanners and the static/judge/combined split in one table."""
     gate = es.SEV_ORDER.get(severity_gate, 1)
+    # segment every tally by the scanner arm so multiple scanners over the same asset don't collide
     flagged = defaultdict(lambda: defaultdict(bool)); sev = defaultdict(lambda: defaultdict(str))
-    runs = defaultdict(set)
+    seen = defaultdict(set)  # arm -> {run}
+    arms = set()
     for f in findings:
+        arm = f.get("arm") or f.get("tool") or "scanner"
         a, r = f.get("target"), f.get("tool_run", 1)
-        runs[a].add(r)
+        arms.add(arm); key = (arm, a)
+        seen[arm].add(r)
         if es.SEV_ORDER.get(f.get("severity", "low"), 1) >= gate:
-            flagged[a][r] = True
-            if es.SEV_ORDER.get(f.get("severity"), 0) >= es.SEV_ORDER.get(sev[a][r] or "info", 0):
-                sev[a][r] = f.get("severity")
+            flagged[key][r] = True
+            if es.SEV_ORDER.get(f.get("severity"), 0) >= es.SEV_ORDER.get(sev[key][r] or "info", 0):
+                sev[key][r] = f.get("severity")
+    if not arms:  # no findings at all: fall back to the label's config so empty runs still tabulate
+        arms = {None}
     rows = []
-    for a, meta in labels.items():
-        for r in sorted(runs.get(a, {1})):
-            rows.append({"asset": a, "label": meta["label"], "config": meta.get("config", "combined"),
-                         "run": r, "verdict": "flag" if flagged[a][r] else "clean",
-                         "severity": sev[a][r] or None, "stratum": meta.get("stratum", "shipped"),
-                         "yara_hit": meta.get("yara_hit")})
+    for arm in arms:
+        runs = sorted(seen.get(arm, {1})) if arm is not None else [1]
+        for a, meta in labels.items():
+            key = (arm, a)
+            for r in runs:
+                rows.append({"asset": a, "label": meta["label"],
+                             "config": arm if arm is not None else meta.get("config", "combined"),
+                             "run": r, "verdict": "flag" if flagged[key][r] else "clean",
+                             "severity": sev[key][r] or None, "stratum": meta.get("stratum", "shipped"),
+                             "yara_hit": meta.get("yara_hit")})
     return rows
 
 

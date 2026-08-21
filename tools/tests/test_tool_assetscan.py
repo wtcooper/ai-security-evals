@@ -42,6 +42,18 @@ def test_build_verdicts_from_findings():
     assert ("b1", 1) in by and by[("b1", 1)] == "clean"          # zero-finding benign present
 
 
+def test_build_verdicts_segments_by_scanner_arm():
+    # two scanners over the SAME asset must not collide: the LLM judge flags m0, YARA misses it.
+    findings = [{"target": "m0", "arm": "scan-skill-combined", "tool_run": 1, "severity": "high"},
+                {"target": "m0", "arm": "yara", "tool_run": 1, "severity": "low"}]  # low < gate -> clean
+    labels = {"m0": {"label": "malicious"}}
+    rows = sa.build_verdicts_from_findings(findings, labels, severity_gate="medium")
+    by = {(r["config"], r["asset"], r["run"]): r["verdict"] for r in rows}
+    assert by[("scan-skill-combined", "m0", 1)] == "flag"        # judge catches it
+    assert by[("yara", "m0", 1)] == "clean"                      # signature baseline misses it
+    assert {r["config"] for r in rows} == {"scan-skill-combined", "yara"}
+
+
 def test_mutate_pickle_scan_only(tmp_path):
     for carrier in ("raw", "torch_zip", "base64_exec", "nested"):
         r = subprocess.run([sys.executable, str(SK / "mutate_pickle.py"), str(tmp_path / carrier),
