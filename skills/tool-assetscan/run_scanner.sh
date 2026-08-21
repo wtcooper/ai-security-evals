@@ -29,7 +29,7 @@ ad="$here/adapters/$adapter.sh"
 run=$(basename "$exp"); out="$exp/results/$arm/$aid"; mkdir -p "$out"
 for r in $(seq 1 "$repeats"); do
   d="$out/run$r"; mkdir -p "$d"
-  if ! bash "$ad" "$asset" "$d" "${extra[@]}" > "$d/adapter.log" 2>&1; then
+  if ! bash "$ad" "$asset" "$d" "${extra[@]+"${extra[@]}"}" > "$d/adapter.log" 2>&1; then
     echo "  run$r: adapter '$adapter' failed (see $d/adapter.log)" >&2; continue
   fi
   sarif=$(ls "$d"/*.sarif 2>/dev/null | head -1)

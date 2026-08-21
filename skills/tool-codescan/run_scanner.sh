@@ -29,7 +29,7 @@ run=$(basename "$exp"); out="$exp/results/$arm/$tid"; mkdir -p "$out"
 t0=$(date +%s)
 for r in $(seq 1 "$repeats"); do
   d="$out/run$r"; mkdir -p "$d"
-  if ! bash "$ad" "$tree" "$d" "${extra[@]}" > "$d/adapter.log" 2>&1; then
+  if ! bash "$ad" "$tree" "$d" "${extra[@]+"${extra[@]}"}" > "$d/adapter.log" 2>&1; then
     echo "  run$r: adapter '$arm' failed (see $d/adapter.log)" >&2; continue
   fi
   sarif=$(ls "$d"/*.sarif 2>/dev/null | head -1)

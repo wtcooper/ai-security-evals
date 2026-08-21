@@ -47,3 +47,30 @@ def test_mutate_roundtrip(tmp_path):
     gt = tmp_path / "gt.jsonl"; gt.write_text(json.dumps({"target": "t", "id": "1", "cwe": "22", "file": "app/files.py", "function": "download_file"}) + "\n")
     r = subprocess.run([sys.executable, str(SK / "translate_gt.py"), str(gt), str(tmp_path / "map.json")], capture_output=True, text=True)
     assert json.loads(r.stdout)["function"] == m["download_file"]
+
+
+def test_match_advisory_id_for_sca_scanners(tmp_path):
+    """SCA scanners (Trivy, osv-scanner) name a CVE/GHSA and report at the lockfile, not the vulnerable
+    code line. Without advisory matching they score 0 recall for a harness reason, not a tool reason."""
+    gt = [{"target": "T1", "id": "CVE-2019-10906", "cwe": "74", "file": "requirements.txt"},
+          {"target": "T1", "id": "g-sqli", "cwe": "89", "file": "app.py", "line": 5}]
+    F = [  # advisory id in rule_id, no CWE and a lockfile location -> must still match
+        {"target": "T1", "tool": "trivy", "rule_id": "CVE-2019-10906", "cwe": "uncwe",
+         "cwe_family": "uncwe", "file": "requirements.txt", "line": 2, "message": "jinja2 SSTI"},
+        # GHSA form, advisory named only in the message
+        {"target": "T1", "tool": "osv-scanner", "rule_id": "GHSA-abcd-1234-wxyz", "cwe": "uncwe",
+         "cwe_family": "uncwe", "file": "requirements.txt", "message": "aka CVE-2019-10906"},
+        # unrelated advisory -> FP, must not match
+        {"target": "T1", "tool": "trivy", "rule_id": "CVE-2011-0001", "cwe": "uncwe",
+         "cwe_family": "uncwe", "file": "requirements.txt", "message": ""},
+    ]
+    fp, gp = tmp_path / "f.jsonl", tmp_path / "g.jsonl"
+    fp.write_text("".join(json.dumps(r) + "\n" for r in F)); gp.write_text("".join(json.dumps(r) + "\n" for r in gt))
+    out, rep = tmp_path / "m.jsonl", tmp_path / "m.md"
+    r = subprocess.run([sys.executable, str(SK / "match.py"), str(fp), str(gp), "--out", str(out),
+                        "--report", str(rep), "--group-by", "tool"], capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    rows = [json.loads(l) for l in out.read_text().splitlines()]
+    assert rows[0]["matched"] == "advisory" and rows[0]["ground_truth_id"] == "CVE-2019-10906"
+    assert rows[1]["matched"] == "advisory" and rows[1]["ground_truth_id"] == "CVE-2019-10906"
+    assert rows[2]["matched"] is None and rows[2]["ground_truth_id"] is None   # unrelated CVE

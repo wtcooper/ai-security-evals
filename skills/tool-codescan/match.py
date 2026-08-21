@@ -16,6 +16,7 @@ import argparse
 import csv
 import json
 import random
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -40,8 +41,34 @@ def granularity(gt: dict) -> str:
     return "file"
 
 
+ADVISORY_RE = re.compile(r"\b(?:CVE-\d{4}-\d{4,}|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4})\b", re.I)
+
+
+def advisory_ids(*texts) -> set[str]:
+    """Advisory identifiers (CVE / GHSA) mentioned in any of `texts`, upper-cased."""
+    out = set()
+    for t in texts:
+        if t:
+            out |= {m.upper() for m in ADVISORY_RE.findall(str(t))}
+    return out
+
+
 def match_one(f: dict, gts: list[dict], window: int) -> tuple[dict | None, str | None]:
-    """Best ground-truth match for finding f among gts of the same target. Returns (gt, level)."""
+    """Best ground-truth match for finding f among gts of the same target. Returns (gt, level).
+
+    Two matching modes, because scanner classes identify vulnerabilities differently:
+      * advisory  — SCA scanners (Trivy, osv-scanner) name a CVE/GHSA rather than a code location.
+                    An advisory-ID hit is an unambiguous match and outranks location matching, which
+                    such tools structurally cannot satisfy (they report at the manifest/lockfile).
+      * CWE family + file -> function -> line ±window (design §2.4) — SAST scanners.
+    """
+    # advisory-ID match first: exact identity beats any heuristic on location
+    fids = advisory_ids(f.get("rule_id"), f.get("message"), f.get("ground_truth_id"))
+    if fids:
+        for gt in gts:
+            gids = advisory_ids(gt.get("id"), gt.get("target"), gt.get("cve"), gt.get("advisory"))
+            if gids & fids:
+                return gt, "advisory"
     ff = norm_file(f.get("file")); fam = f.get("cwe_family") or family_of(f.get("cwe"))
     best, best_rank = None, 99
     for gt in gts:
@@ -83,7 +110,9 @@ def main() -> int:
         if gt:
             tp[grp] += 1
             for lv in ("file", "function", "line"):
-                if lv == "file" or (lv == "function" and level in ("function", "line")) or (lv == "line" and level == "line"):
+                if (level == "advisory" or lv == "file"
+                        or (lv == "function" and level in ("function", "line"))
+                        or (lv == "line" and level == "line")):
                     found[grp][lv].add(gt["id"])
         else:
             fp[grp] += 1; unmatched.append(f)

@@ -1,8 +1,9 @@
 ---
 name: tool-codescan
 description: >-
-  Measure and COMPARE the recall / precision / F1 of any code scanners — CodeQL, Semgrep, Snyk,
-  an LLM code reviewer, a commercial SAST, or your own tool — on code with KNOWN vulnerabilities:
+  Measure and COMPARE the recall / precision / F1 of any code scanners — CodeQL, Semgrep, Trivy,
+  osv-scanner, zizmor, Snyk, an LLM code reviewer, a commercial SAST, or your own tool — across SAST,
+  SCA, IaC-misconfig and CI/CD classes, on code with KNOWN vulnerabilities:
   post-cutoff real CVEs (LiveCVEBench), labelled TP + FP-trap sets (RealVuln), CWE-Bench-Java, plus
   contamination controls (canary probe, mutated variants). Scanner-agnostic: you name the tools to
   compare and each is driven by a small adapter. Reports per-CWE-family recall at file/function/line
@@ -16,7 +17,7 @@ argument-hint: "[livecvebench|realvuln|cwe-bench-java]"
 dependencies:
   - git
   - python>=3.11
-  - "the scanners you choose (e.g. semgrep, codeql CLI, gh for the code-scanning path)"
+  - "the scanners you choose (e.g. semgrep, codeql or gh-codeql, trivy, osv-scanner, zizmor)"
 allowed-tools:
   - bash
   - AskUserQuestion
@@ -32,12 +33,21 @@ the target set + matching rule are held constant, the scanner is the independent
 1. **Ask the user which scanners to compare** (`AskUserQuestion`, multi-select) — this is the
    independent variable and the first thing every run establishes. Offer the shipped reference
    adapters and let them add their own:
-   - **CodeQL** (`codeql` — deterministic, `--repeats 1`)
-   - **Semgrep** (`semgrep` — deterministic, `--repeats 1`)
-   - **LLM code reviewer** (e.g. the ai-security-sdlc `scan-code`, or any other — nondeterministic,
-     `--repeats 3` so flip-rate/κ are measurable)
-   - **Other / bring-your-own** — any SAST or LLM reviewer; add `adapters/<name>.sh` (one function,
-     see `adapters/README.md`). Snyk, Bandit, a commercial tool, a second LLM: all just adapters.
+   | option | adapter | class | repeats |
+   |---|---|---|---|
+   | **CodeQL** (CLI or `gh codeql`) | `codeql` | sast | 1 |
+   | **Semgrep** | `semgrep` | sast | 1 |
+   | **LLM code reviewer** (e.g. sdlc `scan-code`) | `sdlc-scan-code` | sast (llm) | **3+** |
+   | **Trivy** (deps + IaC misconfig + secrets) | `trivy` | sca/misconfig | 1 |
+   | **osv-scanner** (dependency CVEs) | `osv-scanner` | sca | 1 |
+   | **zizmor** (GitHub Actions workflows) | `zizmor` | ci-cd | 1 |
+   | **Other / bring-your-own** | add `adapters/<name>.sh` | — | — |
+
+   **Ask which classes matter, not just which tools.** Head-to-head recall is only meaningful
+   *within* a class — sca tools identify vulns by CVE/GHSA at a lockfile, ci-cd tools audit
+   workflows, and neither can satisfy a SAST ground truth's CWE+location rule. Across classes the
+   *complement* is the real question. Confirm the benchmark's ground truth contains the class being
+   scored (see `adapters/README.md`), or a tool will look bad for the wrong reason.
    Record the chosen tool set as the arms. For any LLM-based tool, also record its **training cutoff**
    (manifest `model.cutoff`) — LiveCVEBench is filtered to entries newer than it.
 2. Preflight the chosen tools: `command -v semgrep codeql`, `gh auth status` (only if using the
@@ -55,7 +65,7 @@ the target set + matching rule are held constant, the scanner is the independent
 | Held constant | Varied |
 |---|---|
 | Target set + version pins (ground_truth.jsonl) | **scanner** (the arms you chose) + optional model sweep for any LLM reviewer |
-| Matching rule (CWE family + file→function→line ±5) | — |
+| Matching rule (advisory ID for sca; else CWE family + file→function→line ±5) | — |
 | Contamination strata (clean vs canary-positive; original vs mutant) | — |
 
 Tiers: **1** LiveCVEBench post-cutoff slice (vulnerable snapshot → recall, fixed snapshot → FP),
@@ -78,9 +88,13 @@ lib/ evalstats.py sarif_to_findings.py cwe_map.py manifest.py canary_probe.py fi
 ## RUN
 Per target: `materialize.sh` → then, **for each scanner arm**, run its adapter:
 ```bash
-bash run_scanner.sh "$EXP" <id> "$EXP/targets/<b>/<id>/vulnerable" --arm semgrep --repeats 1
-bash run_scanner.sh "$EXP" <id> "$EXP/targets/<b>/<id>/vulnerable" --arm codeql  --repeats 1
-bash run_scanner.sh "$EXP" <id> "$EXP/targets/<b>/<id>/vulnerable" --arm sdlc-scan-code --repeats 3
+T="$EXP/targets/<b>/<id>/vulnerable"
+bash run_scanner.sh "$EXP" <id> "$T" --arm semgrep --repeats 1
+bash run_scanner.sh "$EXP" <id> "$T" --arm codeql  --repeats 1                      # --language to override autodetect
+bash run_scanner.sh "$EXP" <id> "$T" --arm sdlc-scan-code --repeats 3               # LLM: 3+ for flip rate
+bash run_scanner.sh "$EXP" <id> "$T" --arm trivy   --repeats 1 -- --scanners vuln,misconfig,secret
+bash run_scanner.sh "$EXP" <id> "$T" --arm osv-scanner --repeats 1
+bash run_scanner.sh "$EXP" <id> "$T" --arm zizmor  --repeats 1                      # no workflows => empty result, not an error
 ```
 Scan `fixed/` too (append with `--target <id>@fixed`): any finding at a fixed location = FP.
 
