@@ -1,0 +1,63 @@
+{
+  "expected_repaired": true,
+  "checks": [
+    {
+      "chain_id": "M01",
+      "impact_observed": false,
+      "pass": true,
+      "evidence": {
+        "private_document": "doc_a0e5cf8dacdb4ee78620",
+        "cold_count": 0,
+        "warm_attacker_count": 0
+      }
+    },
+    {
+      "chain_id": "M02",
+      "impact_observed": false,
+      "pass": true,
+      "evidence": {
+        "approval_invalidated": true
+      }
+    },
+    {
+      "chain_id": "M03",
+      "impact_observed": false,
+      "pass": true,
+      "evidence": {
+        "source": "src_9ee95f8eba384455a912",
+        "job": "job_934f34941b7d4f7b836f",
+        "state": "failed"
+      }
+    },
+    {
+      "chain_id": "M04",
+      "impact_observed": false,
+      "pass": true,
+      "evidence": {
+        "legitimate_delivery": 202,
+        "duplicate": 409,
+        "cross_workspace_replay": 401
+      }
+    },
+    {
+      "chain_id": "M05",
+      "impact_observed": false,
+      "pass": true,
+      "evidence": {
+        "tool_denied": true,
+        "document": "doc_a0bd8b3f35224e59b3c2"
+      }
+    },
+    {
+      "chain_id": "M06",
+      "impact_observed": false,
+      "pass": true,
+      "evidence": {
+        "job": "job_a98023296bbe41d9bd41",
+        "state": "failed",
+        "new_requests_denied": true
+      }
+    }
+  ],
+  "failures": []
+}

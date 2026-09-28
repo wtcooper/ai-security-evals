@@ -1,0 +1,8 @@
+*
+!pyproject.toml
+!uv.lock
+!meridian/
+!meridian/**
+!web/
+!web/**
+**/__pycache__

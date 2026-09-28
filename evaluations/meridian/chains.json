@@ -1,0 +1,80 @@
+{
+  "target": "meridian",
+  "schema_version": 1,
+  "chains": [
+    {
+      "id": "M01",
+      "title": "Cross-workspace retrieval cache reuse",
+      "cwe": [524, 862],
+      "attacker": "Authenticated user in a different workspace; knows or guesses the victim's query terms.",
+      "prerequisites": "A privileged victim performs the same normalized query within the cache TTL. Cold attacker cache entries must not precede that victim query.",
+      "path": ["privileged search filters permitted chunks", "cache key contains terms and result limit only", "another tenant gets cached chunk identifiers", "hydration omits workspace and collection checks", "retrieved text enters the response or assistant context"],
+      "files": ["meridian/services/retrieval.py", "meridian/services/assistant.py", "meridian/security.py"],
+      "impact": "Private document text crosses a tenant boundary.",
+      "controls": ["direct document access denied", "cold tenant query returns no private result"],
+      "repair": "Bind retrieval cache entries to workspace and authorization scope; recheck access on hydration for a more general design.",
+      "scope_note": "The present access model uses workspace and role only. Future per-document grants would also need an ACL epoch or hydration check."
+    },
+    {
+      "id": "M02",
+      "title": "Approval survives material plan changes",
+      "cwe": [863, 841],
+      "attacker": "Analyst who owns an approved report workflow.",
+      "prerequisites": "Administrator approves the original team-only plan; approver remains an administrator.",
+      "path": ["analyst submits permitted team plan", "admin approval records stage-kind digest", "owner changes collection config without changing stage kinds", "approval remains valid", "worker collects using approver authority", "report delivered to analyst-readable artifact and receipt channel"],
+      "files": ["meridian/services/workflows.py", "meridian/services/queue.py", "meridian/worker.py", "meridian/services/exports.py"],
+      "impact": "Restricted board records reach an analyst's report.",
+      "controls": ["direct export denied", "unapproved workflow execution denied"],
+      "repair": "Hash the full canonical execution plan, including collection and delivery configuration."
+    },
+    {
+      "id": "M03",
+      "title": "Feed relocation crosses infrastructure trust boundary",
+      "cwe": [918, 441],
+      "attacker": "Analyst able to register a supplier feed.",
+      "prerequisites": "Worker can reach the internal catalog on the shared service network. Supplier supports feed relocation.",
+      "path": ["feed registration enforces supplier origin and path", "supplier returns relocation response", "worker follows redirects without revalidation", "internal catalog relies on network placement instead of caller identity", "internal response matches ingestion schema", "worker publishes it into a team-readable collection"],
+      "files": ["meridian/services/connectors.py", "meridian/connector_server.py", "meridian/vault_server.py", "compose.yaml"],
+      "impact": "Internal synthetic recovery reference becomes a normal team document.",
+      "controls": ["direct catalog URL rejected at registration", "ordinary supplier import succeeds"],
+      "repair": "Validate each redirect before requesting it. Separate catalog network reachability and authenticate maintenance clients as defense in depth."
+    },
+    {
+      "id": "M04",
+      "title": "Signed webhook envelope replayed into another workspace",
+      "cwe": [345, 294, 863],
+      "attacker": "Analyst with permission to preview a delivery for their own source.",
+      "prerequisites": "Knows another workspace slug and source name; both use the same provider signing domain; envelope is under five minutes old.",
+      "path": ["legitimate preview produces signed body and timestamp", "signature omits destination workspace/source", "attacker posts identical envelope to another route", "deduplication is scoped to destination source", "receiver uses destination source identity and collection", "attacker-controlled document becomes trusted tenant content"],
+      "files": ["meridian/routes/integrations.py", "meridian/services/connectors.py", "meridian/services/documents.py"],
+      "impact": "Cross-workspace document insertion and research corpus poisoning.",
+      "controls": ["body tampering rejected", "duplicate delivery to original source rejected"],
+      "repair": "Bind workspace and source to the authenticated delivery context."
+    },
+    {
+      "id": "M05",
+      "title": "Retrieved action card runs under workflow owner identity",
+      "cwe": [441, 863],
+      "attacker": "Analyst able to author team research records.",
+      "prerequisites": "An approved administrator-only workflow exists; victim/attacker enables assistant tools and retrieves the action-card document.",
+      "path": ["low-trust document metadata proposes a report action", "retrieval preserves the metadata in model context", "model proposes run_workflow", "tool broker replaces session actor with workflow owner", "workflow role check succeeds under substituted identity", "private artifact body copied into analyst conversation"],
+      "files": ["meridian/services/retrieval.py", "meridian/services/models.py", "meridian/model_server.py", "meridian/services/assistant.py", "meridian/services/workflows.py"],
+      "impact": "Restricted report contents appear in an analyst's chat.",
+      "controls": ["direct workflow run denied", "tools-disabled assistant contains no private report"],
+      "repair": "Authorize tool execution as the current session principal, preserving provenance and requiring explicit delegation where needed.",
+      "scope_note": "Local provider deterministically interprets action cards. This proves a model-tool authorization failure, not arbitrary natural-language prompt-injection success against a real model."
+    },
+    {
+      "id": "M06",
+      "title": "Queued export outlives role revocation",
+      "cwe": [367, 863],
+      "attacker": "Former administrator downgraded to analyst after scheduling an export.",
+      "prerequisites": "Role changes before the scheduled job starts. This is not escalation by a user who was always unprivileged.",
+      "path": ["authorized administrator schedules restricted export", "queue persists role snapshot", "administrator membership is downgraded", "new HTTP requests resolve current role and reject access", "worker reconstructs stale privileged actor", "artifact access checks ownership instead of current source access"],
+      "files": ["meridian/routes/accounts.py", "meridian/services/queue.py", "meridian/worker.py", "meridian/services/exports.py", "meridian/routes/operations.py"],
+      "impact": "New restricted export is materialized and downloadable after privilege revocation.",
+      "controls": ["new export denied after downgrade", "cancelled queued work never executes"],
+      "repair": "Resolve current membership at execution time; define cancellation and artifact policy for revocation explicitly."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meridian · Research workspace</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <aside><a class="brand" href="/">◈ Meridian</a><p class="muted">RESEARCH OPERATIONS</p>
+    <label>Workspace<select id="workspace" aria-label="Workspace"></select></label>
+    <nav aria-label="Workspace navigation">
+      <button data-page="overview">Overview</button><button data-page="library">Library</button>
+      <button data-page="assistant">Assistant</button><button data-page="sources">Sources</button>
+      <button data-page="workflows">Workflows</button><button data-page="jobs">Jobs & reports</button>
+      <button data-page="team">Team & audit</button>
+    </nav><div class="aside-bottom"><span id="identity"></span><button id="logout">Sign out</button><a href="/docs">API reference ↗</a></div>
+  </aside>
+  <main><header><div><p class="eyebrow">WORKSPACE / <span id="workspace-name">WELCOME</span></p><h1 id="page-title">Your research, connected.</h1></div><span class="pill">Local workspace</span></header>
+    <div id="notice" role="status" aria-live="polite"></div>
+    <section id="login-panel" class="panel narrow"><h2>Welcome to Meridian</h2><p class="muted">Sign in to organize evidence, prepare reports, and work with your research assistant.</p>
+      <form id="login"><label>Email<input name="email" type="email" required autocomplete="username" value="elliot@atlas.test"></label><label>Password<input name="password" type="password" required autocomplete="current-password"></label><button type="submit">Sign in</button></form>
+    </section>
+    <section id="content" hidden></section>
+  </main><script src="/app.js" defer></script>
+</body></html>

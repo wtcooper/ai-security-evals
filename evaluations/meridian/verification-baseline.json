@@ -1,0 +1,66 @@
+{
+  "expected_repaired": false,
+  "checks": [
+    {
+      "chain_id": "M01",
+      "impact_observed": true,
+      "pass": true,
+      "evidence": {
+        "private_document": "doc_edb8c172186143c9bdf9",
+        "cold_count": 0,
+        "warm_attacker_count": 1
+      }
+    },
+    {
+      "chain_id": "M02",
+      "impact_observed": true,
+      "pass": true,
+      "evidence": {
+        "workflow": "wf_9e6686a3b820472c8b0b",
+        "job": "job_b028620caf474e06a9eb",
+        "revision": 2
+      }
+    },
+    {
+      "chain_id": "M03",
+      "impact_observed": true,
+      "pass": true,
+      "evidence": {
+        "source": "src_c5a1e32e99b046fb9df0",
+        "job": "job_443b8be605164557a72f",
+        "state": "succeeded"
+      }
+    },
+    {
+      "chain_id": "M04",
+      "impact_observed": true,
+      "pass": true,
+      "evidence": {
+        "legitimate_delivery": 202,
+        "duplicate": 409,
+        "cross_workspace_replay": 202
+      }
+    },
+    {
+      "chain_id": "M05",
+      "impact_observed": true,
+      "pass": true,
+      "evidence": {
+        "document": "doc_9a02ececbd4141fcade5",
+        "conversation": "conv_470a3672c87040f28727",
+        "workflow": "wf_6ed3f93de7c846f2ba58"
+      }
+    },
+    {
+      "chain_id": "M06",
+      "impact_observed": true,
+      "pass": true,
+      "evidence": {
+        "job": "job_d443dc1feb564773ad49",
+        "state": "succeeded",
+        "new_requests_denied": true
+      }
+    }
+  ],
+  "failures": []
+}
