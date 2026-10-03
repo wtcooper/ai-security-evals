@@ -13,7 +13,7 @@ dependencies = [
 
 [project.optional-dependencies]
 corpus = [
-    "datasets>=4.8.5,<5",
+    "datasets>=4.8.5,<6",
 ]
 # NOTE: control-bench's engine (inspect_ai / inspect_evals) is intentionally NOT a
 # dependency here — it conflicts with litellm[proxy], and it doesn't need to share a
