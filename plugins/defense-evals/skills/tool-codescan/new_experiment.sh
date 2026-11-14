@@ -15,6 +15,8 @@
 #            --model ID         model under test        --temperature T
 #            --benchmark NAME[@VER]                     --pair-on target,sample
 #            --repo OWNER/NAME  ephemeral GitHub repo the branches live in
+#            --review FILE      review profile (review.json) whose `context` is recorded in the
+#                               manifest; defaults to $REVIEW_FILE, then ./review.json if present
 #
 # Folder name is  <label>_<date>  (deduped with -N for same-day reruns). Prints the
 # absolute path as the last line (EXP=<path>); the RUN/ANALYZE steps write the
@@ -30,7 +32,7 @@ engine=""
 if [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; then engine="$1"; shift; fi
 
 start_branch="starting-state"; arms=""; k=""; spec=""; tool=""; model=""; temperature=""
-benchmark=""; pair_on=""; repo=""
+benchmark=""; pair_on=""; repo=""; review="${REVIEW_FILE:-}"
 while [ $# -gt 0 ]; do
   case "$1" in
     --start-branch) start_branch="$2"; shift 2;;
@@ -43,13 +45,14 @@ while [ $# -gt 0 ]; do
     --benchmark) benchmark="$2"; shift 2;;
     --pair-on) pair_on="$2"; shift 2;;
     --repo) repo="$2"; shift 2;;
+    --review) review="$2"; shift 2;;
     *) echo "unknown option: $1" >&2; exit 2;;
   esac
 done
 
 if [ -z "$engine" ]; then
   case "$skill" in
-    control-bench|model-benchmark) engine="inspect";;
+    control-bench|model-benchmark|guardrail-benchmark) engine="inspect";;
     control-codegen) engine="git-branch-ab";;
     tool-*) engine="detection-bench";;
     *) engine="promptfoo";;
@@ -144,6 +147,25 @@ add_todo "scorers"; add_todo "model.cutoff"; add_todo "cost.usd"
 [ "$engine" = "detection-bench" ] && { [ -n "$benchmark" ] || add_todo "benchmark.name"; }
 [ -n "$pair_on" ] || pair_on="target,sample"
 
+# --- deployment context: where this result applies (surface, harness, safeguards...) ---
+# Filled from a review profile when there is one; otherwise an empty skeleton to fill in.
+[ -n "$review" ] || { [ -f review.json ] && review="review.json"; }
+context='{"surface": null, "harness": null, "harness_version": null, "system_prompt": null, "tools": null, "safeguards": null}'
+if [ -n "$review" ] && [ -f "$review" ] && command -v python3 >/dev/null 2>&1; then
+  cp "$review" "$exp/inputs/review.json"
+  context=$(python3 - "$review" <<'PYCTX'
+import json, sys
+keys = ("surface", "harness", "harness_version", "system_prompt", "tools", "safeguards",
+        "data_sensitivity", "autonomy", "notes")
+try:
+    ctx = (json.load(open(sys.argv[1])) or {}).get("context") or {}
+except (OSError, ValueError, AttributeError):
+    ctx = {}
+print(json.dumps({k: ctx.get(k) for k in keys}))
+PYCTX
+)
+fi
+
 cat > "$exp/manifest.json" <<JSON
 {
   "schema_version": 2,
@@ -157,6 +179,7 @@ cat > "$exp/manifest.json" <<JSON
   "command": "FILL IN: the exact run command, incl. --filter-* / model / strategy choices",
   "corpus": "FILL IN: source + filter + counts of what actually ran",
   "notes": "",
+  "context": $context,
   "tool": {"name": $(jstr "$tool_name"), "version": $(jstr "$tool_ver")},
   "model": {"id": $(jstr "$model"), "temperature": $(jnum "$temperature"), "family": null, "cutoff": null},
   "benchmark": {"name": $(jstr "$bench_name"), "version": $(jstr "$bench_ver"), "spec": $(jstr "$spec")},

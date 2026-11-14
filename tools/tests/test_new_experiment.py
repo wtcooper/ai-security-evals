@@ -137,3 +137,28 @@ def test_default_engines_and_detection_bench():
         assert m["engine"] == "detection-bench" and (exp / "targets").is_dir()
         assert m["benchmark"] == {"name": "livecvebench", "version": "2026-08", "spec": None}
         assert "benchmark.name" not in m["_todo"]
+
+
+def test_manifest_records_deployment_context_from_a_review_profile(tmp_path):
+    import json as _json
+    import os as _os
+    import subprocess as _sp
+    Path = pathlib.Path
+    script = SCRIPT
+    review = tmp_path / "review.json"
+    review.write_text(_json.dumps({"context": {"surface": "coding agent", "harness": "opencode",
+                                               "safeguards": "on", "ignored": 1}}))
+    env = {**_os.environ, "EVALS_DIR": str(tmp_path / "evals")}
+    out = _sp.run(["bash", str(script), "model-benchmark", "ctx", "--review", str(review)],
+                  cwd=tmp_path, env=env, capture_output=True, text=True, check=True).stdout
+    exp = Path(out.strip().splitlines()[-1].split("=", 1)[1])
+    ctx = _json.loads((exp / "manifest.json").read_text())["context"]
+    assert ctx["surface"] == "coding agent" and ctx["harness"] == "opencode"
+    assert ctx["safeguards"] == "on" and "ignored" not in ctx
+    assert (exp / "inputs" / "review.json").is_file()
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    bare = _sp.run(["bash", str(script), "model-benchmark", "bare"], cwd=elsewhere, env=env,
+                   capture_output=True, text=True, check=True).stdout
+    exp2 = Path(bare.strip().splitlines()[-1].split("=", 1)[1])
+    assert _json.loads((exp2 / "manifest.json").read_text())["context"]["surface"] is None
