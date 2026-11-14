@@ -21,7 +21,7 @@ SUITE_PATHS = ("plugins/model-evals/skills/model-benchmark/suite.py",
                "plugins/model-evals/skills/model-benchmark/lib/inspect_suite.py",
                "tools/lib/inspect_suite.py")
 
-REQUIRED = ("id", "name", "skill", "status", "subjects", "engine", "threats", "tier",
+REQUIRED = ("id", "name", "skill", "status", "subjects", "engine", "measures", "threats", "tier",
             "needs_judge", "needs_sandbox", "calls_per_sample", "dataset_size", "licence",
             "verified", "verified_from", "source", "note")
 SUBJECTS = {"model", "agent", "app", "decision-model", "voice-model", "image-model", "feature"}
@@ -74,6 +74,7 @@ def test_entries_have_every_field_and_values_from_the_closed_lists():
         if e["status"] != "candidate":
             assert e["tier"] is not None, f"{e['id']}: tier is required unless candidate"
         assert e["subjects"] and set(e["subjects"]) <= SUBJECTS, e["id"]
+        assert e.get("measures") in ("subject", "control"), e["id"]
         assert isinstance(e["verified"], bool), e["id"]
         for key in ("needs_judge", "needs_sandbox"):
             assert e[key] in (True, False, None), f"{e['id']}.{key}"
@@ -124,3 +125,20 @@ def test_experiment_reader_copies_in_criteria_and_report_are_identical():
     a = REVIEW_SKILLS / "review-criteria" / "scripts" / "expread.py"
     b = REVIEW_SKILLS / "review-report" / "scripts" / "expread.py"
     assert a.read_text() == b.read_text()
+
+
+def test_review_report_prints_exactly_the_context_keys_the_measurement_skills_record():
+    """review-report keeps its own copy of the context key list; it must match evalkit's."""
+    def literal(path: Path) -> tuple:
+        import ast
+        for node in ast.parse(path.read_text()).body:
+            if isinstance(node, ast.Assign) and any(
+                    getattr(t, "id", None) == "CONTEXT_KEYS" for t in node.targets):
+                return tuple(ast.literal_eval(node.value))
+        pytest.fail(f"CONTEXT_KEYS not found in {path}")
+
+    evalkit_keys = literal(ROOT / "tools" / "lib" / "evalkit.py")
+    report_keys = literal(REVIEW_SKILLS / "review-report" / "scripts" / "compile_report.py")
+    assert report_keys == evalkit_keys
+    for skill in ("review-scope", "review-threat-model", "review-criteria"):
+        assert literal(REVIEW_SKILLS / skill / "lib" / "evalkit.py") == evalkit_keys

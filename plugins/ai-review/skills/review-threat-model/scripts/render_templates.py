@@ -53,6 +53,9 @@ def render_template(name: str, template: dict, threats: dict) -> str:
              "[framework-ids.md](framework-ids.md).", "",
              "## Questions to ask for this subject type", ""]
     lines += [f"- {q}" for q in template["ask"]]
+    if template.get("guided_review"):
+        g = template["guided_review"]
+        lines += ["", f"Guided review for this subject type: `{g['skill']}`. {g['note']}"]
     if "threats" in template:
         lines += ["", "## Threats", ""] + _table(template["threats"], threats)
     else:

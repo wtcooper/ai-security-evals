@@ -11,6 +11,8 @@ Which threats a catalogued benchmark covers depends on the catalogue at the time
 - What does the organisation's content policy prohibit?
 - Does the vendor document provenance metadata or a watermark?
 
+Guided review for this subject type: `image-model-review`. A guided review skill for image-generation models. It covers the probe-set and provenance threats below that no benchmark measures, and writes evidence rows.
+
 ## Threats
 
 | Threat id | Threat | Why it matters here | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS | With no benchmark available |

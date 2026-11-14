@@ -15,7 +15,7 @@ what result is acceptable.
 |---|---|
 | `benchmarks.json` | The catalogue. Edit this one. |
 | `README.md` | This file. |
-| `tests/test_catalog.py` | Cross-checks the catalogue against `model-benchmark`'s suite file, the threat registry, and the copy shipped inside `review-threat-model`. |
+| `tests/test_catalog.py` | Cross-checks the catalogue against `model-benchmark`'s suite file, the threat registry, and the copy shipped inside `review-threat-model`. It also holds two checks that span the `ai-review` skills and so cannot live inside one of them: the experiment-folder reader shipped in `review-criteria` and `review-report` is the same file, and every copy of the context key list matches the shared one. |
 
 A skill cannot read files outside its own folder, so `review-threat-model` ships a copy at
 `plugins/ai-review/skills/review-threat-model/catalog.json`. The test fails when the copy
@@ -32,6 +32,7 @@ script do it once the copy is registered there).
 | `status` | `available` / `planned` / `candidate` | `available`: a skill in this repo runs it today. `planned`: named in the framework proposal for a skill, or for a mode of a skill, that does not run it yet. `candidate`: named in research as usable; nothing is committed. Only `available` entries count as coverage in a test plan. |
 | `subjects` | list | Review subject types it applies to: `model`, `agent`, `app`, `decision-model`, `voice-model`, `image-model`, `feature`. |
 | `engine` | `inspect` / `promptfoo` / `pyrit` / `custom` | What executes it. |
+| `measures` | `subject` / `control` | `subject`: it measures the AI capability under review. `control`: it measures a control the user supplies (a guardrail). A test plan never counts a `control` entry as coverage of a threat; it lists it for the reviewer to add. |
 | `threats` | list | Threat ids it bears on, from `review-threat-model`'s `references/threats.json`. The mapping is this catalogue's judgement, not a claim by the benchmark's authors. |
 | `tier` | `T0` / `T1` / `T2` / null | Execution tier. T0: pure API calls. T1: in-memory tools or a no-egress container. T2: supervised sandbox, off by default. null: not known (candidates only). |
 | `needs_judge` | true / false / null | Whether scoring needs a judge model. A judge is never the model under test. |

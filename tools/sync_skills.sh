@@ -48,8 +48,11 @@ vendor security-tool-benchmark evalstats.py sarif_to_findings.py cwe_map.py mani
                                canary_probe.py find_sdlc.sh probelib.py evalkit.py
 
 # --- skills built on the shared helpers only; registered as they land ---
-EVALKIT_SKILLS="decision-model-benchmark image-model-review agent-feature-review"
+EVALKIT_SKILLS="decision-model-benchmark image-model-review agent-feature-review review-scope review-threat-model review-criteria"
 for s in $EVALKIT_SKILLS; do has "$s" && vendor "$s" evalkit.py; done
+
+# --- benchmark catalogue: the threat-model skill plans tests from its own copy ---
+has review-threat-model && cp "$ROOT/catalog/benchmarks.json" "$(sd review-threat-model)/catalog.json"
 
 # --- promptfoo setup script: each promptfoo skill ships its OWN copy ---
 root_copy install_dependencies.sh app-benchmark app-redteam guardrail-benchmark

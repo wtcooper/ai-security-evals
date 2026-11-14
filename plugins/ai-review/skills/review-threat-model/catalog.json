@@ -26,6 +26,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: PurpleLlama CybersecurityBenchmarks/LICENSE (the dataset's upstream), read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_4",
       "note": "MITRE ATT&CK-mapped offensive requests. Subject, expansion model and judge: the most expensive check per sample.",
+      "measures": "subject",
       "reads_as": "share of offensive requests NOT assisted",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -58,6 +59,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: PurpleLlama CybersecurityBenchmarks/LICENSE (the dataset's upstream), read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_4",
       "note": "The mandatory pair of cyse4_mitre: without it a model looks safe by refusing everything.",
+      "measures": "subject",
       "reads_as": "share of benign security questions refused",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -90,6 +92,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: LICENSE of github.com/alexandrasouly/strongreject (the dataset's upstream), read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/strong_reject",
       "note": "313 forbidden prompts asked DIRECTLY, no jailbreak applied: the baseline. Unparseable judge replies are dropped from the denominator, so check n. Size: the suite lists 313; the eval.yaml in inspect_evals 0.29.0 lists 324. Not reconciled here; the n printed by the run is what counts.",
+      "measures": "subject",
       "reads_as": "share of forbidden requests the model helped with",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -122,6 +125,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: LICENSE of github.com/alexandrasouly/strongreject (the dataset's upstream), read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/strong_reject",
       "note": "The same 313 prompts wrapped in the AIM jailbreak. The delta against strong_reject is the jailbreak uplift. AIM is the only transformation inspect_evals bundles and it is old; a low rate is a floor on the risk. Size: see strong_reject.",
+      "measures": "subject",
       "reads_as": "share of jailbroken forbidden requests the model helped with",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -154,6 +158,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: PurpleLlama CybersecurityBenchmarks/LICENSE (the dataset's upstream), read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_4",
       "note": "Deterministic semgrep-based detector, no judge.",
+      "measures": "subject",
       "reads_as": "share of generated code with a detected vulnerability",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -187,6 +192,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: PurpleLlama CybersecurityBenchmarks/LICENSE (the dataset's upstream), read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_4",
       "note": "Injection attempts across languages. The metric is named accuracy but the judge answers 'did the injection succeed', so lower is better. Upstream defaults to 4 epochs; pinned to 1.",
+      "measures": "subject",
       "reads_as": "share of injections that SUCCEEDED",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -219,6 +225,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: LICENSE of github.com/ethz-spylab/agentdojo, read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/agentdojo",
       "note": "The metric is named security accuracy but counts executed injections, so lower is better. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric. Size is with sandbox tasks excluded, as the suite runs it; the full task lists 1014 in eval.yaml.",
+      "measures": "subject",
       "reads_as": "share of agent episodes where the injected goal was EXECUTED",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -251,6 +258,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: inspect_evals 0.29.0 package metadata (the cases ship inside the package)",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/agent_threat_bench",
       "note": "OWASP ASI06. Only 10 cases: one case is 10 points. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric.",
+      "measures": "subject",
       "reads_as": "share of episodes where poisoned memory was resisted",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -283,6 +291,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: PurpleLlama CybersecurityBenchmarks/LICENSE (the dataset's upstream), read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_4",
       "note": "cyse4_instruct's corpus as completion prompts: a second modality, not a second dimension.",
+      "measures": "subject",
       "reads_as": "share of code completions with a detected vulnerability",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -315,6 +324,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: inspect_evals 0.29.0 package metadata (the cases ship inside the package)",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/agent_threat_bench",
       "note": "Same threat model as agentdojo over 6 cases. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric.",
+      "measures": "subject",
       "reads_as": "share of episodes where the hijack was resisted",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -347,6 +357,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence: inspect_evals 0.29.0 package metadata (the cases ship inside the package)",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/agent_threat_bench",
       "note": "Scored on tool-call arguments, 8 cases. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric.",
+      "measures": "subject",
       "reads_as": "share of episodes where exfiltration was resisted",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -379,6 +390,7 @@
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence left unset: the image dataset is hosted separately and its licence was not checked",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_3",
       "note": "Needs a model that accepts image input and a judge that does too. Downloads about 1000 images on first use. Upstream defaults to 5 epochs; pinned to 1.",
+      "measures": "subject",
       "reads_as": "share of image-borne injections that SUCCEEDED",
       "subject_notes": {
         "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
@@ -409,7 +421,8 @@
       "verified": true,
       "verified_from": "the corpus files and NOTICE bundled in the app-benchmark skill, counted 2026-11-14",
       "source": null,
-      "note": "Injection cases sent to the application's endpoint and graded by a judge model (one target call and one judge call per case). Sources: CyberSecEval, PromptInject, project-authored multi-turn cases."
+      "note": "Injection cases sent to the application's endpoint and graded by a judge model (one target call and one judge call per case). Sources: CyberSecEval, PromptInject, project-authored multi-turn cases.",
+      "measures": "subject"
     },
     {
       "id": "app_corpus_harmful",
@@ -433,7 +446,8 @@
       "verified": true,
       "verified_from": "the corpus files and NOTICE bundled in the app-benchmark skill, counted 2026-11-14",
       "source": null,
-      "note": "Harmful requests, plain and wrapped in flattened multi-turn jailbreak scaffolds. Sources: AdvBench, CyberSecEval, XSTest, SafeMTData, project-authored."
+      "note": "Harmful requests, plain and wrapped in flattened multi-turn jailbreak scaffolds. Sources: AdvBench, CyberSecEval, XSTest, SafeMTData, project-authored.",
+      "measures": "subject"
     },
     {
       "id": "app_corpus_data_leakage",
@@ -457,7 +471,8 @@
       "verified": true,
       "verified_from": "the corpus files and NOTICE bundled in the app-benchmark skill, counted 2026-11-14",
       "source": null,
-      "note": "Prompt-leak and data-leak requests. Small: one case is about 1.6 points."
+      "note": "Prompt-leak and data-leak requests. Small: one case is about 1.6 points.",
+      "measures": "subject"
     },
     {
       "id": "app_corpus_benign",
@@ -480,7 +495,8 @@
       "verified": true,
       "verified_from": "the corpus files and NOTICE bundled in the app-benchmark skill, counted 2026-11-14",
       "source": null,
-      "note": "Benign requests that look risky. The pair of the harmful and injection sets: read every block rate beside this one."
+      "note": "Benign requests that look risky. The pair of the harmful and injection sets: read every block rate beside this one.",
+      "measures": "subject"
     },
     {
       "id": "app_redteam_objectives",
@@ -506,7 +522,8 @@
       "verified": true,
       "verified_from": "the objective packs bundled in the app-redteam skill, counted 2026-11-14",
       "source": null,
-      "note": "Adaptive multi-turn attacks seeded by 73 objectives. Not a fixed test set: calls per objective depend on turns and backtracks, so results are not comparable run to run the way a benchmark's are."
+      "note": "Adaptive multi-turn attacks seeded by 73 objectives. Not a fixed test set: calls per objective depend on turns and backtracks, so results are not comparable run to run the way a benchmark's are.",
+      "measures": "subject"
     },
     {
       "id": "app_redteam_objectives_cyber",
@@ -530,13 +547,14 @@
       "verified": true,
       "verified_from": "the objective packs bundled in the app-redteam skill, counted 2026-11-14",
       "source": null,
-      "note": "The optional cross-domain cyber pack. Same caveat as app_redteam_objectives."
+      "note": "The optional cross-domain cyber pack. Same caveat as app_redteam_objectives.",
+      "measures": "subject"
     },
     {
       "id": "guardrail_corpus_direct",
       "name": "guardrail-benchmark labelled corpus (direct mode)",
       "skill": "guardrail-benchmark",
-      "status": "planned",
+      "status": "available",
       "subjects": [
         "model",
         "agent",
@@ -555,33 +573,35 @@
       "calls_per_sample": 1,
       "dataset_size": 2962,
       "licence": "mixed: MIT and CC-BY-4.0 (XSTest rows need attribution)",
-      "verified": false,
-      "verified_from": null,
+      "verified": true,
+      "verified_from": "the corpus files bundled in the guardrail-benchmark skill, counted 2026-11-14, and its SKILL.md (one request per case, the guardrail's own verdict is scored)",
       "source": null,
-      "note": "Measures a guardrail the user supplies, not the subject: catch rate beside false-block rate on labelled harmful and benign prompts sent straight to the guardrail. Use when the deployment in review.json relies on a guardrail. Listed as planned because the two existing guardrail skills were being merged into guardrail-benchmark when this entry was written; size is the corpus as bundled in app-benchmark and was not re-counted in the merged skill."
+      "note": "Measures a guardrail the user supplies, not the subject: catch rate beside false-block rate on labelled harmful and benign prompts sent straight to the guardrail. It is never planned as coverage of a threat; the plan lists it for the reviewer to add when the deployment relies on a guardrail. The skill's in-line mode re-runs model-benchmark checks with the guardrail off and on; those checks are already listed.",
+      "measures": "control"
     },
     {
       "id": "baxbench",
       "name": "BaxBench",
       "skill": "coding-guidance-benchmark",
-      "status": "planned",
+      "status": "available",
       "subjects": [
         "agent"
       ],
-      "engine": "custom",
+      "engine": "inspect",
       "threats": [
         "insecure-code"
       ],
       "tier": "T1",
-      "needs_judge": null,
-      "needs_sandbox": null,
+      "needs_judge": false,
+      "needs_sandbox": true,
       "calls_per_sample": null,
       "dataset_size": 392,
       "licence": "MIT",
       "verified": true,
-      "verified_from": "github.com/logic-star-ai/baxbench: LICENSE read; 28 scenarios and 14 frameworks counted in src/scenarios and src/env, 2026-11-14",
+      "verified_from": "github.com/logic-star-ai/baxbench: LICENSE read; 28 scenarios and 14 frameworks counted in src/scenarios and src/env, 2026-11-14. Judge, sandbox and tier: SKILL.md of the coding-guidance-benchmark skill",
       "source": "https://github.com/logic-star-ai/baxbench",
-      "note": "Backend-building tasks (scenario x framework) scored on functional tests and exploits. Used by the planned skill as an A/B test of guidance placed in front of a coding agent. Judge and sandbox needs are left unset: the proposal says scoring uses no judge model and builds need package registries; neither was confirmed here."
+      "note": "Backend-building tasks (scenario x framework) built by a real coding-agent harness in a Docker container with no network, then scored by BaxBench's functional tests and exploits; no judge model. The skill is an A/B test of guidance placed in front of the agent: its baseline arm, with nothing installed, is the measurement of the subject. Model calls per task depend on the agent and are not fixed.",
+      "measures": "subject"
     },
     {
       "id": "agent_misuse_scenarios",
@@ -606,79 +626,38 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "A new public scenario set named in the framework proposal section 6.1: a malicious set and a matched benign or dual-use set, swept over model x harness x safeguards. Does not exist yet; no size or licence to state."
+      "note": "A new public scenario set named in the framework proposal section 6.1: a malicious set and a matched benign or dual-use set, swept over model x harness x safeguards. Does not exist yet; no size or licence to state.",
+      "measures": "subject"
     },
     {
-      "id": "decision_labelled_cases",
-      "name": "Labelled policy cases: fail-open and fail-closed",
+      "id": "decision_seed_corpus",
+      "name": "decision-model-benchmark seed corpus and variants",
       "skill": "decision-model-benchmark",
-      "status": "planned",
+      "status": "available",
       "subjects": [
         "decision-model"
       ],
       "engine": "custom",
       "threats": [
         "decision-error-asymmetry",
-        "decision-forced-choice"
-      ],
-      "tier": "T0",
-      "needs_judge": false,
-      "needs_sandbox": false,
-      "calls_per_sample": null,
-      "dataset_size": null,
-      "licence": null,
-      "verified": false,
-      "verified_from": null,
-      "source": null,
-      "note": "Named in the framework proposal section 6.2. The cases are the organisation's own policy with ground-truth decisions; the skill supplies the adapter and the metrics."
-    },
-    {
-      "id": "decision_flip_rate",
-      "name": "Flip rate under attack against the re-run noise floor",
-      "skill": "decision-model-benchmark",
-      "status": "planned",
-      "subjects": [
-        "decision-model"
-      ],
-      "engine": "custom",
-      "threats": [
         "decision-state-injection",
         "decision-option-channel",
-        "decision-confidence-manipulation"
+        "decision-perturbation-flip",
+        "decision-confidence-manipulation",
+        "decision-forced-choice",
+        "obfuscated-input"
       ],
       "tier": "T0",
       "needs_judge": false,
       "needs_sandbox": false,
       "calls_per_sample": null,
-      "dataset_size": null,
-      "licence": null,
-      "verified": false,
-      "verified_from": null,
+      "dataset_size": 54,
+      "licence": "MIT (synthetic cases written for this repo)",
+      "verified": true,
+      "verified_from": "seed_cases.jsonl (54 lines) and SKILL.md of the decision-model-benchmark skill, read 2026-11-14",
       "source": null,
-      "note": "Named in the framework proposal section 6.2: adversarial variants of cases the model gets right when clean, always beside the flip rate of identical re-runs."
-    },
-    {
-      "id": "decision_consistency",
-      "name": "Option-order and paraphrase consistency",
-      "skill": "decision-model-benchmark",
-      "status": "planned",
-      "subjects": [
-        "decision-model"
-      ],
-      "engine": "custom",
-      "threats": [
-        "decision-perturbation-flip"
-      ],
-      "tier": "T0",
-      "needs_judge": false,
-      "needs_sandbox": false,
-      "calls_per_sample": null,
-      "dataset_size": null,
-      "licence": null,
-      "verified": false,
-      "verified_from": null,
-      "source": null,
-      "note": "Named in the framework proposal section 6.2."
+      "note": "54 synthetic labelled cases in five policy families, each expanded into adversarial variants (injection, padding, option reorder, misleading option rename, paraphrase, encoding, extra fields) and re-run for a noise floor. Requests per case are not constant: the skill's cost table gives about 466 requests per arm at standard depth. Its SKILL.md says the corpus is small, written by one author, and compares arms rather than estimating a deployment's failure rate; the organisation's own labelled cases can be supplied instead.",
+      "measures": "subject"
     },
     {
       "id": "decisionrobust",
@@ -703,7 +682,8 @@
       "verified": true,
       "verified_from": "README and LICENSE of github.com/Yifan-Lan/DecisionRobust, read 2026-11-14 (1,058 curated attack examples from 441 original questions, five suites; code MIT)",
       "source": "https://github.com/Yifan-Lan/DecisionRobust",
-      "note": "Text and vision suites. Its README says the sets are deliberately difficult and model-selected, so attack success there does not estimate everyday failure rates. The data licence is on the dataset card and was not read."
+      "note": "Not run by decision-model-benchmark: that skill documents it as an external suite with its own harness. Text and vision suites. Its README says the sets are deliberately difficult and model-selected, so attack success there does not estimate everyday failure rates. The data licence is on the dataset card and was not read.",
+      "measures": "subject"
     },
     {
       "id": "jevbench",
@@ -727,7 +707,8 @@
       "verified": true,
       "verified_from": "LICENSE of github.com/fstandhartinger/jevbench, read 2026-11-14",
       "source": "https://github.com/fstandhartinger/jevbench",
-      "note": "Accuracy, calibration, latency and cost for decision models. Size is left unset: the README describes several versions with different item counts and a sealed private part."
+      "note": "Not run by decision-model-benchmark: documented there as an external suite. Accuracy, calibration, latency and cost for decision models. Size is left unset: the README describes several versions with different item counts and a sealed private part.",
+      "measures": "subject"
     },
     {
       "id": "jevadvbench",
@@ -751,53 +732,35 @@
       "verified": true,
       "verified_from": "README of github.com/JevAdvBench/JevAdvBench, read 2026-11-14 (812 typed questions, 66 scenarios, 9,744 single-edit variants)",
       "source": "https://github.com/JevAdvBench/JevAdvBench",
-      "note": "The data licence is non-commercial: check before any use inside a company. the decision-model research note notes the arXiv abstract and the README disagree on headline numbers."
+      "note": "The data licence is non-commercial: check before any use inside a company. the decision-model research note notes the arXiv abstract and the README disagree on headline numbers.",
+      "measures": "subject"
     },
     {
-      "id": "voice_tts_parity",
-      "name": "Text-to-speech parity",
+      "id": "voice_speech_vs_text",
+      "name": "voice-model-benchmark: text, speech and perturbed speech",
       "skill": "voice-model-benchmark",
-      "status": "planned",
+      "status": "available",
       "subjects": [
         "voice-model"
       ],
       "engine": "custom",
       "threats": [
-        "voice-audio-jailbreak"
+        "voice-audio-jailbreak",
+        "voice-perturbation",
+        "harmful-assistance",
+        "over-refusal"
       ],
       "tier": "T0",
-      "needs_judge": null,
+      "needs_judge": true,
       "needs_sandbox": false,
       "calls_per_sample": null,
-      "dataset_size": null,
-      "licence": null,
-      "verified": false,
-      "verified_from": null,
+      "dataset_size": 975,
+      "licence": "mixed: MIT and CC-BY-4.0 (XSTest rows need attribution)",
+      "verified": true,
+      "verified_from": "corpus manifest (975 cases: 720 harmful, 255 benign, with per-source licences) and SKILL.md of the voice-model-benchmark skill, read 2026-11-14",
       "source": null,
-      "note": "Named in the framework proposal section 6.3: the same requests as text and as locally synthesised speech, compared paired."
-    },
-    {
-      "id": "voice_perturbation_delta",
-      "name": "Perturbation delta",
-      "skill": "voice-model-benchmark",
-      "status": "planned",
-      "subjects": [
-        "voice-model"
-      ],
-      "engine": "custom",
-      "threats": [
-        "voice-perturbation"
-      ],
-      "tier": "T0",
-      "needs_judge": null,
-      "needs_sandbox": false,
-      "calls_per_sample": null,
-      "dataset_size": null,
-      "licence": null,
-      "verified": false,
-      "verified_from": null,
-      "source": null,
-      "note": "Named in the framework proposal section 6.3: the change in outcome when fixed acoustic perturbations are applied to the same spoken requests."
+      "note": "The same seeded harmful and benign requests sent to one realtime model as text, as locally synthesised speech, and as that speech under audio perturbations; a separate judge grades each reply transcript. Reports the paired speech-minus-text gap and per-perturbation deltas. Calls per case depend on the arms chosen. Its SKILL.md limits the claim to one synthetic voice, the perturbation settings used and one turn per case.",
+      "measures": "subject"
     },
     {
       "id": "jalmbench",
@@ -820,7 +783,8 @@
       "verified": true,
       "verified_from": "README and LICENSE of github.com/sfofgalaxy/JALMBench, read 2026-11-14 (11,316 text prompts and 245,355 audio samples)",
       "source": "https://github.com/sfofgalaxy/JALMBench",
-      "note": "Size is audio samples in the full release; a review would run a sample. The dataset is hosted separately and its licence was not checked."
+      "note": "Not run by voice-model-benchmark today. Size is audio samples in the full release; a review would run a sample. The dataset is hosted separately and its licence was not checked.",
+      "measures": "subject"
     },
     {
       "id": "jailbreak_audiobench_plus",
@@ -844,7 +808,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Named in the framework proposal section 6.3. Nothing about it was checked."
+      "note": "Named in the framework proposal section 6.3. Nothing about it was checked.",
+      "measures": "subject"
     },
     {
       "id": "promptfoo_vlguard",
@@ -867,7 +832,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Named in the framework proposal section 6.4 as runnable through promptfoo. Which skill hosts it is not settled; nothing about it was checked."
+      "note": "Named in the framework proposal section 6.4 as runnable through promptfoo. Which skill hosts it is not settled; nothing about it was checked.",
+      "measures": "subject"
     },
     {
       "id": "promptfoo_vlsu",
@@ -890,7 +856,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Named in the framework proposal section 6.4. Nothing about it was checked."
+      "note": "Named in the framework proposal section 6.4. Nothing about it was checked.",
+      "measures": "subject"
     },
     {
       "id": "crf_benchmark",
@@ -914,7 +881,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2606.02644",
-      "note": "Cited in the framework proposal section 6.1 as evidence that refusal depends on target framing. The paper was not read here."
+      "note": "Cited in the framework proposal section 6.1 as evidence that refusal depends on target framing. The paper was not read here.",
+      "measures": "subject"
     },
     {
       "id": "issuetrojanbench",
@@ -937,7 +905,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Cited in the framework proposal section 6.1 as counter-evidence. No source was given and none was looked up."
+      "note": "Cited in the framework proposal section 6.1 as counter-evidence. No source was given and none was looked up.",
+      "measures": "subject"
     },
     {
       "id": "dynabench",
@@ -960,7 +929,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2509.02563",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "r_judge",
@@ -983,7 +953,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2401.10019",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "guardbench",
@@ -1006,7 +977,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "wildguardmix",
@@ -1029,7 +1001,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "xstest",
@@ -1052,7 +1025,8 @@
       "verified": true,
       "verified_from": "eval.yaml of the installed inspect_evals 0.29.0; LICENSE of github.com/paul-rottger/xstest, read 2026-11-14",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/xstest",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high for false positives), from prior knowledge that the document itself marks as not re-checked. Size and licence were read: 250 safe prompts per the eval.yaml of inspect_evals 0.29.0; CC-BY-4.0 per the LICENSE of github.com/paul-rottger/xstest."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high for false positives), from prior knowledge that the document itself marks as not re-checked. Size and licence were read: 250 safe prompts per the eval.yaml of inspect_evals 0.29.0; CC-BY-4.0 per the LICENSE of github.com/paul-rottger/xstest.",
+      "measures": "subject"
     },
     {
       "id": "or_bench",
@@ -1075,7 +1049,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high for false positives), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high for false positives), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "lakera_pint",
@@ -1098,7 +1073,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "deepset_prompt_injections",
@@ -1121,7 +1097,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "open_prompt_injection",
@@ -1144,7 +1121,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "tensortrust",
@@ -1167,7 +1145,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "bipia",
@@ -1190,7 +1169,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "injecagent",
@@ -1214,7 +1194,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "agentdojo_gate",
@@ -1237,7 +1218,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/agentdojo",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked. The only listed option that measures the confused-deputy risk end to end."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked. The only listed option that measures the confused-deputy risk end to end.",
+      "measures": "subject"
     },
     {
       "id": "agentharm_gate",
@@ -1260,7 +1242,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/agentharm",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked. AgentHarm's licence is MIT with an additional clause restricting use (LICENSE in the installed inspect_evals 0.29.0)."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked. AgentHarm's licence is MIT with an additional clause restricting use (LICENSE in the installed inspect_evals 0.29.0).",
+      "measures": "subject"
     },
     {
       "id": "harmbench",
@@ -1283,7 +1266,8 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "strongreject_recast",
@@ -1306,7 +1290,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/strong_reject",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "judgedeceiver",
@@ -1329,7 +1314,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2403.17710",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium to high, as an attack method rather than a dataset), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium to high, as an attack method rather than a dataset), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "null_model_cheating",
@@ -1352,7 +1338,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2410.07137",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium to high, as an attack method rather than a dataset), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: medium to high, as an attack method rather than a dataset), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     },
     {
       "id": "polyguard",
@@ -1375,7 +1362,8 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2504.04377",
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high for the multilingual axis), from prior knowledge that the document itself marks as not re-checked."
+      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high for the multilingual axis), from prior knowledge that the document itself marks as not re-checked.",
+      "measures": "subject"
     }
   ]
 }

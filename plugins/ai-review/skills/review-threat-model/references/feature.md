@@ -11,6 +11,8 @@ Which threats a catalogued benchmark covers depends on the catalogue at the time
 - Which new credentials or sessions does it use?
 - Can the feature be limited to some users, sites, tools or data first?
 
+Guided review for this subject type: `agent-feature-review`. A guided review skill with one threat-and-test template per feature type. Use it for the threats below that no benchmark measures; it writes evidence rows.
+
 ## Feature: computer-use
 
 | Threat id | Threat | Why it matters here | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS | With no benchmark available |

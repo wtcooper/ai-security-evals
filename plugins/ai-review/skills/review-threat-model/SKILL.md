@@ -85,6 +85,15 @@ Tier T2 benchmarks (supervised sandbox) are left out unless `--include-t2` is gi
 Planned and candidate catalogue entries never count as coverage; they are listed beside
 the threat as "exists elsewhere".
 
+Benchmarks that measure a control the user supplies (a guardrail) rather than the subject
+are never counted as coverage. The plan lists them under "Benchmarks for a control the
+deployment relies on"; add one to the runs only if `context.safeguards` in `review.json`
+includes that control.
+
+For `image-model` and `feature` subjects the plan also names the guided review skill for
+that subject type (`image-model-review`, `agent-feature-review`), which covers threats no
+benchmark measures.
+
 A threat the scope rules out stays in the plan with `applies: false` and the reason (for
 example a tool threat when `context.tools` is `[]`). Where `review.json` does not settle
 it, `applies` is `null` and the question is printed: settle it with the reviewer.
@@ -134,11 +143,15 @@ T=$(mktemp -d)
 python scripts/plan.py --review examples/review.example.json --depth smoke --out-dir "$T"
 python scripts/render_templates.py --check
 ```
-Expected: `template model: 20 threats — 7 benchmark, 5 custom probe, 3 design review,
-3 uncovered, 2 not applicable` (the counts move when the catalogue changes), one line per
-planned run, the paths of `test-plan.json` and `test-plan.md`, and exit code 0 from the
-template check. The example is a fictional `model` subject with no tools, so the two tool
-threats are listed as not applicable.
+Expected output (the counts move when the catalogue changes):
+```
+template model: 20 threats — 9 benchmark, 2 custom probe, 5 design review, 3 uncovered, 1 not applicable
+  model-benchmark @ smoke: 10 benchmark(s), 218 tests, about 422 model calls
+<T>/test-plan.json
+<T>/test-plan.md
+```
+and exit code 0 from the template check. The example is a fictional `model` subject with
+no tools, so `agent-goal-hijack` is listed as not applicable.
 
 ## Files
 

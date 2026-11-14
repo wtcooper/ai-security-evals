@@ -429,6 +429,10 @@
     "image-model": {
       "title": "Image generation or editing model",
       "applies_to": "A model that produces or edits images from text or from other images. For image input to a chat model, use the model template.",
+      "guided_review": {
+        "skill": "image-model-review",
+        "note": "A guided review skill for image-generation models. It covers the probe-set and provenance threats below that no benchmark measures, and writes evidence rows."
+      },
       "ask": [
         "Who can prompt it, and where do the outputs go?",
         "Does it accept reference or input images?",
@@ -485,6 +489,10 @@
     "feature": {
       "title": "New agent feature",
       "applies_to": "One capability being switched on in an agent the organisation already runs. The plan lists the threats for the feature named in review.json (subject.feature) plus the common ones.",
+      "guided_review": {
+        "skill": "agent-feature-review",
+        "note": "A guided review skill with one threat-and-test template per feature type. Use it for the threats below that no benchmark measures; it writes evidence rows."
+      },
       "ask": [
         "What can the agent do with the feature on that it could not do before?",
         "Which new content does it read, and who can write it?",

@@ -18,7 +18,7 @@
   ],
   "catalog": {
     "updated": "2026-11-14",
-    "entries": 54
+    "entries": 51
   },
   "scope": {
     "tools_attached": true,
@@ -36,6 +36,7 @@
     "Which content does it read that an outsider can write?",
     "Are provider safeguards on in this harness, and does the harness add its own?"
   ],
+  "guided_review": null,
   "threats": [
     {
       "threat": "harness-divergence",
@@ -456,14 +457,6 @@
       ],
       "also_exists": [
         {
-          "id": "guardrail_corpus_direct",
-          "skill": "guardrail-benchmark",
-          "status": "planned",
-          "tier": "T0",
-          "verified": false,
-          "why_not_planned": "the skill that would run it is planned, not available"
-        },
-        {
           "id": "agent_misuse_scenarios",
           "skill": "agent-misuse-benchmark",
           "status": "planned",
@@ -546,14 +539,6 @@
         }
       ],
       "also_exists": [
-        {
-          "id": "guardrail_corpus_direct",
-          "skill": "guardrail-benchmark",
-          "status": "planned",
-          "tier": "T0",
-          "verified": false,
-          "why_not_planned": "the skill that would run it is planned, not available"
-        },
         {
           "id": "agent_misuse_scenarios",
           "skill": "agent-misuse-benchmark",
@@ -742,18 +727,55 @@
           "direction": "lower_is_better",
           "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
           "note": "cyse4_instruct's corpus as completion prompts: a second modality, not a second dimension."
-        }
-      ],
-      "also_exists": [
+        },
         {
           "id": "baxbench",
           "skill": "coding-guidance-benchmark",
-          "status": "planned",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": null,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": null,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": null,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 392,
+              "model_calls": null,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 4.9,
+                "at_rate_0.9": 3.0
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": true,
           "tier": "T1",
           "verified": true,
-          "why_not_planned": "the skill that would run it is planned, not available"
+          "reads_as": null,
+          "direction": null,
+          "subject_note": null,
+          "note": "Backend-building tasks (scenario x framework) built by a real coding-agent harness in a Docker container with no network, then scored by BaxBench's functional tests and exploits; no judge model. The skill is an A/B test of guidance placed in front of the agent: its baseline arm, with nothing installed, is the measurement of the subject. Model calls per task depend on the agent and are not fixed."
         }
       ],
+      "also_exists": [],
       "status": "planned",
       "owner": "",
       "evidence_ids": [],
@@ -1032,6 +1054,59 @@
       "result_pointer": null
     }
   ],
+  "control_benchmarks": [
+    {
+      "id": "guardrail_corpus_direct",
+      "skill": "guardrail-benchmark",
+      "engine": "promptfoo",
+      "depth": "standard",
+      "samples": 100,
+      "model_calls": 100,
+      "ci_halfwidth_pp": {
+        "at_rate_0.5": 9.6,
+        "at_rate_0.9": 6.0
+      },
+      "at_depth": {
+        "smoke": {
+          "samples": 25,
+          "model_calls": 25,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 18.2,
+            "at_rate_0.9": 12.2
+          }
+        },
+        "standard": {
+          "samples": 100,
+          "model_calls": 100,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          }
+        },
+        "full": {
+          "samples": 2962,
+          "model_calls": 2962,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 1.8,
+            "at_rate_0.9": 1.1
+          }
+        }
+      },
+      "needs_judge": false,
+      "needs_sandbox": false,
+      "tier": "T0",
+      "verified": true,
+      "reads_as": null,
+      "direction": null,
+      "subject_note": null,
+      "note": "Measures a guardrail the user supplies, not the subject: catch rate beside false-block rate on labelled harmful and benign prompts sent straight to the guardrail. It is never planned as coverage of a threat; the plan lists it for the reviewer to add when the deployment relies on a guardrail. The skill's in-line mode re-runs model-benchmark checks with the guardrail off and on; those checks are already listed.",
+      "threats": [
+        "harmful-assistance",
+        "prompt-injection",
+        "over-refusal"
+      ]
+    }
+  ],
   "runs": [
     {
       "skill": "model-benchmark",
@@ -1142,6 +1217,28 @@
       "model_calls": 1696,
       "model_calls_unknown_for": [],
       "needs_judge": true
+    },
+    {
+      "skill": "coding-guidance-benchmark",
+      "depth": "standard",
+      "benchmarks": [
+        {
+          "id": "baxbench",
+          "samples": 100,
+          "model_calls": null,
+          "needs_judge": false,
+          "tier": "T1",
+          "threats": [
+            "insecure-code"
+          ]
+        }
+      ],
+      "samples": 100,
+      "model_calls": 0,
+      "model_calls_unknown_for": [
+        "baxbench"
+      ],
+      "needs_judge": false
     }
   ],
   "totals": {

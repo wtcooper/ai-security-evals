@@ -126,6 +126,21 @@ def test_only_available_benchmarks_for_this_subject_type_count_as_coverage():
     assert {b["id"] for b in item["benchmarks"]} == {"ok", "supervised"}
 
 
+def test_a_benchmark_that_measures_a_control_is_listed_but_never_counted_as_coverage():
+    catalog = {"benchmarks": [_entry(id="guardrail_set", measures="control")]}
+    plan = _plan(_review("model"), catalog)
+    item = next(i for i in plan["threats"] if i["threat"] == "jailbreak")
+    assert item["route"] == "custom_probe" and item["benchmarks"] == []
+    assert plan["runs"] == []
+    assert [b["id"] for b in plan["control_benchmarks"]] == ["guardrail_set"]
+    md = planner.render_markdown(plan)
+    section = md.split("### Benchmarks for a control the deployment relies on")[1]
+    assert "`guardrail_set`" in section.split("###")[0]
+    real = _plan(_review("agent"))
+    assert all(run["skill"] != "guardrail-benchmark" for run in real["runs"])
+    assert any(b["skill"] == "guardrail-benchmark" for b in real["control_benchmarks"])
+
+
 def test_threat_with_no_available_benchmark_falls_back_to_its_registry_route():
     plan = _plan(_review("model"), {"benchmarks": [_entry(status="planned")]})
     by_id = {i["threat"]: i for i in plan["threats"]}

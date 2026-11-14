@@ -146,7 +146,8 @@ def build_plan(review: dict, catalog: dict, threats: dict, templates: dict,
     for use in template_threats(template, subject.get("feature")):
         threat = threats[use["threat"]]
         covering = [e for e in entries if threat["id"] in e.get("threats", [])
-                    and stype in e.get("subjects", [])]
+                    and stype in e.get("subjects", [])
+                    and e.get("measures", "subject") == "subject"]
         runnable = [e for e in covering if e.get("status") == "available"
                     and e.get("tier") in tiers]
         elsewhere = [e for e in covering if e not in runnable]
@@ -196,7 +197,15 @@ def build_plan(review: dict, catalog: dict, threats: dict, templates: dict,
                   "untrusted_channels": facts["untrusted_channels"]},
         "scope_gaps": gaps,
         "ask": template.get("ask", []),
+        "guided_review": template.get("guided_review"),
         "threats": items,
+        # Benchmarks that measure a control the user supplies (a guardrail), not the subject.
+        # Never counted as coverage of a threat: the reviewer adds them if the deployment
+        # relies on that control.
+        "control_benchmarks": [
+            {**plan_benchmark(e, depth, stype), "threats": e.get("threats", [])}
+            for e in entries if e.get("measures") == "control" and stype in e.get("subjects", [])
+            and e.get("status") == "available" and e.get("tier") in tiers],
         "runs": _runs(active),
         "totals": {**{r: sum(1 for i in active if i["route"] == r) for r in ROUTES},
                    "not_applicable": len(items) - len(active)},
@@ -276,6 +285,10 @@ def render_markdown(plan: dict) -> str:
         lines += ["", "Questions this subject type raises that review.json may not answer:"]
         lines += [f"- {q}" for q in plan["ask"]]
 
+    if plan.get("guided_review"):
+        g = plan["guided_review"]
+        lines += ["", f"Guided review for this subject type: `{g['skill']}`. {g['note']}"]
+
     active = [i for i in plan["threats"] if i["applies"] is not False]
     lines += ["", "## Threat model", "",
               "Framework ids are given only where they were checked against the primary source; "
@@ -316,12 +329,10 @@ def render_markdown(plan: dict) -> str:
             lines += ["", "**Caveat for this subject type:** " + " ".join(caveats)]
         lines += ["", "Runs, each benchmark counted once:", ""]
         for run in plan["runs"]:
-            unknown = run["model_calls_unknown_for"]
             lines.append(
                 f"- **{run['skill']}** at depth `{run['depth']}`: "
                 + ", ".join(f"`{r['id']}`" for r in run["benchmarks"])
-                + f" — {run['samples']} tests, about {run['model_calls']} model calls"
-                + (f" plus an unknown number for {', '.join(unknown)}" if unknown else "")
+                + f" — {run['samples']} tests, {_calls(run)}"
                 + ("; needs a judge model that is not the subject" if run["needs_judge"] else "")
                 + ". The skill prints its own cost plan before it runs.")
         notes = {b["id"]: b["note"] for i in covered for b in i["benchmarks"] if b["note"]}
@@ -348,6 +359,17 @@ def render_markdown(plan: dict) -> str:
             lines.append(f"| `{i['threat']}` {_cell(i['name'])} | {_cell(i['route_note'])} | "
                          f"{_cell(other)} | |")
 
+    lines += ["", "### Benchmarks for a control the deployment relies on", ""]
+    if plan.get("control_benchmarks"):
+        lines += ["These measure a control the user supplies, not the subject, so they are not "
+                  "counted as coverage above and are not in the runs. Add one only if the "
+                  "safeguards recorded in review.json include that control.", ""]
+        lines += [f"- `{b['id']}` ({b['skill']}): {b['samples']} tests at depth `{b['depth']}`; "
+                  f"bears on {', '.join(f'`{t}`' for t in b['threats'])}. {b['note']}"
+                  for b in plan["control_benchmarks"]]
+    else:
+        lines.append("None catalogued for this subject type.")
+
     lines += ["", "### Not applicable in this scope", ""]
     ruled_out = [i for i in plan["threats"] if i["applies"] is False]
     lines += [f"- `{i['threat']}` {i['name']} — {i['applies_reason']}." for i in ruled_out] \
@@ -363,6 +385,15 @@ def render_markdown(plan: dict) -> str:
               "- It sets no acceptance criteria. Those are the organisation's, written with "
               "review-criteria.", ""]
     return "\n".join(lines)
+
+
+def _calls(run: dict) -> str:
+    """Model calls of a run, saying so when a benchmark's calls per test are not fixed."""
+    unknown = run["model_calls_unknown_for"]
+    if unknown and not run["model_calls"]:
+        return "model calls not fixed (they depend on the run)"
+    return f"about {run['model_calls']} model calls" + (
+        f" plus an unknown number for {', '.join(unknown)}" if unknown else "")
 
 
 def _tri(value) -> str:
@@ -401,7 +432,7 @@ def main(argv: list[str] | None = None) -> int:
           f"{t['not_applicable']} not applicable")
     for run in plan["runs"]:
         print(f"  {run['skill']} @ {run['depth']}: {len(run['benchmarks'])} benchmark(s), "
-              f"{run['samples']} tests, ~{run['model_calls']} model calls")
+              f"{run['samples']} tests, {_calls(run)}")
     for gap in plan["scope_gaps"]:
         print(f"  open question: {gap}")
     print(out / "test-plan.json")
