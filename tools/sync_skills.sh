@@ -48,8 +48,11 @@ vendor security-tool-benchmark evalstats.py sarif_to_findings.py cwe_map.py mani
                                canary_probe.py find_sdlc.sh probelib.py evalkit.py
 
 # --- skills built on the shared helpers only; registered as they land ---
-EVALKIT_SKILLS="decision-model-benchmark image-model-review agent-feature-review review-scope review-threat-model review-criteria"
+EVALKIT_SKILLS="decision-model-benchmark image-model-review agent-feature-review review-scope review-threat-model review-criteria coding-guidance-benchmark"
 for s in $EVALKIT_SKILLS; do has "$s" && vendor "$s" evalkit.py; done
+
+# --- voice-model-benchmark: shared helpers + the manifest editor ---
+has voice-model-benchmark && vendor voice-model-benchmark evalkit.py manifest.py
 
 # --- benchmark catalogue: the threat-model skill plans tests from its own copy ---
 has review-threat-model && cp "$ROOT/catalog/benchmarks.json" "$(sd review-threat-model)/catalog.json"
@@ -59,7 +62,7 @@ root_copy install_dependencies.sh app-benchmark app-redteam guardrail-benchmark
 
 # --- experiment scaffolder: every measurement skill ships its own copy ---
 SCAFFOLD_SKILLS="app-benchmark app-redteam guardrail-benchmark model-benchmark security-tool-benchmark"
-for s in decision-model-benchmark; do has "$s" && SCAFFOLD_SKILLS="$SCAFFOLD_SKILLS $s"; done
+for s in decision-model-benchmark coding-guidance-benchmark voice-model-benchmark; do has "$s" && SCAFFOLD_SKILLS="$SCAFFOLD_SKILLS $s"; done
 root_copy new_experiment.sh $SCAFFOLD_SKILLS
 
 # --- mock target / judge / guardrail server for keyless smoke tests ---
@@ -73,6 +76,10 @@ root_copy ephemeral_repo.sh security-tool-benchmark
 # --- prebuilt, license-clean corpus (full tier; skills sample at run time) ---
 $PY build_corpus.py --tier full --out "$(sd app-benchmark)/corpus" >/dev/null
 $PY build_corpus.py --tier full --assert guardrail --out "$(sd guardrail-benchmark)/corpus" >/dev/null
+
+# --- voice-model-benchmark speaks a subset of the app-benchmark corpus (deterministic) ---
+has voice-model-benchmark && $PY "$(sd voice-model-benchmark)/corpus/build_subset.py" \
+    --source "$(sd app-benchmark)/corpus" >/dev/null
 
 # --- prebuilt red-team OBJECTIVE pack (drives promptfoo's local `intent` plugin) ---
 $PY build_redteam_objectives.py >/dev/null

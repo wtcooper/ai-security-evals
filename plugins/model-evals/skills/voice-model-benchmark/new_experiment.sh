@@ -5,8 +5,9 @@
 #
 #   bash new_experiment.sh <skill> "<label>" [engine] [options]
 #
-#   engine   promptfoo (default for app-*/control-isolate) | inspect (control-bench, model-benchmark)
-#            | git-branch-ab (control-codegen) | detection-bench (tool-*)
+#   engine   promptfoo (default) | inspect (model-benchmark; pass it explicitly for
+#            guardrail-benchmark in-line mode) | detection-bench (security-tool-benchmark)
+#            | git-branch-ab (paired builds on git branches)
 #   options  --start-branch B   git-branch-ab: the frozen starting-state branch (default starting-state)
 #            --arms A,B,C,D     arm names (git-branch-ab / detection-bench)
 #            --k N              samples per arm
@@ -52,9 +53,8 @@ done
 
 if [ -z "$engine" ]; then
   case "$skill" in
-    control-bench|model-benchmark|guardrail-benchmark) engine="inspect";;
-    control-codegen) engine="git-branch-ab";;
-    tool-*) engine="detection-bench";;
+    model-benchmark) engine="inspect";;
+    security-tool-benchmark|tool-*) engine="detection-bench";;
     *) engine="promptfoo";;
   esac
 fi

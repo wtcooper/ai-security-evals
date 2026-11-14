@@ -591,9 +591,15 @@ def test_end_to_end_against_the_mock_writes_the_results_contract(tmp_path, capsy
     # Running into the same folder needs --resume, and a resumed run repeats nothing.
     with pytest.raises(SystemExit):
         run(tmp_path)
+    clip = out / "results" / "clips" / "noise" / f"{ids['text'][0]}.wav"
+    made = clip.stat().st_mtime_ns
     assert run(tmp_path, "--resume") == 0
-    assert "running 0 of 32" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "running 0 of 32" in err and "measured from the clips" in err
+    assert clip.stat().st_mtime_ns == made                                  # clips were reused
     assert len((out / "samples.jsonl").read_text().splitlines()) == 32
+    with pytest.raises(SystemExit):
+        run(tmp_path, "--clips", str(tmp_path / "no-such-clips"), out="other")
 
     # A second run from scratch gives the same verdict for every (arm, case).
     assert run(tmp_path, out="again") == 0

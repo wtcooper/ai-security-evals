@@ -296,10 +296,9 @@ def render(summary: dict, run: dict | None = None, title: str = "coding-guidance
             t = a["touched"]
             n = t["runs_with_transcript"]
 
-            def frac(v):
-                return "n/a" if v is None else f"{v}/{n}"
-            lines.append(f"| {a['arm']} | {n} | {frac(t['arm_file'])} | {frac(t['skill'])} | "
-                         f"{frac(t['mcp'])} | {t['any']}/{n} |")
+            cells = ["n/a" if t[k] is None else f"{t[k]}/{n}" for k in ("arm_file", "skill", "mcp")]
+            lines.append(f"| {a['arm']} | {n} | {cells[0]} | {cells[1]} | {cells[2]} | "
+                         f"{t['any']}/{n} |")
         lines += ["", "Read from tool calls only, without interpreting the arm. A signal shows the "
                   "arm was reached. No signal does not show it was unused: a file the harness "
                   "loads into context by itself, or a hook, leaves no tool call. The baseline row "
