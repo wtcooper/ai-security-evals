@@ -4,7 +4,7 @@
 #
 # Requires GCP_AI_STUDIO_API_KEY in .env (Google AI Studio free tier). Kept tiny to
 # stay under free-tier rate limits. Usage:
-#   bash e2e/run_e2e.sh [app-benchmark|control-isolate|control-bench|app-redteam|all]
+#   bash e2e/run_e2e.sh [app-benchmark|guardrail-benchmark (direct)|guardrail-benchmark (in-line)|app-redteam|all]
 set -uo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
@@ -40,18 +40,18 @@ run_app_eval() {
 }
 
 run_control_isolate() {
-  note "control-isolate  (real LiteLLM content-filter, 403 blocks)"
-  npx promptfoo eval -c e2e/control-isolate.e2e.yaml -j 2 \
+  note "guardrail-benchmark (direct)  (real LiteLLM content-filter, 403 blocks)"
+  npx promptfoo eval -c e2e/guardrail-direct.e2e.yaml -j 2 \
     --output /tmp/e2e_ci.json --no-progress-bar --no-cache >/tmp/e2e_ci.log 2>&1
-  $PY plugins/defense-evals/skills/control-isolate/lib/summarize.py /tmp/e2e_ci.json | tee /tmp/e2e_ci.summary
+  $PY plugins/defense-evals/skills/guardrail-benchmark/lib/summarize.py /tmp/e2e_ci.json | tee /tmp/e2e_ci.summary
   grep -q "block 3" /tmp/e2e_ci.summary && grep -q "403" /tmp/e2e_ci.summary \
-    && ok "content-filter 403 blocks auto-classified (no env)" || bad "control-isolate (see /tmp/e2e_ci.log)"
+    && ok "content-filter 403 blocks auto-classified (no env)" || bad "guardrail-benchmark (direct) (see /tmp/e2e_ci.log)"
 }
 
 run_control_bench() {
-  note "control-bench  (A/B: baseline vs content-filter, real gemini via shim+Inspect)"
-  command -v $PY >/dev/null && $PY -c "import inspect_ai" 2>/dev/null || { bad "control-bench: inspect_ai not installed (pip install inspect_ai)"; return; }
-  ( cd plugins/defense-evals/skills/control-bench
+  note "guardrail-benchmark (in-line)  (A/B: baseline vs content-filter, real gemini via shim+Inspect)"
+  command -v $PY >/dev/null && $PY -c "import inspect_ai" 2>/dev/null || { bad "guardrail-benchmark (in-line): inspect_ai not installed (pip install inspect_ai)"; return; }
+  ( cd plugins/defense-evals/skills/guardrail-benchmark
     for a in "baseline:8951:[]" "guarded:8952:[\"content-filter\"]"; do
       n=${a%%:*}; rest=${a#*:}; p=${rest%%:*}; g=${rest#*:}
       SHIM_CONNECTOR=litellm SHIM_GATEWAY_URL=http://127.0.0.1:4000 SHIM_GATEWAY_KEY=sk-mock \
@@ -75,7 +75,7 @@ print(f"A/B: baseline {acc.get('baseline')} -> content-filter {acc.get('guarded'
 PY
   pkill -f injection_shim.py 2>/dev/null
   grep -q "baseline 1.0 -> content-filter 0.0" /tmp/e2e_cb.summary \
-    && ok "control reduced attack success 1.0 -> 0.0" || bad "control-bench (see /tmp/e2e_cb.log)"
+    && ok "control reduced attack success 1.0 -> 0.0" || bad "guardrail-benchmark (in-line) (see /tmp/e2e_cb.log)"
 }
 
 run_app_redteam() {
@@ -91,8 +91,8 @@ run_app_redteam() {
 
 case "$WHICH" in
   app-benchmark) run_app_eval ;;
-  control-isolate) run_control_isolate ;;
-  control-bench) run_control_bench ;;
+  guardrail-direct) run_control_isolate ;;
+  guardrail-inline) run_control_bench ;;
   app-redteam) run_app_redteam ;;
   all) run_app_eval; sleep 20; run_control_isolate; sleep 20; run_control_bench; sleep 20; run_app_redteam ;;
   *) echo "unknown: $WHICH"; exit 2 ;;

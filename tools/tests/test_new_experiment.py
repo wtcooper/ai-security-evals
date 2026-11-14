@@ -90,8 +90,8 @@ def test_git_branch_ab_engine_and_flags():
         subprocess.run(["git", "-c", "user.email=a@b", "-c", "user.name=t", "commit", "-qm", "start"], cwd=repo, check=True)
         subprocess.run(["git", "tag", "starting-state-locked"], cwd=repo, check=True)
         evals = pathlib.Path(tmp) / ".evals"
-        # $3 starting with -- => engine defaults per skill (control-codegen -> git-branch-ab)
-        exp = _exp(_run_args(["control-codegen", "spec-01 A vs D", "--arms", "A,D", "--k", "10", "--spec", "spec-01",
+        # the paired-builds engine is selected explicitly
+        exp = _exp(_run_args(["paired-build-skill", "spec-01 A vs D", "git-branch-ab", "--arms", "A,D", "--k", "10", "--spec", "spec-01",
                               "--tool", "claude-code@2.1", "--model", "claude-sonnet-5", "--temperature", "0"],
                              cwd=repo, evals_dir=evals))
         m = json.loads((exp / "manifest.json").read_text())
@@ -121,7 +121,7 @@ def test_tripwire_warning_when_starting_state_edited():
         subprocess.run(["git", "tag", "starting-state-locked"], cwd=repo, check=True)
         (repo / "SPEC.md").write_text("edited\n")
         subprocess.run([*g, "commit", "-qam", "oops"], cwd=repo, check=True)
-        r = _run_args(["control-codegen", "x", "git-branch-ab"], cwd=repo, evals_dir=pathlib.Path(tmp) / ".evals")
+        r = _run_args(["paired-build-skill", "x", "git-branch-ab"], cwd=repo, evals_dir=pathlib.Path(tmp) / ".evals")
         assert r.returncode == 0 and "WARNING" in r.stderr and "starting-state-locked" in r.stderr
 
 
@@ -129,9 +129,9 @@ def test_default_engines_and_detection_bench():
     with tempfile.TemporaryDirectory() as tmp:
         cwd = _skill_cwd(tmp)
         evals = pathlib.Path(tmp) / ".evals"
-        m = json.loads((_exp(_run_args(["control-bench", "b"], cwd=cwd, evals_dir=evals)) / "manifest.json").read_text())
+        m = json.loads((_exp(_run_args(["model-benchmark", "b"], cwd=cwd, evals_dir=evals)) / "manifest.json").read_text())
         assert m["engine"] == "inspect"
-        exp = _exp(_run_args(["tool-codescan", "lcb", "--benchmark", "livecvebench@2026-08", "--arms", "codeql,scan-code"],
+        exp = _exp(_run_args(["security-tool-benchmark", "lcb", "--benchmark", "livecvebench@2026-08", "--arms", "codeql,scan-code"],
                              cwd=cwd, evals_dir=evals))
         m = json.loads((exp / "manifest.json").read_text())
         assert m["engine"] == "detection-bench" and (exp / "targets").is_dir()

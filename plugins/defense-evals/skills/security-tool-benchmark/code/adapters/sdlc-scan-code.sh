@@ -7,7 +7,7 @@ set -euo pipefail
 tree="${1:?}"; out="${2:?}"; shift 2
 model="${AISEC_MODEL:-}"
 while [ $# -gt 0 ]; do case "$1" in --model) model="$2"; shift 2;; *) shift;; esac; done
-here="$(cd "$(dirname "$0")/.." && pwd)"
+here="$(cd "$(dirname "$0")" && cd .. && cd .. && pwd)"   # the skill root
 scan_dir=$(bash "$here/lib/find_sdlc.sh" --plugin code-scan --skill scan-code)
 AISEC_MODEL="$model" python3 "$scan_dir/scripts/run_scan.py" --path "$tree" --out "$out"
 sarif=$(ls "$out"/*.sarif | head -1); [ "$sarif" = "$out/findings.sarif" ] || cp "$sarif" "$out/findings.sarif"

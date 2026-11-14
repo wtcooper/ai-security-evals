@@ -29,10 +29,21 @@ jobs:
           node tools/tests/status_policy.test.cjs
           node tools/tests/transform_response.test.cjs
           node tools/tests/extract_transcript.test.cjs
-          node plugins/defense-evals/skills/control-isolate/tests/generic_guardrail.test.cjs
+          for t in plugins/*/skills/*/tests/*.test.cjs; do node "$t"; done
 
       - name: Python tests
-        run: uv run pytest tools/tests plugins/defense-evals/skills/control-bench/tests plugins/model-evals/skills/model-benchmark/tests -q
+        run: |
+          uv run pytest tools/tests -q
+          if [ -d catalog/tests ]; then uv run pytest catalog/tests -q; fi
+          # each skill's tests run in their own process (skills may reuse module names)
+          for d in plugins/*/skills/*/tests; do
+            ls "$d"/test_*.py >/dev/null 2>&1 || continue
+            echo "-- $d"; uv run pytest "$d" -q
+          done
+
+      - name: Keyless smoke scripts
+        run: |
+          for s in plugins/*/skills/*/tests/smoke.sh; do [ -f "$s" ] && bash "$s" | tail -1; done
 
       - name: No drift — vendored skill copies match tools/
         run: |
@@ -45,12 +56,13 @@ jobs:
         run: |
           python scripts/check_plugins.py
           python scripts/gen_manifests.py --check
+          python scripts/check_standard.py
 
       - name: Skills are copy-paste self-contained
         run: bash scripts/check_independence.sh
 
       - name: Validate promptfoo configs
         run: |
-          for d in app-benchmark control-isolate app-redteam; do
+          for d in app-benchmark guardrail-benchmark app-redteam; do
             ( cd plugins/*/skills/"$d" && npx -y promptfoo@latest validate -c promptfooconfig.yaml )
           done

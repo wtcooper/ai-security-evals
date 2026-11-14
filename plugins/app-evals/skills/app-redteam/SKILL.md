@@ -9,7 +9,7 @@ description: >-
   robustness. For a fast reproducible benchmark use app-benchmark; for a guardrail in
   isolation use control-isolate.
 license: MIT
-compatibility: "Requires node>=18."
+compatibility: "Requires node>=18 and python>=3.11 (for the summary)."
 ---
 
 # app-redteam — adaptive multi-turn red team (promptfoo)
@@ -77,8 +77,10 @@ end in a cached objectives file you eval locally:
   `PROMPTFOO_DISABLE_REMOTE_GENERATION` for the generate step only. Then eval offline.
 
 Write a rich `redteam.purpose` either way — it sharpens both generated objectives and
-the grader's judgment. For a quick first pass, point `intent` at
-`objectives/redteam_objectives.smoke.json` (2 goals) or keep `numTests`/`maxTurns` low.
+the grader's judgment. **Depth:** `smoke` — point `intent` at `objectives/redteam_objectives.smoke.json` (2 goals;
+proves the wiring), `standard` — the bundled pack plus your own goals at the default turns,
+or `full` — more objectives and turns. Each attempt is `maxTurns` rounds of attacker, target
+and grader calls: tell the user objectives × repeats × turns before running.
 
 ### 5. Open an experiment folder (captures this run)
 Propose a short label (target + attack, e.g. `acme-prod-crescendo`), confirm it, then
@@ -87,7 +89,7 @@ Propose a short label (target + attack, e.g. `acme-prod-crescendo`), confirm it,
 
 ---
 
-## GENERATE (once — caches the attack objectives)
+## RUN — step 1: generate (once; caches the attack objectives)
 ```
 set -a; . .env; set +a
 # Generate INTO the skill dir so the config's file://lib + file://objectives resolve.
@@ -99,12 +101,14 @@ For **app-tailored generation (4b)**, drop `PROMPTFOO_DISABLE_REMOTE_GENERATION=
 on this step only (community service, online). Inspect `objectives.generated.yaml` — each
 entry is a crescendo objective with a `goal` and the `promptfoo:redteam:intent` grader.
 
-## EVAL (repeatable — fully local, no cloud)
+## RUN — step 2: eval (repeatable; fully local, no cloud)
 ```
 PROMPTFOO_DISABLE_REMOTE_GENERATION=true \
-  npx promptfoo redteam eval -c objectives.generated.yaml \
+  npx promptfoo redteam eval -c objectives.generated.yaml --repeat 3 \
   --output "<EXP>/results/redteam.results.json"
 ```
+`--repeat 3` attempts every objective three times. One adaptive run is a single sample of a
+noisy process; repeats are what make the success rate quotable.
 Eval the **skill-dir** copy (relative `file://` paths resolve there); the `--output`
 JSON results go to the experiment. This is slow and adaptive — the attacker drives many
 turns and backtracks. Narrate that it's running live attacks. Crescendo runs on your
@@ -115,6 +119,8 @@ air-gap — that's expected.
 
 ## ANALYZE
 ```
+python lib/redteam_summary.py "<EXP>/results/redteam.results.json" --json "<EXP>/summary.json" \
+  | tee "<EXP>/summary.md"
 node lib/extract_transcript.js "<EXP>/results/redteam.results.json" > "<EXP>/transcripts/transcript.jsonl"
 npx promptfoo redteam report     # opens the vulnerability report UI
 ```
@@ -128,8 +134,10 @@ you can read the escalation, not just the final reply. Summarize for the user:
   **guardrail blocks** (a 400/403 with a block body → scored deterministically as a
   block via `statusClass: "block"`, no per-vendor config). `httpStatus`/`statusClass`
   on each row show how every response was bucketed.
-- **State the caveat plainly: ASR is noisy.** One run is a sample. For any number you
-  report, **run repeated trials and report the variance**.
+- **The attack success rate with its interval**, the number of objectives broken at least
+  once, and how many gave different outcomes across repeats (from `summary.md`). If the
+  summary says attempts errored, that is not a clean result: fix the attacker, grader or
+  target and re-run. Do not say whether the rate is acceptable.
 - Point to `<EXP>/` — `transcripts/transcript.jsonl`, `results/`, and the report UI.
 
 End by offering: a deeper run (more turns/objectives), a focused re-eval of the cached
@@ -149,7 +157,27 @@ comparing — the scoring already distinguishes a guardrail block from a model r
 - Tunables (env): `GUARDRAIL_BLOCK_STATUSES` (default `400`), `GUARDRAIL_BLOCK_FIELD/_VALUE`
   for an explicit body verdict field, `GUARDRAIL_AMBIGUOUS_POLICY=judge|exclude`.
 
+## Smoke test (no keys)
+The adaptive loop needs a real attacker model, so the keyless check covers everything up to
+it: the config validates and the objectives generate locally.
+```
+python tests/mock_server.py 8725 &
+export TARGET_URL=http://127.0.0.1:8725/target TARGET_API_KEY=x TARGET_MODEL=mock \
+  ATTACKER_BASE_URL=http://127.0.0.1:8725/v1 ATTACKER_API_KEY=x ATTACKER_MODEL=mock \
+  GRADER_BASE_URL=http://127.0.0.1:8725/v1 GRADER_API_KEY=x GRADER_MODEL=mock
+npx promptfoo validate -c promptfooconfig.yaml
+PROMPTFOO_DISABLE_REMOTE_GENERATION=true \
+  npx promptfoo redteam generate -c promptfooconfig.yaml -o /tmp/objectives.generated.yaml
+```
+Expected: `Wrote 73 test cases`. Running `redteam eval` on that file against the mock
+reports every attempt as an error, and `lib/redteam_summary.py` then says nothing was
+scored: that is the correct reading of a run with no working attacker.
+
 ## Notes
+- Execution tier **T0**. The arm that varies is the target (or a guardrail or system prompt
+  in a two-arm run); objectives, attacker and grader are held fixed.
+- **Not verified:** the adaptive eval was not run against a real attacker or target where
+  this was last changed; validation, generation and the summary were.
 - Only run against apps the user is authorized to test; prompts appear in the target's logs.
 - Crescendo needs the attacker model configured and `metadata.purpose` (carried from
   `redteam.purpose`).

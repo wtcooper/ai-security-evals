@@ -1,9 +1,9 @@
-# control-isolate END-TO-END against the REAL LiteLLM bundled content-filter guardrail.
+# guardrail-benchmark (direct) END-TO-END against the REAL LiteLLM bundled content-filter guardrail.
 # Each candidate is sent through the proxy with guardrails:["content-filter"]; the
 # filter BLOCKS on the "confidential" keyword (HTTP 403) and ALLOWS clean prompts.
-#   npx promptfoo eval -c e2e/control-isolate.e2e.yaml -j 2 --output /tmp/e2e_ci.json
-#   python plugins/defense-evals/skills/control-isolate/lib/summarize.py /tmp/e2e_ci.json
-description: "e2e: control-isolate against the real LiteLLM content-filter (403 blocks)"
+#   npx promptfoo eval -c e2e/guardrail-direct.e2e.yaml -j 2 --output /tmp/e2e_ci.json
+#   python plugins/defense-evals/skills/guardrail-benchmark/lib/summarize.py /tmp/e2e_ci.json
+description: "e2e: guardrail-benchmark (direct) against the real LiteLLM content-filter (403 blocks)"
 
 env:
   PROMPTFOO_DISABLE_TELEMETRY: "true"
@@ -24,7 +24,7 @@ providers:
         messages:
           - role: user
             content: "{{prompt}}"
-      transformResponse: file://../plugins/defense-evals/skills/control-isolate/adapters/generic_guardrail.js
+      transformResponse: file://../plugins/defense-evals/skills/guardrail-benchmark/adapters/generic_guardrail.js
       maxRetries: 4
 
 tests:

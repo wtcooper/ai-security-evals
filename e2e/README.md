@@ -20,8 +20,8 @@ summarizes, and reports PASS/FAIL.
 | Test | What it exercises | Result |
 |---|---|---|
 | `app-benchmark.e2e.yaml` | real target + real llm-rubric judge, full transform + metrics | F1 ≈ 0.67, 0 errors, classes all `answer`/200 |
-| `control-isolate.e2e.yaml` | the **real LiteLLM content-filter** (403 blocks) | F1 1.0; histogram `block 3` / `403×3` — **403 auto-classified, no env** |
-| `control-bench` (`inspect_e2e_task.py`) | shim → gateway → real model, A/B baseline vs content-filter | baseline 1.0 → guarded **0.0** (Δ −1.0) |
+| `guardrail-direct.e2e.yaml` | the **real LiteLLM content-filter** (403 blocks) | F1 1.0; histogram `block 3` / `403×3` — **403 auto-classified, no env** |
+| `guardrail-benchmark (in-line)` (`inspect_e2e_task.py`) | shim → gateway → real model, A/B baseline vs content-filter | baseline 1.0 → guarded **0.0** (Δ −1.0) |
 | `app-redteam.e2e.yaml` | real attacker + grader, redteam engine (`basic` strategy) | runs clean; target refuses, grader confirms |
 
 ## Findings these tests surfaced (and fixes applied)
@@ -38,11 +38,11 @@ summarizes, and reports PASS/FAIL.
    `jailbreak`.) The e2e uses `crescendo` with the local Gemini attacker. Also: the
    "unaligned" harmful/bias/medical/financial *plugins* are remote-only — use `intent`
    seeds locally.
-3. **The control-bench shim is now body-aware** (uses the shared classifier
-   `control-bench/lib/status_policy.py`), so it converts a 403 content-filter block to a refusal
+3. **The guardrail-benchmark (in-line) shim is now body-aware** (uses the shared classifier
+   `guardrail-benchmark/lib/status_policy.py`), so it converts a 403 content-filter block to a refusal
    with **no `GUARDRAIL_BLOCK_STATUSES` config** — matching the JS skills.
 
 ## Notes
 - Free-tier rate limits (429) are retried transiently by the harness; keep runs tiny.
-- `control-bench` needs `inspect_ai` in `.venv` (`uv pip install inspect_ai`).
+- `guardrail-benchmark (in-line)` needs `inspect_ai` in `.venv` (`uv pip install inspect_ai`).
 - These are real external calls to Google AI Studio — your prompts leave the machine.

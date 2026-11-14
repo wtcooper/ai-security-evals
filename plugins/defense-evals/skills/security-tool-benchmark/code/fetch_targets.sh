@@ -13,9 +13,9 @@ set -euo pipefail
 exp="${1:?usage: fetch_targets.sh <EXP> <benchmark> [--ref R] [--cutoff DATE] [--limit N]}"; bench="${2:?}"; shift 2
 ref=""; cutoff=""; limit=0
 while [ $# -gt 0 ]; do case "$1" in --ref) ref="$2"; shift 2;; --cutoff) cutoff="$2"; shift 2;; --limit) limit="$2"; shift 2;; *) echo "unknown $1" >&2; exit 2;; esac; done
-here="$(cd "$(dirname "$0")" && pwd)"
+here="$(cd "$(dirname "$0")" && pwd)"; root="$(cd "$here" && cd .. && pwd)"
 dst="$exp/targets/$bench"; mkdir -p "$dst"
-M="python3 $here/lib/manifest.py"
+M="python3 $root/lib/manifest.py"
 
 clone() { # clone <url> <dir> [ref]
   local url="$1" d="$2" r="${3:-}"

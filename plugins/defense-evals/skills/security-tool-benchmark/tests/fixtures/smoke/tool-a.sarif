@@ -1,0 +1,101 @@
+{
+ "version": "2.1.0",
+ "runs": [
+  {
+   "tool": {
+    "driver": {
+     "name": "tool-a",
+     "rules": [
+      {
+       "id": "path-traversal",
+       "properties": {
+        "cwe": [
+         "CWE-22"
+        ],
+        "tags": [
+         "CWE-22"
+        ]
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       }
+      },
+      {
+       "id": "sql-injection",
+       "properties": {
+        "cwe": [
+         "CWE-89"
+        ],
+        "tags": [
+         "CWE-89"
+        ]
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       }
+      }
+     ]
+    }
+   },
+   "results": [
+    {
+     "ruleId": "path-traversal",
+     "level": "error",
+     "message": {
+      "text": "path-traversal"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "download.py"
+        },
+        "region": {
+         "startLine": 6
+        }
+       }
+      }
+     ]
+    },
+    {
+     "ruleId": "sql-injection",
+     "level": "error",
+     "message": {
+      "text": "sql-injection"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "db.py"
+        },
+        "region": {
+         "startLine": 2
+        }
+       }
+      }
+     ]
+    },
+    {
+     "ruleId": "sql-injection",
+     "level": "error",
+     "message": {
+      "text": "sql-injection"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "util.py"
+        },
+        "region": {
+         "startLine": 2
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

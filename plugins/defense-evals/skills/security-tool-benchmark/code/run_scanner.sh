@@ -22,7 +22,7 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$arm" ] || { echo "--arm <name> required (see adapters/)" >&2; exit 2; }
 [ -n "$adapter" ] || adapter="$arm"
-here="$(cd "$(dirname "$0")" && pwd)"
+here="$(cd "$(dirname "$0")" && pwd)"; root="$(cd "$here" && cd .. && pwd)"
 ad="$here/adapters/$adapter.sh"
 [ -f "$ad" ] || { echo "no adapter '$adapter' — write adapters/$adapter.sh from adapters/README.md" >&2; exit 1; }
 run=$(basename "$exp"); out="$exp/results/$arm/$tid"; mkdir -p "$out"
@@ -34,9 +34,9 @@ for r in $(seq 1 "$repeats"); do
   fi
   sarif=$(ls "$d"/*.sarif 2>/dev/null | head -1)
   [ -n "$sarif" ] || { echo "  run$r: adapter produced no *.sarif in $d" >&2; continue; }
-  python3 "$here/lib/sarif_to_findings.py" "$sarif" --tool "$arm" --tool-run "$r" --strip-prefix "$tree" \
+  python3 "$root/lib/sarif_to_findings.py" "$sarif" --tool "$arm" --tool-run "$r" --strip-prefix "$tree" \
       --run "$run" --arm "$arm" --target "$tid" --sample 1 --append "$exp/findings.jsonl"
 done
 kloc=$(find "$tree" -type f \( -name '*.py' -o -name '*.js' -o -name '*.ts' -o -name '*.go' -o -name '*.java' -o -name '*.rb' -o -name '*.php' -o -name '*.c' -o -name '*.cpp' \) -not -path '*/node_modules/*' -exec cat {} + 2>/dev/null | wc -l | awk '{printf "%.1f", $1/1000}')
-python3 "$here/lib/manifest.py" "$exp" append-sample "{\"run\":\"$run\",\"arm\":\"$arm\",\"target\":\"$tid\",\"sample\":1,\"kloc\":$kloc,\"wall_s\":$(( $(date +%s)-t0 )),\"repeats\":$repeats}" >/dev/null
+python3 "$root/lib/manifest.py" "$exp" append-sample "{\"run\":\"$run\",\"arm\":\"$arm\",\"target\":\"$tid\",\"sample\":1,\"kloc\":$kloc,\"wall_s\":$(( $(date +%s)-t0 )),\"repeats\":$repeats}" >/dev/null
 echo "SCANNED=$tid arm=$arm kloc=$kloc repeats=$repeats"

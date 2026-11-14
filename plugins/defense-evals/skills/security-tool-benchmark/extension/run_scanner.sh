@@ -23,7 +23,7 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$arm" ] || { echo "--arm <label> required" >&2; exit 2; }
 [ -n "$adapter" ] || adapter="$arm"
-here="$(cd "$(dirname "$0")" && pwd)"
+here="$(cd "$(dirname "$0")" && pwd)"; root="$(cd "$here" && cd .. && pwd)"
 ad="$here/adapters/$adapter.sh"
 [ -f "$ad" ] || { echo "no adapter '$adapter' — write adapters/$adapter.sh from adapters/README.md" >&2; exit 1; }
 run=$(basename "$exp"); out="$exp/results/$arm/$aid"; mkdir -p "$out"
@@ -34,7 +34,7 @@ for r in $(seq 1 "$repeats"); do
   fi
   sarif=$(ls "$d"/*.sarif 2>/dev/null | head -1)
   [ -n "$sarif" ] || { echo "  run$r: no *.sarif in $d" >&2; continue; }
-  python3 "$here/lib/sarif_to_findings.py" "$sarif" --tool "$arm" --tool-run "$r" \
+  python3 "$root/lib/sarif_to_findings.py" "$sarif" --tool "$arm" --tool-run "$r" \
       --run "$run" --arm "$arm" --target "$aid" --sample 1 --append "$exp/findings.jsonl"
 done
 echo "SCANNED=$aid arm=$arm repeats=$repeats"

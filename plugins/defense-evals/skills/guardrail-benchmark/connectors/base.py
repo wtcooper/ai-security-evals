@@ -1,4 +1,4 @@
-"""Gateway connector abstraction for control-bench A/B/C.
+"""Gateway connector abstraction for guardrail-benchmark (in-line mode) A/B/C.
 
 A control is toggled by PARAMETERS passed to a gateway — both a `model` name and a
 `guardrail` name (there are no guardrail-baked model aliases). Standard OpenAI

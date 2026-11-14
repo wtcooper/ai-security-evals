@@ -5,7 +5,7 @@ set -euo pipefail
 asset="${1:?}"; out="${2:?}"; shift 2
 config="combined"
 while [ $# -gt 0 ]; do case "$1" in --config) config="$2"; shift 2;; *) shift;; esac; done
-here="$(cd "$(dirname "$0")/.." && pwd)"
+here="$(cd "$(dirname "$0")" && cd .. && cd .. && pwd)"   # the skill root
 scan_dir=$(bash "$here/lib/find_sdlc.sh" --plugin asset-scan --skill scan-mcp)
 # The sdlc scan-mcp skill ships its own runner; invoke it and normalise its SARIF here.
 python3 "$scan_dir/scripts/run_scan_mcp.py" --path "$asset" --config "$config" --out "$out"

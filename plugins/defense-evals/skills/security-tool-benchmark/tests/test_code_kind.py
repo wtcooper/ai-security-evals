@@ -4,7 +4,7 @@ import pathlib
 import subprocess
 import sys
 
-SK = pathlib.Path(__file__).resolve().parents[2] / "plugins" / "defense-evals" / "skills" / "tool-codescan"
+SK = pathlib.Path(__file__).resolve().parents[1] / "code"
 
 
 def test_match_levels_and_report(tmp_path):

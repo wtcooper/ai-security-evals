@@ -8,12 +8,22 @@ echo "== Node tests (status policy / transform / guardrail adapter) =="
 node tools/tests/status_policy.test.cjs
 node tools/tests/transform_response.test.cjs
 node tools/tests/extract_transcript.test.cjs
-node plugins/defense-evals/skills/control-isolate/tests/generic_guardrail.test.cjs
+for t in plugins/*/skills/*/tests/*.test.cjs; do node "$t"; done
 
 echo
 echo "== Python tests (classifier / m2s / corpus / metrics / connectors / shim / A-B-C) =="
 PYTEST="${PYTEST:-.venv/bin/python -m pytest}"
-$PYTEST tools/tests plugins/defense-evals/skills/control-bench/tests plugins/model-evals/skills/model-benchmark/tests -q
+$PYTEST tools/tests -q
+[ -d catalog/tests ] && $PYTEST catalog/tests -q
+# Each skill's tests run in their own process: skills are independent and may reuse module names.
+for d in plugins/*/skills/*/tests; do
+  ls "$d"/test_*.py >/dev/null 2>&1 || continue
+  echo "-- $d"; $PYTEST "$d" -q
+done
+
+echo
+echo "== Keyless smoke scripts =="
+for s in plugins/*/skills/*/tests/smoke.sh; do [ -f "$s" ] && { echo "-- $s"; bash "$s" | tail -1; }; done
 
 echo
 echo "== Vendored copies in sync with tools/ (no drift) =="
@@ -30,6 +40,10 @@ echo
 echo "== Plugins conform to Agent Plugins 1.0.0; generated manifests current =="
 python3 scripts/check_plugins.py
 python3 scripts/gen_manifests.py --check
+
+echo
+echo "== Skills meet docs/skill-standard.md =="
+python3 scripts/check_standard.py
 
 echo
 echo "== Skills are copy-paste self-contained (no escaping references) =="

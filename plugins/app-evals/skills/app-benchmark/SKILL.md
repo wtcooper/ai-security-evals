@@ -60,8 +60,10 @@ A small capable model from a different family (e.g. gpt-4o-mini) is a good defau
 ### 4. Choose how much / which of the corpus to run (`AskUserQuestion`)
 The **full corpus (~2900 cases) is bundled** in `corpus/` — no build step. It's tagged
 by `category` (cyber / prompt_injection / data_leakage / content_safety). Pick:
-- **Scope:** a whole-corpus sample (`--filter-sample 30|150` for smoke/mid, omit for full),
-  or a **category slice** for a focused audience — e.g. a cyber team:
+- **Depth:** `smoke` (`--filter-sample 30` — proves the wiring; the interval on recall is
+  about ±15 points), `standard` (`--filter-sample 150`), or `full` (omit the flag). Each case
+  is one call to the target and one to the judge: tell the user the totals before running.
+- **Scope:** the whole corpus, or a **category slice** for a focused audience — e.g. a cyber team:
   `--filter-metadata category=cyber` (also `prompt_injection`, `data_leakage`).
 - Combine them (`--filter-metadata category=cyber --filter-sample 60`).
 Ask the user which axes they care about; cyber/security teams usually want
@@ -73,8 +75,9 @@ If the app toggles a guardrail by a body param, duplicate `providers[0]` with a 
 the report compares them per case.
 
 ### 6. Open an experiment folder (captures this run)
-Propose a short legible label (target + scope, e.g. `acme-prod-cyber-smoke`), confirm
-it with the user, then:
+If a `review.json` exists (from `review-scope`), the deployment context is recorded with the
+results; otherwise note the surface and system prompt in the manifest. Propose a short
+legible label (target + scope, e.g. `acme-prod-cyber-smoke`), confirm it with the user, then:
 ```
 bash new_experiment.sh app-benchmark "<label>"
 ```
@@ -98,11 +101,12 @@ endpoint, or (d) the target returns a non-2xx the transform treats as operationa
 
 ## ANALYZE
 ```
-python lib/summarize.py "<EXP>/results/results.json" | tee "<EXP>/summary.txt"
+python lib/summarize.py "<EXP>/results/results.json" --json "<EXP>/summary.json" | tee "<EXP>/summary.md"
 node lib/extract_transcript.js "<EXP>/results/results.json" > "<EXP>/transcripts/transcript.jsonl"
 ```
 Present a short plain-text report and interpret it for the user:
-- **Headline:** F1, Recall (block rate on attacks), FPR (over-refusal on benign), ASR.
+- **Headline:** Recall (block rate on attacks), FPR (over-refusal on benign) and ASR, each
+  with its 95% interval, then F1. Do not say whether the result is acceptable.
 - **Negative class matters:** benign is the negative class, so FPR is the over-block
   cost — a defense that refuses everything scores high recall but bad F1/FPR.
 - **Read the per-status histogram** ("Response classes" / "HTTP statuses"). It shows
@@ -114,17 +118,34 @@ Present a short plain-text report and interpret it for the user:
   "strong on `direct_harmful` (0.95) but only 0.30 on `m2s_*` flattened multi-turn" or
   "misses `system_prompt_exfiltration`". Flag families with n < 10 as low-confidence.
 - For an A/B/C run, diff the arms and state the marginal effect of the control.
-- Point the user to the experiment folder `<EXP>/` — `summary.txt` (headline),
+- Point the user to the experiment folder `<EXP>/` — `summary.md` (headline),
   `transcripts/transcript.jsonl` (per-case prompt/response/verdict), and
   `results/results.json` (full native output) — plus `npx promptfoo view` to spot-check.
 
-End by offering next steps: bump the tier for a firmer number, add their own custom
+End by offering next steps: a deeper run for a firmer number, add their own custom
 prompts to the corpus, or move to `app-redteam` for adaptive attacks.
 
+## Smoke test (no keys)
+The bundled mock server plays a target that refuses everything and a judge that passes it:
+```
+python tests/mock_server.py 8725 &
+TARGET_URL=http://127.0.0.1:8725/target TARGET_API_KEY=x TARGET_MODEL=mock \
+JUDGE_BASE_URL=http://127.0.0.1:8725/v1 JUDGE_API_KEY=x JUDGE_MODEL=mock \
+  npx promptfoo eval -c promptfooconfig.yaml --filter-sample 20 --output /tmp/ab-smoke.json
+python lib/summarize.py /tmp/ab-smoke.json
+```
+Expected: 20 cases, `errors excluded: 0`, and a `95% intervals` line. The scores themselves
+mean nothing (the mock judge passes every case); the test proves the request, transform,
+grading and summary path.
+
 ## Notes
+- Execution tier **T0**. The arm that varies is the target (or one guardrail parameter, in
+  the optional two-arm run); the corpus and judge are held fixed.
+- **Not verified:** no run against a real application or judge was possible where this was
+  last changed; the path was exercised end to end against the mock server.
 - The bundled corpus is license-clean (AdvBench/CyberSecEval/XSTest/PromptInject MIT/
   CC-BY + SafeMTData MIT for the M2S `safemt-m2s-*` multi-turn cases) — redistributable.
-- At a small sample the CI on Recall is wide (±~8 pts at ~30); don't call a small gap
-  real — run more cases before a vendor or release decision.
+- At a small sample the interval on Recall is wide; read the interval before calling a gap
+  between two runs real.
 - The corpus ships prebuilt; extend it by adding cases to `corpus/*.json` (or
   appending your own test prompts in the same shape).

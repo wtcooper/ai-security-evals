@@ -150,3 +150,17 @@ def test_flat_results_schema():
     doc = {"results": [_r("harmful_content", True), _r("benign", True)]}
     c = S.summarize(doc)["counts"]
     assert c["tp"] == 1 and c["tn"] == 1
+
+
+def test_rates_carry_wilson_intervals():
+    import importlib
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "lib"))
+    summ = importlib.import_module("summarize")
+    lo, hi = summ.wilson_ci(90, 100)
+    assert abs(lo - 0.8256) < 1e-3 and abs(hi - 0.9448) < 1e-3
+    assert summ.wilson_ci(0, 0) == [0.0, 1.0]
+    m = summ.summarize({"results": {"results": []}})
+    assert set(m["ci95"]) == {"recall", "fpr", "asr"}
+    assert "95% intervals" in summ._fmt(m)

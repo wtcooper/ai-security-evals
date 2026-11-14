@@ -1,0 +1,49 @@
+{
+ "version": "2.1.0",
+ "runs": [
+  {
+   "tool": {
+    "driver": {
+     "name": "tool-b",
+     "rules": [
+      {
+       "id": "command-injection",
+       "properties": {
+        "cwe": [
+         "CWE-78"
+        ],
+        "tags": [
+         "CWE-78"
+        ]
+       },
+       "defaultConfiguration": {
+        "level": "error"
+       }
+      }
+     ]
+    }
+   },
+   "results": [
+    {
+     "ruleId": "command-injection",
+     "level": "error",
+     "message": {
+      "text": "command-injection"
+     },
+     "locations": [
+      {
+       "physicalLocation": {
+        "artifactLocation": {
+         "uri": "jobs.py"
+        },
+        "region": {
+         "startLine": 5
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

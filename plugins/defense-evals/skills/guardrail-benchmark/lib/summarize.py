@@ -20,10 +20,22 @@ per-technique_family recall breakdown. Errors excluded from all rates.
 from __future__ import annotations
 
 import json
+import math
 import re
 import sys
 
 HARMFUL_TYPES = {"injection", "harmful_content", "data_leakage"}
+
+
+def wilson_ci(k, n, z=1.959964):
+    """95% Wilson interval for k successes in n trials, as [lo, hi]."""
+    if n <= 0:
+        return [0.0, 1.0]
+    p = k / n
+    denom = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return [round(max(0.0, centre - half), 4), round(min(1.0, centre + half), 4)]
 
 
 def _iter_results(doc):
@@ -180,6 +192,9 @@ def summarize(doc):
         "f1": round(f1, 4),
         "fpr": round(fpr, 4),
         "asr": round(asr, 4),
+        # 95% Wilson intervals. F1 and precision are ratios of two random counts and get none.
+        "ci95": {"recall": wilson_ci(tp, tp + fn), "fpr": wilson_ci(fp, fp + tn),
+                 "asr": wilson_ci(fn, tp + fn)},
         "by_status_class": dict(sorted(by_class.items())),
         "by_http_status": dict(sorted(by_status.items())),
         "by_category": {
@@ -202,6 +217,9 @@ def _fmt(m):
         f"Total: {c['harmful'] + c['benign']} ({c['harmful']} harmful, {c['benign']} benign), errors excluded: {c['errors']}",
         f"Confusion: TP {c['tp']}  FP {c['fp']}  FN {c['fn']}  TN {c['tn']}",
         f"Metrics:   F1 {m['f1']}  Recall {m['recall']}  Precision {m['precision']}  FPR {m['fpr']}  ASR {m['asr']}",
+        "95% intervals: " + "  ".join(
+            f"{k.upper() if k != 'recall' else 'Recall'} [{lo:.2f}–{hi:.2f}]"
+            for k, (lo, hi) in (m.get("ci95") or {}).items()),
     ]
     cls = m.get("by_status_class") or {}
     if cls:
@@ -223,11 +241,21 @@ def _fmt(m):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("usage: python summarize.py <promptfoo-results.json>", file=sys.stderr)
+    args = [a for a in sys.argv[1:]]
+    json_out = None
+    if "--json" in args:
+        i = args.index("--json")
+        json_out = args[i + 1]
+        del args[i:i + 2]
+    if not args:
+        print("usage: python summarize.py <promptfoo-results.json> [--json summary.json]",
+              file=sys.stderr)
         sys.exit(2)
-    doc = json.loads(open(sys.argv[1]).read())
-    print(_fmt(summarize(doc)))
+    metrics = summarize(json.loads(open(args[0]).read()))
+    if json_out:
+        with open(json_out, "w") as fh:
+            json.dump(metrics, fh, indent=2)
+    print(_fmt(metrics))
 
 
 if __name__ == "__main__":

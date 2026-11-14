@@ -5,7 +5,7 @@ import pickle
 import subprocess
 import sys
 
-SK = pathlib.Path(__file__).resolve().parents[2] / "plugins" / "defense-evals" / "skills" / "tool-assetscan"
+SK = pathlib.Path(__file__).resolve().parents[1] / "extension"
 sys.path.insert(0, str(SK))
 import score_assets as sa  # noqa: E402
 

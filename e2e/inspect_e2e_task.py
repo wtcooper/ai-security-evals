@@ -1,4 +1,4 @@
-"""Tiny Inspect task for the control-bench e2e. The input contains the word
+"""Tiny Inspect task for the guardrail-benchmark (in-line) e2e. The input contains the word
 'confidential', which the LiteLLM content-filter blocks pre-call — so the
 content-filter arm is blocked (the shim converts the 403 to a refusal) while the
 baseline arm reaches the model and emits the token. Clean A/B delta with a real

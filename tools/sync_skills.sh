@@ -17,52 +17,58 @@ sd() {
   [ -n "$d" ] || { echo "sync_skills: no skill named $1 under plugins/" >&2; exit 1; }
   printf '%s' "$d"
 }
-TOOL_SKILLS=$(cd "$ROOT" && ls -d plugins/*/skills/tool-* 2>/dev/null | xargs -n1 basename)
+has() { ls -d "$ROOT"/plugins/*/skills/"$1" >/dev/null 2>&1; }
 
-vendor() {  # vendor <skill> <lib-file>...
+vendor() {  # vendor <skill> <lib-file>...   (copies from tools/lib into the skill's lib/)
   local skill="$1" dir; shift
   dir=$(sd "$skill")
   mkdir -p "$dir/lib"
   for f in "$@"; do cp "lib/$f" "$dir/lib/$f"; done
 }
+root_copy() {  # root_copy <file> <skill>...   (copies a tools/ file into each skill's root)
+  local f="$1"; shift
+  for s in "$@"; do cp "$f" "$(sd "$s")/$f"; done
+}
 
-# --- runtime libs per skill (only what each one uses) ---
-vendor app-benchmark        status_policy.js transform_response.js summarize.py extract_transcript.js
-vendor app-redteam     status_policy.js transform_response.js extract_transcript.js
-vendor control-isolate status_policy.js summarize.py extract_transcript.js
-vendor control-bench   status_policy.py
+# --- promptfoo runtime: response classification, transcript extraction, metrics ---
+vendor app-benchmark       status_policy.js transform_response.js summarize.py extract_transcript.js
+vendor app-redteam         status_policy.js transform_response.js extract_transcript.js redteam_summary.py
 
-# --- shared helpers + the Inspect suite/runner/report (one runner, the arm axis differs) ---
-vendor model-benchmark evalkit.py inspect_suite.py inspect_runner.py inspect_report.py
+# --- guardrail-benchmark: promptfoo runtime (direct mode) + shim classifier and the
+#     shared Inspect suite/runner/report (in-line mode) ---
+vendor guardrail-benchmark status_policy.js summarize.py extract_transcript.js \
+                           status_policy.py evalkit.py inspect_suite.py inspect_runner.py inspect_report.py
 
-# --- shared eval spine (design doc §2.3): findings/samples contract, paired stats,
-#     SARIF normaliser, manifest editor, contamination probe, sdlc locator, probe helpers ---
-SPINE="evalstats.py sarif_to_findings.py cwe_map.py manifest.py canary_probe.py find_sdlc.sh probelib.py"
-SPINE_SKILLS="control-codegen"
-for s in $SPINE_SKILLS; do vendor "$s" $SPINE; done
-for s in $TOOL_SKILLS; do vendor "$s" $SPINE; done
+# --- model-benchmark: the shared Inspect suite/runner/report (the arm axis is the model) ---
+vendor model-benchmark     evalkit.py inspect_suite.py inspect_runner.py inspect_report.py
 
-# --- promptfoo setup script: each promptfoo skill ships its OWN copy (no cross-skill
-#     reference) so a skill folder is copy-paste self-contained ---
-for s in app-benchmark app-redteam control-isolate; do
-  cp install_dependencies.sh "$(sd "$s")/install_dependencies.sh"
+# --- security-tool-benchmark: findings/samples contract, paired stats, SARIF normaliser,
+#     manifest editor, contamination probe, probe helpers, optional sdlc locator ---
+vendor security-tool-benchmark evalstats.py sarif_to_findings.py cwe_map.py manifest.py \
+                               canary_probe.py find_sdlc.sh probelib.py evalkit.py
+
+# --- skills built on the shared helpers only; registered as they land ---
+EVALKIT_SKILLS=""
+for s in $EVALKIT_SKILLS; do has "$s" && vendor "$s" evalkit.py; done
+
+# --- promptfoo setup script: each promptfoo skill ships its OWN copy ---
+root_copy install_dependencies.sh app-benchmark app-redteam guardrail-benchmark
+
+# --- experiment scaffolder: every measurement skill ships its own copy ---
+SCAFFOLD_SKILLS="app-benchmark app-redteam guardrail-benchmark model-benchmark security-tool-benchmark"
+root_copy new_experiment.sh $SCAFFOLD_SKILLS
+
+# --- mock target / judge / guardrail server for keyless smoke tests ---
+for s in app-benchmark app-redteam guardrail-benchmark; do
+  mkdir -p "$(sd "$s")/tests"; cp mock_server.py "$(sd "$s")/tests/mock_server.py"
 done
 
-# --- experiment scaffolder: every skill ships its own copy (self-contained) ---
-for s in app-benchmark app-redteam control-isolate control-bench model-benchmark $SPINE_SKILLS \
-         $TOOL_SKILLS; do
-  cp new_experiment.sh "$(sd "$s")/new_experiment.sh"
-done
-
-# --- ephemeral GitHub repo + CodeQL driver: skills that push branches for scoring ---
-REPO_SKILLS="control-codegen tool-codescan"
-for s in $REPO_SKILLS; do
-  cp ephemeral_repo.sh "$(sd "$s")/ephemeral_repo.sh"
-done
+# --- ephemeral GitHub repo + CodeQL driver (optional path of the code kind) ---
+root_copy ephemeral_repo.sh security-tool-benchmark
 
 # --- prebuilt, license-clean corpus (full tier; skills sample at run time) ---
 $PY build_corpus.py --tier full --out "$(sd app-benchmark)/corpus" >/dev/null
-$PY build_corpus.py --tier full --assert guardrail --out "$(sd control-isolate)/corpus" >/dev/null
+$PY build_corpus.py --tier full --assert guardrail --out "$(sd guardrail-benchmark)/corpus" >/dev/null
 
 # --- prebuilt red-team OBJECTIVE pack (drives promptfoo's local `intent` plugin) ---
 $PY build_redteam_objectives.py >/dev/null
@@ -70,4 +76,4 @@ mkdir -p "$(sd app-redteam)/objectives"
 cp corpus/redteam_objectives.json corpus/redteam_objectives.smoke.json \
    corpus/redteam_objectives.manifest.json "$(sd app-redteam)/objectives/"
 
-echo "synced libs + corpus + redteam objectives into app-benchmark, app-redteam, control-isolate, control-bench, control-codegen, tool-*"
+echo "synced vendored libs, scaffolder, corpus and red-team objectives into the skills"

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Param-injection shim — the one piece of custom code control-bench needs.
+"""Param-injection shim — the piece of in-line mode that sits between a benchmark and the gateway.
 
 A standard OpenAI client (inside AgentDojo, CyberSecEval, any inspect_evals task)
 won't send a `guardrails` param, and Inspect has no per-request body hook. This tiny
@@ -156,7 +156,7 @@ def launch_arms(arms, connector, gateway_url, gateway_key, base_port):
         env.append(f"export {name}_BASE_URL=http://127.0.0.1:{port}/v1 {name}_API_KEY=shim")
         models.append(f"openai-api/{arm.name}/$MODEL")
     lines = [
-        "# control-bench shims running. Export these, then run any inspect_evals task:",
+        "# guardrail-benchmark shims running. Export these, then run any inspect_evals task:",
         *env,
         "export MODEL=<your-model-name>   # same model on every arm",
         f'inspect eval inspect_evals/agentdojo --model "{",".join(models)}"',

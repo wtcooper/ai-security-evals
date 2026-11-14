@@ -15,8 +15,7 @@ METHODS = ("benchmark", "redteam", "scan", "review")
 MAX_LINES = 500
 # Skills that predate the standard and are scheduled to be merged or rebuilt. An entry here
 # is debt: remove it when the skill is brought up to the standard.
-LEGACY: set[str] = {"control-isolate", "control-bench", "control-codegen",
-                    "tool-codescan", "tool-assetscan", "tool-pentest"}
+LEGACY: set[str] = {"control-codegen"}   # being replaced by coding-guidance-benchmark
 # Phrases that set or advise an acceptance bar. A line may opt out with "standard: allow".
 GATING = re.compile(
     r"\b(pass mark|passing score|acceptance threshold of|must (?:score|be) (?:at least|above|below)"
