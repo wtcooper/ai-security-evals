@@ -1,11 +1,10 @@
 # Proposal — refocus `ai-security-evals` as a holistic AI security review toolkit
 
-_Status: revision 2, for review before any build · 2026-11-14 · nothing here is implemented_
+_Status: revision 3, for review before any build · 2026-11-14 · nothing here is implemented_
 
-Changes in this revision: plugins conform to the Agent Plugins spec with generated client
-manifests (§3); **no thresholds or gates ship in this repo** (§2, §4); the review process is
-six guided stages including "set your own criteria" (§4); a full audit of the existing skills
-with a recommendation for each (§5); `ai-security-sdlc` is treated as a separate project.
+Changes in revision 3: a single naming rule for every skill, and merges that take the
+existing nine skills down to six (§3.2, §5.1). Revision 2 added Agent Plugins manifests, the
+no-thresholds rule, the guided review stages and the skill audit.
 
 ## 1. The problem this repo should solve
 
@@ -14,7 +13,7 @@ days: new frontier models, the same model inside different coding harnesses, voi
 models, new endpoint types (decision APIs, realtime), new features (computer use, memory,
 connectors).
 
-Today the repo is nine measurement harnesses organised by **what is under test**. That
+Today the repo is nine measurement skills organised by **what is under test**. That
 taxonomy stays. Three things are missing:
 
 1. **Everything around the benchmark** — scoping, vendor evidence, threat modelling, the
@@ -29,6 +28,7 @@ taxonomy stays. Three things are missing:
 |---|---|
 | **This repo measures; the organisation decides** | No acceptance threshold, pass mark or gate ships here, in code, config, templates or docs. The review plugin walks an organisation through writing its own criteria. |
 | A review is a pipeline | Scope → evidence → threat model → test → criteria → report. Benchmarks are one stage. |
+| Names say what a skill is for | `<subject>-<method>`, from a fixed vocabulary (§3.2). |
 | Results are "subject in context" | Every measurement carries the surface, harness, system prompt, tools and safeguards it ran under. |
 | Harvest before compute | Vendor cards, published scores and documented limits are evidence with provenance; measure only what they leave open. |
 | Standard benchmarks first, gaps stated | One catalogue maps threats to benchmarks. "No standardized benchmark exists" is a reportable state. |
@@ -69,26 +69,42 @@ gating advice ("κ<0.6 ⇒ unusable for CI gating") would be removed.
   model-invoked; this is acceptable because each begins with a plan stage that asks before
   running anything.
 
-### 3.2 Layout
+### 3.2 Naming rule and layout
+
+Every skill is named **`<subject>-<method>`**. The subject is the thing a requester would
+name; the method is one of four words:
+
+| Method | Meaning |
+|---|---|
+| `benchmark` | A fixed, labelled test set; a repeatable score you can compare across runs |
+| `redteam` | Adaptive attacks that react to the target's replies |
+| `scan` | Inspect a file or package for malicious or unsafe content |
+| `review` | A guided assessment where no standard test exists |
+
+Where one subject has two benchmarks, a qualifier sits in the middle
+(`agent-misuse-benchmark`, `agent-secure-code-benchmark`).
 
 ```
 ai-security-evals/
 ├── marketplace.yaml                       # single source → generated client marketplace files
 ├── .claude-plugin/  .agents/plugins/  .github/plugin/      (generated)
 ├── plugins/
-│   ├── ai-review/        review-scope · review-evidence · review-threat-model ·
-│   │                     review-test · review-criteria · review-report            (new)
-│   ├── model-evals/      model-bench · harness-bench (new) · decision-bench (new)
-│   ├── modality-evals/   voice-bench · vision-bench · imagegen-review             (new)
-│   ├── feature-evals/    feature-review · asset-scan                              (new)
-│   ├── app-evals/        app-bench (was app-eval) · app-redteam
-│   ├── control-evals/    control-isolate · control-bench · control-codegen
-│   └── tool-evals/       tool-codescan · tool-assetscan · tool-pentest
-│       each plugin:  plugin.json · README.md · skills/<skill>/{SKILL.md, scripts, lib (vendored)}
-├── shared/               # source of truth vendored into skills (today's maintainer `lib`)
-├── catalog/              # benchmark catalogue + threat coverage map                (new)
+│   ├── ai-review/      review-scope · review-evidence · review-threat-model ·
+│   │                   review-criteria · review-report                           (new)
+│   ├── model-evals/    model-benchmark · decision-model-benchmark (new) ·
+│   │                   voice-model-benchmark (new) · image-model-review (new)
+│   ├── agent-evals/    agent-misuse-benchmark (new) · agent-secure-code-benchmark ·
+│   │                   agent-feature-review (new) · agent-extension-scan (new)
+│   ├── app-evals/      app-benchmark · app-redteam
+│   └── defense-evals/  guardrail-benchmark · security-tool-benchmark
+│       each plugin:  plugin.json · README.md · skills/<skill>/{SKILL.md, scripts, references, lib (vendored)}
+├── shared/             # source of truth vendored into skills (today's maintainer `lib`)
+├── catalog/            # benchmark catalogue + threat coverage map                 (new)
 ├── targets/  evaluations/  e2e/  docs/  scripts/
 ```
+
+Five plugins, sixteen skills: five review stages and eleven measurement skills, of which six
+are the existing nine after merging.
 
 ### 3.3 Shared contracts
 
@@ -109,18 +125,18 @@ proposal is to make it universal rather than invent another.
 
 One file per benchmark: engine, verified metric keys, calls per sample, judge and sandbox
 needs, licence, threats covered, execution tier (**T0** pure API · **T1** in-memory or
-no-egress container · **T2** supervised sandbox, off by default). `model-bench/suite.py` is
+no-egress container · **T2** supervised sandbox, off by default). `model-benchmark`'s `suite.py` is
 the seed. `review-threat-model` reads it to sort each threat into: covered by a standard
 benchmark, needs a custom probe, design review only, or uncovered.
 
-## 4. The `ai-review` plugin — six guided stages
+## 4. The `ai-review` plugin — the guided review
 
 | Stage | Skill | Output |
 |---|---|---|
 | 1. Scope | `review-scope` | `review.yaml`: what is being enabled, where, with what data and permissions |
 | 2. Evidence | `review-evidence` | Vendor cards, published scores, documented limits, data handling — each with source and date; what is absent is recorded as a finding |
-| 3. Threat model | `review-threat-model` | Threats for this subject type, mapped to OWASP and MITRE ATLAS ids, and a test plan sorted by the catalogue |
-| 4. Test | `review-test` | Runs the planned measurement skills inside the time budget; collects their summaries |
+| 3. Threat model | `review-threat-model` | Threats for this subject type, mapped to OWASP and MITRE ATLAS ids, and a **test plan** naming which measurement skills to run, at what depth |
+| 4. Test | — | Run the measurement skills the plan names. There is no `review-test` skill: it would only call the others |
 | 5. Criteria | `review-criteria` | The organisation writes its own `criteria.yaml` |
 | 6. Report | `review-report` | Evidence, results with intervals, uncovered threats, and — only if the organisation supplied criteria — its criteria beside the results. Decision and sign-off fields are left for people to fill |
 
@@ -138,35 +154,51 @@ How `review-criteria` works without setting anything itself:
 
 ## 5. Audit of the existing skills
 
-### 5.1 Verdict per skill
+### 5.1 What each existing skill does, and what it becomes
 
-| Skill | Still relevant? | Recommendation |
+| Today | What it actually does | Becomes |
 |---|---|---|
-| `app-eval` | Yes | **Keep, rename `app-bench`** (every other benchmark skill is `-bench`). Add intervals. Its corpus becomes the shared source that `voice-bench` speaks aloud. |
-| `app-redteam` | Yes | **Keep.** Build repeated trials in; today the runbook only advises them. Profile the target once and share it with `app-bench`. |
-| `control-isolate` | Yes | **Keep.** It is the home for guardrail *models* too. Share metric definitions with `decision-bench` (a decision model used as a guardrail is the same shape). |
-| `control-bench` | Yes | **Re-platform on the shared Inspect runner** that `model-bench` uses. As written it has three defects, below. |
-| `model-bench` | Yes | **Keep.** Move `weights_scan.py` out to `asset-scan`; adopt the shared contract and depth names. |
-| `control-codegen` | Yes, but it is the heaviest skill | **Keep as a `full`-depth skill and refactor**, below. |
-| `tool-assetscan` | Yes — reviews rely on these scanners | **Keep.** Fix a reference to `hf_harvest.py`, which does not exist. |
-| `tool-codescan` | Marginal | **Keep, no new investment.** Relevant only when the capability under review is an AI code reviewer. |
-| `tool-pentest` | Marginal | **Keep, no new investment.** Relevant only when the capability under review is an AI pentest agent. |
+| `app-eval` | Sends a fixed set of attack and benign prompts to your app's endpoint and scores how many it handles correctly | `app-benchmark` |
+| `app-redteam` | Runs multi-turn attacks against your app that adapt to its replies | `app-redteam` (unchanged) |
+| `control-isolate` | Sends labelled harmful and benign prompts **straight to a guardrail API**, no model involved, and scores catch rate against false-block rate | `guardrail-benchmark`, *direct* mode |
+| `control-bench` | Runs a standard model benchmark twice, guardrail off and on, and reports how much risk the guardrail removed and what it cost in over-blocking | `guardrail-benchmark`, *in-line* mode |
+| `model-bench` | Runs a fixed security benchmark suite against one or more models | `model-benchmark` (gains a vision-input profile; keeps the weights scan) |
+| `control-codegen` | Has a coding agent build an app from a spec, with and without security rule files, then scans and attacks the result to see whether the rules made the code safer | `agent-secure-code-benchmark` |
+| `tool-codescan` | Compares **code scanners** (CodeQL, Semgrep, an LLM reviewer) on source code with known vulnerabilities | `security-tool-benchmark`, *code* kind |
+| `tool-assetscan` | Compares **scanners of AI components** (skills, MCP servers, model files) on labelled malicious and benign samples | `security-tool-benchmark`, *extension* kind |
+| `tool-pentest` | Compares **pentest tools** (an AI pentest agent, Nuclei, ZAP) against running vulnerable apps, counting only exploits an oracle confirms | `security-tool-benchmark`, *pentest* kind |
 
-Nothing is dropped. Two engines are merged; no skills are.
+**Why these merges.**
 
-### 5.2 `control-bench` defects (verified by reading the runbook)
+- **The two guardrail skills** answer one question, "how good is this guardrail", by two
+  routes. One skill, with the mode chosen in its plan step; only the engine that mode needs
+  is installed. Guardrail *models* and decision models used as guardrails run in direct mode.
+- **The three tool skills** are one design applied to three kinds of input: the arms are
+  the tools, the targets have known answers, each tool is driven by a small adapter that
+  emits SARIF, and one statistics library scores them. They differ only in what the tool
+  inspects. One skill with a `--kind`, and the per-kind detail in `references/`.
+- **Vision input** is not a separate skill: its benchmarks run through the same engine as
+  `model-benchmark`, so it is a profile there.
+- **Not merged:** `app-benchmark` and `app-redteam` (different methods, already clear);
+  the model skills for decision, voice and image (different APIs and engines).
+
+Nothing is dropped. `security-tool-benchmark` matters to a review only when the capability
+under review is itself an AI security tool, or when you need to know how far to trust a
+scanner the review relies on; it gets no new investment beyond the merge.
+
+### 5.2 Defects in today's `control-bench` (verified by reading the runbook)
 
 - **Unrouted judge.** It tells the user to run `inspect_evals/cyse4_mitre` with no judge
   arguments. That task's judge and expansion model default to a hardcoded OpenAI model, so
-  the run either bills a provider silently or fails. `model-bench` already solves this.
+  the run either bills a provider silently or fails. `model-benchmark` already solves this.
 - **No intervals and no paired comparison** between arms; analysis is a printed dict.
 - **First-N sampling** through `--limit`, on datasets sorted by category.
 
-Fix: `control-bench` becomes the injection shim plus the shared runner with a `--arms`
-axis. One runner then serves both skills: `model-bench` varies the model, `control-bench`
-varies the guardrail. The runbook also lists a `runners/` directory that does not exist.
+Fix: `guardrail-benchmark`'s in-line mode becomes the injection shim plus the shared runner
+with a `--arms` axis. One runner then serves both skills: `model-benchmark` varies the
+model, `guardrail-benchmark` varies the guardrail. The runbook also lists a `runners/` directory that does not exist.
 
-### 5.3 `control-codegen` refactor
+### 5.3 Refactoring today's `control-codegen`
 
 - **Overstated coverage.** The description says it bundles five scored specs. Six specs
   exist; only spec-01 has probes and acceptance tests. Either finish them or describe what
@@ -179,12 +211,14 @@ varies the guardrail. The runbook also lists a `runners/` directory that does no
   adapters.
 - **One harness, public GitHub repos, real cost.** It drives Claude Code only, needs
   ephemeral public repos for CodeQL, and budgets $15 per build at k=10 per arm. Moving it
-  onto the `harness-bench` engine (§6.1) gives it Codex, Gemini CLI and opencode, a
-  no-egress sandbox, and a local CodeQL path. Do this with `harness-bench`, not before.
+  onto the `agent-misuse-benchmark` engine (§6.1) gives it Codex, Gemini CLI and opencode, a
+  no-egress sandbox, and a local CodeQL path. Do this with `agent-misuse-benchmark`, not before.
 - Its baseline arm alone answers "how secure is the code this agent writes", which is a
-  model × harness measurement. That becomes a `harness-bench` scenario family.
+  model × harness measurement. The two agent skills share one engine and differ only in scenario family.
 
 ### 5.4 Standard every skill must meet, and where each stands
+
+Skills are listed by today's names.
 
 | Requirement | Meets it today |
 |---|---|
@@ -215,7 +249,7 @@ work.
 
 ## 6. New measurement skills
 
-### 6.1 `harness-bench` — a model inside agent harnesses
+### 6.1 `agent-misuse-benchmark` — a model inside agent harnesses
 
 - **Why:** Anthropic's Opus 5.5 system card reports bare-API and claude.ai results
   separately and calls model refusals "only a secondary protection". Gray Swan's CRF
@@ -233,14 +267,14 @@ work.
   no egress at two layers, pre-baked images, an automated pre-run egress check, explicit
   scope in the prompt, provider classifiers left on unless deliberately tested off.
 
-### 6.2 `decision-bench`
+### 6.2 `decision-model-benchmark`
 
 A thin adapter across the three wire formats; fail-open and fail-closed rates on labelled
 cases; flip rate under attack against the re-run noise floor; option-order and paraphrase
 consistency; DecisionRobust and JevBench. Detail in
 `docs/research/decision-models-security-eval.md`.
 
-### 6.3 `voice-bench`
+### 6.3 `voice-model-benchmark`
 
 - The audio channel is measurably weaker than text (JALMBench; arXiv 2510.20223).
 - Inspect cannot drive realtime models; promptfoo's `openai:realtime` provider and PyRIT's
@@ -251,28 +285,28 @@ consistency; DecisionRobust and JevBench. Detail in
 - No benchmark exists for background-speech injection in your call flow, tool abuse by
   voice, the transcript-versus-audio guardrail gap, barge-in, SIP spoofing or cost caps.
 
-### 6.4 `vision-bench`, `imagegen-review`, `feature-review`, `asset-scan`
+### 6.4 Vision profile, `image-model-review`, `agent-feature-review`, `agent-extension-scan`
 
-- **Vision input:** `cyse3_visual_prompt_injection` and promptfoo's `vlguard` / `vlsu`
-  run today; computer-use injection suites need VMs (T2).
-- **Image generation:** no standardized benchmark for the security concerns; a review with
-  provenance checks and a small hand-built probe set.
-- **`feature-review`:** one threat-and-test template per feature (computer use, memory,
-  connectors/MCP, code execution, multi-agent, background agents).
-- **`asset-scan`:** scan a submitted MCP server, skill, plugin or weights repo. Takes
-  `weights_scan.py` from `model-bench`; `tool-assetscan` remains the skill that tells you
-  how far to trust those scanners.
+- **Vision input (a `model-benchmark` profile):** `cyse3_visual_prompt_injection` and
+  promptfoo's `vlguard` / `vlsu` run today; computer-use injection suites need VMs (T2).
+- **`image-model-review`:** no standardized benchmark exists for the security concerns of
+  image generation; a review with provenance checks and a small hand-built probe set.
+- **`agent-feature-review`:** one threat-and-test template per feature (computer use,
+  memory, connectors/MCP, code execution, multi-agent, background agents).
+- **`agent-extension-scan`:** scan a submitted skill, plugin or MCP server before it is
+  installed. The *extension* kind of `security-tool-benchmark` tells you how far to trust
+  the scanners it uses.
 
 ## 7. Phasing
 
 | Phase | Work |
 |---|---|
-| 0 | Move skills into `plugins/`; root `plugin.json` per plugin; manifest generator and CI validation; standard frontmatter; rename `app-eval`; repo cleanup (§5.5). No behaviour change. |
-| 1 | Standardise the existing skills (§5.4): shared contract with context block, shared Inspect runner under `model-bench` and `control-bench`, depth names, intervals, remove gating wording. |
+| 0 | Move skills into `plugins/` under their new names; root `plugin.json` per plugin; manifest generator and CI validation; standard frontmatter; repo cleanup (§5.5). No behaviour change. |
+| 1 | Merge and standardise the existing skills (§5.1, §5.4): the two guardrail skills into `guardrail-benchmark`, the three tool skills into `security-tool-benchmark`, shared Inspect runner, shared contract with context block, depth names, intervals, remove gating wording. |
 | 2 | `ai-review` plugin and the benchmark catalogue. |
-| 3 | `voice-bench` and `decision-bench` (both have reviews pending). |
-| 4 | `harness-bench`, then the `control-codegen` refactor on its engine. |
-| 5 | `vision-bench`, `imagegen-review`, `feature-review`, `asset-scan`. |
+| 3 | `voice-model-benchmark` and `decision-model-benchmark` (both have reviews pending). |
+| 4 | `agent-misuse-benchmark`, then `agent-secure-code-benchmark` rebuilt on its engine. |
+| 5 | Vision profile, `image-model-review`, `agent-feature-review`, `agent-extension-scan`. |
 
 The GPT Realtime 2.1 review can be run by hand from §6.3 before Phase 3 lands.
 
@@ -280,12 +314,10 @@ The GPT Realtime 2.1 review can be run by hand from §6.3 before Phase 3 lands.
 
 1. **Validity flags (§2):** keep them as labelled, configurable flags, or remove default
    cut-offs entirely?
-2. **`tool-codescan` and `tool-pentest`:** keep as an optional plugin with no further
-   investment (recommended), or move them out of this repo?
-3. **`control-codegen`:** finish the five unscored specs, or cut to spec-01 plus BaxBench
-   (recommended)?
-4. **Internal harness suite:** can it be released as the `harness-bench` scenario pack?
-5. **Rename `app-eval` → `app-bench`:** acceptable, given it changes the install name?
+2. **`agent-secure-code-benchmark`:** finish the five unscored specs, or cut to spec-01 plus
+   BaxBench (recommended)?
+3. **Internal harness suite:** can it be released as the `agent-misuse-benchmark` scenario
+   pack?
 
 ## 9. Evidence caveats
 
