@@ -7,7 +7,7 @@ the **apps** are deliberately-vulnerable targets the team practices on (API + we
 |---|---|---|
 | [`proxy/`](proxy/) | **Shared LiteLLM AI gateway** (:4000) — mock models + bundled content-safety guardrails (`content-filter`), real models/guardrails by config. The apps point their model `base_url` here. | all skills; the model/guardrail backend for the apps |
 | [`aigoat/`](aigoat/) | **AIGoat** (adopt) — React UI + FastAPI, full OWASP LLM Top 10, **defense levels 0/1/2**. Rich realistic target with both surfaces. | `app-benchmark`, `app-redteam` (API + browser UI); A/B/C via defense levels |
-| [`dvaa/`](dvaa/) | **DVAA** (adopt) — OpenAI-compatible + MCP, ships a mock LLM (zero keys). Strong agent/MCP attack surface. | `app-benchmark`, `app-redteam` (API); `control-bench` (MCP) |
+| [`dvaa/`](dvaa/) | **DVAA** (adopt) — OpenAI-compatible + MCP, ships a mock LLM (zero keys). Strong agent/MCP attack surface. | `app-benchmark`, `app-redteam` (API); `guardrail-benchmark (in-line mode)` (MCP) |
 | [`meridian/`](meridian/) | **Meridian** (in-repo) — multi-tenant research workspace, assistant, ingestion, approvals, asynchronous exports, browser UI, and isolated Docker Compose deployment. Six planted cross-component vulnerability chains. | SAST, authenticated DAST, agentic source/runtime analysis; [private evaluator material](../evaluations/meridian/) |
 
 AIGoat and DVAA are **not vendored** (separate Apache-2.0 repos); each subdir has clone + run +

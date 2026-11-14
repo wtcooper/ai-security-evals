@@ -1,19 +1,12 @@
 # defense-evals
 
-Evaluate how well a defence works. The defence itself always comes from you; these skills only measure it.
+Evaluate how well a defence works. The defence always comes from you; these skills only measure it.
 
 | Skill | What it does |
 |---|---|
-| [`control-isolate`](skills/control-isolate/SKILL.md) | Send labelled harmful and benign prompts straight to a guardrail API and score catch rate against false-block rate. |
-| [`control-bench`](skills/control-bench/SKILL.md) | Run a standard model benchmark with a guardrail off and on, and report the risk it removed and what it cost in over-blocking. |
-| [`control-codegen`](skills/control-codegen/SKILL.md) | Have a coding agent build an app with and without guidance in place, then score whether the code got more secure. |
-| [`tool-codescan`](skills/tool-codescan/SKILL.md) | Compare code scanners on source code with known vulnerabilities. |
-| [`tool-assetscan`](skills/tool-assetscan/SKILL.md) | Compare scanners of skills, MCP servers and model files on labelled malicious and benign samples. |
-| [`tool-pentest`](skills/tool-pentest/SKILL.md) | Compare pentest tools against running vulnerable apps, counting only oracle-confirmed exploits. |
-
-Planned renames (see `docs/plans/holistic-review-framework-proposal.md`): `control-isolate` and
-`control-bench` merge into `guardrail-benchmark`; `control-codegen` becomes
-`coding-guidance-benchmark`; the three `tool-*` skills merge into `security-tool-benchmark`.
+| [`guardrail-benchmark`](skills/guardrail-benchmark/SKILL.md) | Direct mode scores a guardrail's own verdict on a labelled corpus. In-line mode runs benchmarks with the same model behind each guardrail and reports risk removed beside over-blocking. |
+| [`coding-guidance-benchmark`](skills/coding-guidance-benchmark/SKILL.md) | A/B test of anything placed in front of a coding agent (a skill, rules file, hook or MCP server), scored on BaxBench for correct and secure code. |
+| [`security-tool-benchmark`](skills/security-tool-benchmark/SKILL.md) | Compare security tools against targets with known answers: code scanners, scanners of skills / MCP servers / model files, and pentest tools. |
 
 ## Install
 

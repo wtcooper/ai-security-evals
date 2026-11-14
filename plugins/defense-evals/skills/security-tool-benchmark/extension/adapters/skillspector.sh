@@ -15,13 +15,15 @@
 # --config judge-only   not available: SkillSpector has no LLM-only switch. Its LLM stage reviews
 #                       and adds to the static findings and never removes one.
 #
-# Install: uv tool install git+https://github.com/NVIDIA/skillspector.git   (Python >= 3.12; not on PyPI)
+# Install: uv tool install git+https://github.com/NVIDIA/skillspector.git   (Python >= 3.12; the README
+# documents the git install only, and pypi.org had no `skillspector` project on 2026-11-14)
 # Tool location: SKILLSPECTOR_BIN, or SKILLSPECTOR_SPEC (a uvx requirement such as
 # 'git+https://github.com/NVIDIA/skillspector.git@<commit>'), or `skillspector` on PATH.
 #
 # Exit codes of the tool: 0 risk score <= 50, 1 risk score > 50 (findings, not a failure),
-# 2 error. With an LLM requested and no usable provider it exits 2; this adapter then fails
-# rather than keep the static-only report the tool still writes.
+# 2 error. With an LLM requested and no usable provider it exits 2, and on some inputs still
+# writes a report whose only result is AE1 "not completely inspected" at HIGH. This adapter
+# fails on exit 2 and records nothing, so a missing key never turns into a flag or a clean.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 . "$here/_common.sh"

@@ -1,7 +1,7 @@
 {
   "name": "model-evals",
   "version": "0.1.0",
-  "description": "Evaluate a model release, open-weights or frontier: a fixed suite of security benchmarks run on the same samples for every model.",
+  "description": "Evaluate a model through whatever API it has: security benchmarks for chat, vision, decision and voice models, and a guided review for image generation.",
   "author": {
     "name": "Wade Cooper"
   },

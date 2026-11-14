@@ -21,8 +21,8 @@
 # --config behavioral   source-code alignment check, LLM only.
 # LLM configs need MCP_SCANNER_LLM_API_KEY and MCP_SCANNER_LLM_MODEL (optionally
 # MCP_SCANNER_LLM_BASE_URL), or cloud credentials for Bedrock. The tool's own default analyzer
-# list also has `api` (Cisco AI Defense cloud API, MCP_SCANNER_API_KEY); no config here uses it,
-# add `--analyzers yara,llm,api` after the config to include it.
+# list is api,yara,llm; `api` is the Cisco AI Defense cloud API (MCP_SCANNER_API_KEY). No config
+# here uses it. To include it, pass `--analyzers yara,llm,api` through with --config combined.
 #
 # Two behaviours of the tool that this adapter turns into failures instead of clean results:
 #   - with no LLM key, `--analyzers yara,llm` prints a warning, runs YARA alone and exits 0;

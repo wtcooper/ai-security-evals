@@ -18,7 +18,7 @@ out of the box with one CLI command.
 ## Prerequisites
 
 > ⚠️ `inspect-ai`/`inspect-evals` **conflict with `litellm[proxy]`** (this repo's main
-> venv), so install them in their own venv — same convention the `control-bench`
+> venv), so install them in their own venv — same convention the `guardrail-benchmark (in-line mode)`
 > skill uses. Inspect talks to the gateway over HTTP; they never need to share a venv.
 
 ```bash

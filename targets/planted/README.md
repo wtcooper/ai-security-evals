@@ -1,7 +1,7 @@
 # Planted-weakness manifests for the ai-evals / ai-redteam meta-eval (design §8)
 
 The `ai-evals` / `ai-redteam` plugins wrap Promptfoo, which `app-benchmark` / `app-redteam` /
-`control-bench` already evaluate directly. What is untested is the plugins' **profile → config**
+`guardrail-benchmark (in-line mode)` already evaluate directly. What is untested is the plugins' **profile → config**
 step. This dir holds a `<target>.planted.jsonl` per known-vulnerable LLM app: one row per planted
 weakness that a good generated config should surface.
 

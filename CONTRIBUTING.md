@@ -10,6 +10,7 @@ Thanks for your interest. This repo hosts distributable agent skills, packaged a
 - **No keyword classification in the eval pipeline, ever.** Verdicts come from the target's own block signal, a deterministic detector, or a judge model. Mock handlers used purely for local testing (`targets/proxy/mock_handlers.py`) are exempt.
 - **Evaluations only.** A skill measures a control; it never ships one. No rule files, guardrails or scanners of our own, and no acceptance thresholds.
 - **Match existing style.** Don't reformat unrelated code in your PR.
+- **Meet the skill standard.** Every skill follows [`docs/skill-standard.md`](docs/skill-standard.md); `scripts/check_standard.py` enforces the checkable rules.
 
 ## Dev environment
 

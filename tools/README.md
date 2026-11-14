@@ -26,7 +26,7 @@ from `tools/`.
 ## Corpus
 ```bash
 python tools/build_corpus.py --tier full                         # app-benchmark (rubric)
-python tools/build_corpus.py --tier full --assert guardrail      # control-isolate
+python tools/build_corpus.py --tier full --assert guardrail      # guardrail-benchmark (direct mode)
 python tools/build_corpus.py --with-mhj                          # add MHJ (local-only)
 ```
 Bundled multi-turn = **our own generated scaffolds** (`m2s_strategies.py`, all domains,

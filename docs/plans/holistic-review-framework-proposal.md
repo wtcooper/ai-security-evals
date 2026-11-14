@@ -1,6 +1,15 @@
 # Proposal — refocus `ai-security-evals` as a holistic AI security review toolkit
 
-_Status: revision 6 · 2026-11-14 · **Phase 0 is implemented** (plugin layout, manifests, standard frontmatter, the `app-benchmark` and `model-benchmark` renames); everything else is still a proposal_
+_Status: revision 6 · 2026-11-14 · **Built**, except `agent-misuse-benchmark` (§6.1), which is not built. What exists is listed in the [README](../../README.md); the rules skills meet are in [skill-standard.md](../skill-standard.md). This document is kept as the design record._
+
+**Differences between this plan and what was built**
+
+- `agent-misuse-benchmark` is not built: work on its engine was stopped by a safety check and was not retried.
+- `coding-guidance-benchmark` therefore has its own engine instead of one shared with it.
+- Machine-readable review files are JSON (`review.json`, `criteria.json`), not YAML, so skills stay standard-library only.
+- `tools/` kept its name instead of becoming `shared/`.
+- Only the Claude marketplace file is generated; Codex and Copilot CLI read it too.
+- The benchmark `model-benchmark` runs treats `agentdojo` security accuracy and the two prompt-injection accuracy metrics as attack-success rates (lower is better), read from the scorer source. Earlier revisions of the suite had these reversed.
 
 Changes in revision 6: this repo only evaluates scanners; scanning a skill or MCP server
 lives in `ai-security-sdlc`, so `agent-extension-scan` is out (§3.5).

@@ -4,8 +4,8 @@ Evaluate an LLM application's endpoint.
 
 | Skill | What it does |
 |---|---|
-| [`app-benchmark`](skills/app-benchmark/SKILL.md) | Send a fixed set of attack and benign prompts to your app and score how many it handles correctly (F1, recall, false-block rate, by technique). |
-| [`app-redteam`](skills/app-redteam/SKILL.md) | Run multi-turn attacks that adapt to your app's replies, to find weaknesses a fixed test set misses. |
+| [`app-benchmark`](skills/app-benchmark/SKILL.md) | Send a bundled labelled corpus of attack and benign prompts to your app and score recall, false-block rate and attack success by technique. |
+| [`app-redteam`](skills/app-redteam/SKILL.md) | Run multi-turn attacks that adapt to your app's replies, with repeats, to find weaknesses a fixed test set misses. |
 
 ## Install
 

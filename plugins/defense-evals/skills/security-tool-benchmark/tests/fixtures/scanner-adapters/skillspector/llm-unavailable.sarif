@@ -1,0 +1,274 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0-rtm.4.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "skillspector",
+          "version": "2.12.0",
+          "rules": [
+            {
+              "id": "AE1",
+              "shortDescription": {
+                "text": "Referenced artifact was not completely inspected"
+              },
+              "properties": {
+                "security-severity": "8.0"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "AE1",
+          "message": {
+            "text": "Referenced artifact was not completely inspected"
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "SKILL.md"
+                },
+                "region": {
+                  "startLine": 14
+                }
+              }
+            }
+          ],
+          "properties": {
+            "findingId": "finding-f258e42f486b4e698d7f61d51e18b80e",
+            "severity": "HIGH",
+            "security-severity": "8.0",
+            "category": "analysis-evasion",
+            "pattern": "Incomplete referenced artifact analysis",
+            "confidence": 1.0,
+            "finding": "scripts/column_stats.py (failed)",
+            "explanation": "Referenced artifact was not completely inspected",
+            "remediation": "Review the target's analysis-completeness ledger and resolve all limitations. Keep required references; incomplete analysis is not proof of malicious evasion.",
+            "code_snippet": "2. Run `python3 scripts/column_stats.py <path-to-csv>`.",
+            "tags": [
+              "coverage",
+              "reference",
+              "target-disposition:failed"
+            ],
+            "evidence": {
+              "target_path": "scripts/column_stats.py",
+              "target_disposition": "failed",
+              "reasons": [
+                {
+                  "reason_code": "llm_batch_failed",
+                  "message": "LLM analysis failed for this file range.",
+                  "phase": "semantic",
+                  "analyzers": [
+                    "mcp_tool_poisoning"
+                  ],
+                  "start_line": 1,
+                  "end_line": 31
+                },
+                {
+                  "reason_code": "analyzer_runtime_error",
+                  "message": "Analyzer failed after beginning applicable work.",
+                  "phase": "analyzer",
+                  "analyzers": [
+                    "semantic_developer_intent"
+                  ]
+                },
+                {
+                  "reason_code": "analyzer_runtime_error",
+                  "message": "Analyzer failed after beginning applicable work.",
+                  "phase": "analyzer",
+                  "analyzers": [
+                    "semantic_quality_policy"
+                  ]
+                },
+                {
+                  "reason_code": "analyzer_runtime_error",
+                  "message": "Analyzer failed after beginning applicable work.",
+                  "phase": "analyzer",
+                  "analyzers": [
+                    "semantic_security_discovery"
+                  ]
+                }
+              ]
+            },
+            "surface": "instructions"
+          }
+        }
+      ],
+      "columnKind": "unicodeCodePoints",
+      "invocations": [
+        {
+          "executionSuccessful": false,
+          "toolExecutionNotifications": [
+            {
+              "message": {
+                "text": "Analyzer failed after beginning applicable work."
+              },
+              "level": "error",
+              "locations": [
+                {
+                  "physicalLocation": {
+                    "artifactLocation": {
+                      "uri": "SKILL.md"
+                    }
+                  }
+                }
+              ],
+              "properties": {
+                "outcome": "failed",
+                "phase": "analyzer",
+                "reasonCode": "analyzer_runtime_error",
+                "fatal": true,
+                "analyzers": [
+                  "semantic_developer_intent",
+                  "semantic_quality_policy",
+                  "semantic_security_discovery"
+                ]
+              }
+            },
+            {
+              "message": {
+                "text": "Analyzer failed after beginning applicable work."
+              },
+              "level": "error",
+              "locations": [
+                {
+                  "physicalLocation": {
+                    "artifactLocation": {
+                      "uri": "scripts/column_stats.py"
+                    }
+                  }
+                }
+              ],
+              "properties": {
+                "outcome": "failed",
+                "phase": "analyzer",
+                "reasonCode": "analyzer_runtime_error",
+                "fatal": true,
+                "analyzers": [
+                  "semantic_developer_intent",
+                  "semantic_quality_policy",
+                  "semantic_security_discovery"
+                ]
+              }
+            },
+            {
+              "message": {
+                "text": "LLM analysis failed for this file range."
+              },
+              "level": "error",
+              "locations": [
+                {
+                  "physicalLocation": {
+                    "artifactLocation": {
+                      "uri": "scripts/column_stats.py"
+                    },
+                    "region": {
+                      "startLine": 1,
+                      "endLine": 31
+                    }
+                  }
+                }
+              ],
+              "properties": {
+                "outcome": "failed",
+                "phase": "semantic",
+                "reasonCode": "llm_batch_failed",
+                "fatal": true,
+                "analyzers": [
+                  "mcp_tool_poisoning"
+                ]
+              }
+            },
+            {
+              "message": {
+                "text": "LLM analysis was requested but semantic runtime telemetry was incomplete; results may reflect static analysis only."
+              },
+              "level": "warning",
+              "properties": {
+                "kind": "llm_degradation"
+              }
+            },
+            {
+              "message": {
+                "text": "Requested semantic analysis did not produce complete per-source runtime telemetry."
+              },
+              "level": "warning",
+              "locations": [
+                {
+                  "physicalLocation": {
+                    "artifactLocation": {
+                      "uri": "SKILL.md"
+                    }
+                  }
+                }
+              ],
+              "properties": {
+                "outcome": "partial",
+                "phase": "semantic_runtime",
+                "reasonCode": "semantic_runtime_incomplete",
+                "fatal": false
+              }
+            },
+            {
+              "message": {
+                "text": "Analyzer mcp_tool_poisoning status: failed."
+              },
+              "level": "warning",
+              "properties": {
+                "kind": "inspection_limitation"
+              }
+            },
+            {
+              "message": {
+                "text": "Analyzer failed after beginning applicable work."
+              },
+              "level": "warning",
+              "properties": {
+                "kind": "inspection_limitation"
+              }
+            },
+            {
+              "message": {
+                "text": "Analyzer failed after beginning applicable work."
+              },
+              "level": "warning",
+              "properties": {
+                "kind": "inspection_limitation"
+              }
+            },
+            {
+              "message": {
+                "text": "Analyzer failed after beginning applicable work."
+              },
+              "level": "warning",
+              "properties": {
+                "kind": "inspection_limitation"
+              }
+            }
+          ],
+          "properties": {
+            "analysisCompleteness": {
+              "isComplete": false,
+              "status": "failed",
+              "coveragePercent": 0.0,
+              "totalComponents": 2,
+              "fullyInspectedFiles": 0,
+              "partiallyInspectedFiles": 2,
+              "entirelyUninspectedFiles": 0,
+              "ledgerExceptionCount": 4,
+              "scopeExclusionCount": 0,
+              "limitationCount": 4,
+              "notificationRecordLimit": 10000,
+              "notificationsTruncated": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

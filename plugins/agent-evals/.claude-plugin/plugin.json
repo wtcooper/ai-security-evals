@@ -1,7 +1,7 @@
 {
   "name": "agent-evals",
   "version": "0.1.0",
-  "description": "Evaluate an AI agent in the harness it runs in: whether it carries out offensive work when asked, and guided reviews of agent features such as computer use, memory and connectors.",
+  "description": "Evaluate an AI agent and the features switched on for it: guided reviews of computer use, memory, connectors, code execution and other agent features.",
   "author": {
     "name": "Wade Cooper"
   },

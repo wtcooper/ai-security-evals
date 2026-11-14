@@ -16,13 +16,13 @@
     {
       "name": "model-evals",
       "source": "./plugins/model-evals",
-      "description": "Evaluate a model release, open-weights or frontier: a fixed suite of security benchmarks run on the same samples for every model.",
+      "description": "Evaluate a model through whatever API it has: security benchmarks for chat, vision, decision and voice models, and a guided review for image generation.",
       "category": "security"
     },
     {
       "name": "agent-evals",
       "source": "./plugins/agent-evals",
-      "description": "Evaluate an AI agent in the harness it runs in: whether it carries out offensive work when asked, and guided reviews of agent features such as computer use, memory and connectors.",
+      "description": "Evaluate an AI agent and the features switched on for it: guided reviews of computer use, memory, connectors, code execution and other agent features.",
       "category": "security"
     },
     {

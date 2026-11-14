@@ -23,7 +23,7 @@ cd damn-vulnerable-ai-agent && docker compose up    # dashboard :9000, agents :7
 and use the OpenAI body shape (the default `messages` body works). No judge mock needed;
 use a real judge or the shared proxy's `mock-judge` for wiring.
 
-**MCP / tool calling** (`control-bench`): point an Inspect agentic task or the injection
+**MCP / tool calling** (`guardrail-benchmark (in-line mode)`): point an Inspect agentic task or the injection
 shim at DVAA's MCP endpoints (:7010+) to measure indirect-PI / tool-poisoning defense.
 
 ## Notes
