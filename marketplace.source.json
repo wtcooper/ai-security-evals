@@ -6,11 +6,19 @@
   "description": "Security evaluations for AI models, agents, applications and the defences around them.",
   "plugins": [
     {
-      "name": "app-evals",
+      "name": "ai-review",
       "category": "security"
     },
     {
       "name": "model-evals",
+      "category": "security"
+    },
+    {
+      "name": "agent-evals",
+      "category": "security"
+    },
+    {
+      "name": "app-evals",
       "category": "security"
     },
     {

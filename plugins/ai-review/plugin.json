@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-review",
+  "version": "0.1.0",
+  "description": "Guided security review of an AI capability: scope it, gather vendor evidence, model the threats, set your own acceptance criteria, and compile the report. Measures and records; never decides.",
+  "author": {
+    "name": "Wade Cooper"
+  },
+  "homepage": "https://github.com/wtcooper/ai-security-evals",
+  "repository": "https://github.com/wtcooper/ai-security-evals",
+  "license": "MIT",
+  "keywords": [
+    "ai-security",
+    "review",
+    "threat-model",
+    "evidence",
+    "governance"
+  ]
+}
