@@ -20,18 +20,30 @@ teams just the control skills, with no cross-skill dependencies.
 
 ## The skills
 
-Split by **what is under test**. Each is independently installable. (The three `tool-*`
-skills — `tool-codescan`, `tool-assetscan`, `tool-pentest` — compare security tools and are
-documented in their own `SKILL.md`.)
+Split by **what is under test**, and grouped into three plugins that follow
+[Agent Plugins 1.0.0](https://agent-plugins.org/specification):
+[`app-evals`](plugins/app-evals/), [`model-evals`](plugins/model-evals/) and
+[`defense-evals`](plugins/defense-evals/). (The three `tool-*` skills — `tool-codescan`,
+`tool-assetscan`, `tool-pentest` — compare security tools and are documented in
+[`defense-evals`](plugins/defense-evals/).)
+
+Install a plugin in Claude Code with `/plugin marketplace add wtcooper/ai-security-evals`
+then `/plugin install <plugin>@ai-security-evals`; other Agent Plugins clients load a
+`plugins/<plugin>/` directory directly. Each skill folder is also self-contained and can be
+copied on its own.
+
+> The repo is being refocused into a broader AI security review toolkit, with some skills
+> due to be merged and renamed: see
+> [the proposal](docs/plans/holistic-review-framework-proposal.md).
 
 | Skill | Under test | Engine | Output |
 |---|---|---|---|
-| [`app-eval`](skills/app-eval/) | An app endpoint — fast static benchmark | promptfoo `eval` | F1 / recall / FPR / ASR + per-technique breakdown |
-| [`app-redteam`](skills/app-redteam/) | An app endpoint — adaptive attacks | promptfoo `redteam` | which strategies broke through (vuln report) |
-| [`control-isolate`](skills/control-isolate/) | A guardrail API by itself (no model) | promptfoo `eval` | classification F1 / precision / recall / FPR |
-| [`control-bench`](skills/control-bench/) | A control's effect inside a real benchmark | Inspect + inspect_evals | risk-reduction Δ vs baseline (A/B/C) |
-| [`model-bench`](skills/model-bench/) | A **model release** — open-weights or frontier | Inspect + inspect_evals | per-dimension rate ± 95% CI, model-vs-model; weights supply-chain verdict |
-| [`control-codegen`](skills/control-codegen/) | A rules file's effect on **code the agent writes** | git-branch A/B/C + scan ensemble | per-CWE / correct-AND-secure Δ vs no-rules |
+| [`app-benchmark`](plugins/app-evals/skills/app-benchmark/) | An app endpoint — fast static benchmark | promptfoo `eval` | F1 / recall / FPR / ASR + per-technique breakdown |
+| [`app-redteam`](plugins/app-evals/skills/app-redteam/) | An app endpoint — adaptive attacks | promptfoo `redteam` | which strategies broke through (vuln report) |
+| [`control-isolate`](plugins/defense-evals/skills/control-isolate/) | A guardrail API by itself (no model) | promptfoo `eval` | classification F1 / precision / recall / FPR |
+| [`control-bench`](plugins/defense-evals/skills/control-bench/) | A control's effect inside a real benchmark | Inspect + inspect_evals | risk-reduction Δ vs baseline (A/B/C) |
+| [`model-benchmark`](plugins/model-evals/skills/model-benchmark/) | A **model release** — open-weights or frontier | Inspect + inspect_evals | per-dimension rate ± 95% CI, model-vs-model; weights supply-chain verdict |
+| [`control-codegen`](plugins/defense-evals/skills/control-codegen/) | A rules file's effect on **code the agent writes** | git-branch A/B/C + scan ensemble | per-CWE / correct-AND-secure Δ vs no-rules |
 
 Each app skill also has a **web-UI variant** (`promptfooconfig.browser.yaml`) that runs
 the same corpus/attacks through a chat front-end via promptfoo's Playwright **browser
@@ -40,15 +52,15 @@ provider** — for when the backend API isn't exposed.
 ### When to use which
 | You want to… | Skill |
 |---|---|
-| A fast, reproducible safety score for your chatbot/app | `app-eval` |
-| Compare two app versions or models on the same corpus | `app-eval` |
+| A fast, reproducible safety score for your chatbot/app | `app-benchmark` |
+| Compare two app versions or models on the same corpus | `app-benchmark` |
 | Actively hunt vulnerabilities with adaptive multi-turn attacks | `app-redteam` |
 | Measure a guardrail vendor's catch rate and false-positive rate | `control-isolate` |
 | Compare guardrail vendors head-to-head | `control-isolate` |
 | Prove "enabling guardrail X reduces risk on AgentDojo/CyberSecEval" | `control-bench` |
 | Measure indirect-prompt-injection defense during agent tool calls | `control-bench` |
-| Benchmark a newly released model's security posture against the ones you already use | `model-bench` |
-| Check an open-weights repo's files before pulling them | `model-bench` (`weights_scan.py`) |
+| Benchmark a newly released model's security posture against the ones you already use | `model-benchmark` |
+| Check an open-weights repo's files before pulling them | `model-benchmark` (`weights_scan.py`) |
 | Prove your `CLAUDE.md`/Cursor/Copilot security rules make the agent write safer code | `control-codegen` |
 | Compare rule-file variants (generic vs CWE-specific) before rolling them out | `control-codegen` |
 
@@ -56,7 +68,7 @@ provider** — for when the backend API isn't exposed.
 
 ## What each skill measures
 
-### `app-eval` — static security benchmark (promptfoo)
+### `app-benchmark` — static security benchmark (promptfoo)
 | Aspect | Detail |
 |---|---|
 | Corpus | **Bundled, prebuilt, license-clean** (~2900 cases): cyber-offensive (MITRE ATT&CK + interpreter abuse), prompt injection, data leakage, content-safety, over-refusal (benign) + **M2S-flattened** multi-turn. Tagged by `category` (cyber/injection/leakage/content_safety) — see [Corpus coverage](#corpus-coverage--cyber-first-filterable) |
@@ -69,7 +81,7 @@ provider** — for when the backend API isn't exposed.
 | Aspect | Detail |
 |---|---|
 | Flow | **Generate once → `redteam eval`**, fully local. Objectives are cached to a file, then the cache is eval'd offline — reproducible and no cloud at run time. |
-| Attacks | Multi-turn `crescendo` (adaptive, **runs on your own attacker model, air-gapped**). The target uses an OpenAI `messages[]` body, so single-turn strategies (which inject a string) are suppressed here — use `app-eval` for those. |
+| Attacks | Multi-turn `crescendo` (adaptive, **runs on your own attacker model, air-gapped**). The target uses an OpenAI `messages[]` body, so single-turn strategies (which inject a string) are suppressed here — use `app-benchmark` for those. |
 | Objectives | **App-specific.** Author goals in `objectives/redteam_objectives.json` (bundled ~73 across cyber / injection / data-leakage / content-safety) fed to promptfoo's local `intent` plugin; paste in cross-domain cyber goals too. For app-tailored generation, promptfoo's **free community** service writes objectives from your `purpose` + real plugins (online once — **no enterprise license needed**), then eval offline. |
 | Remote-only | `goat` / `mischievous-user` / plain `jailbreak`(→`jailbreak:meta`) need promptfoo's hosted generation — not air-gapped |
 | Models | Attacker + grader are OpenAI-compatible. **Fully local** via the gateway (`gemma4`, no key/spend — Profile A in `env.example`), or point at your production LiteLLM (`ATTACKER_*` / `GRADER_*`). |
@@ -90,7 +102,7 @@ provider** — for when the backend API isn't exposed.
 | Output | Inspect's native scores per arm — attack-success (risk ↓) and utility/FRR (over-block cost) |
 | Note | Inspect conflicts with `litellm[proxy]` deps → runs in its own `.venv-inspect` |
 
-### `model-bench` — security benchmarks for a model release (Inspect)
+### `model-benchmark` — security benchmarks for a model release (Inspect)
 | Aspect | Detail |
 |---|---|
 | Suite | One check per risk dimension: `cyse4_mitre` (direct misuse) + `cyse4_mitre_frr` (over-refusal), `strong_reject` + `strong_reject_aim` (harmful requests, direct and jailbroken), `cyse4_instruct` (insecure code), `cyse4_multilingual_prompt_injection`, `agentdojo` (injection via tools), `atb_memory_poison` |
@@ -155,7 +167,7 @@ python lib/summarize.py results.json   # prints recall per category + per ATT&CK
 ATT&CK tactic), so you see exactly where a target/guardrail is weak.
 
 ### Red-team objective pack — provenance
-`app-redteam` ships its own **objective pack** (`skills/app-redteam/objectives/`) — the
+`app-redteam` ships its own **objective pack** (`plugins/app-evals/skills/app-redteam/objectives/`) — the
 goals fed to promptfoo's local `intent` plugin, which the multi-turn strategies escalate
 toward. It is a **mix of established public benchmarks (~78%) and our own authored goals
 (~22%)**, 73 objectives total, all license-clean. Each external objective is a single-turn
@@ -197,7 +209,7 @@ exactly what was tested. `bash new_experiment.sh <skill> "<label>"` (vendored in
 skill) opens it and snapshots the inputs; RUN/ANALYZE write the rest:
 
 ```
-.evals/<skill>/<label>_<date>/         # e.g. .evals/app-eval/acme-prod-cyber-smoke_2026-06-02/
+.evals/<skill>/<label>_<date>/         # e.g. .evals/app-benchmark/acme-prod-cyber-smoke_2026-06-02/
   manifest.json        # skill · time · git commit · engine · host · command · corpus choices
   inputs/              # exact config snapshot + redacted .env + objective pack
   results/             # engine-NATIVE output: promptfoo results.json | Inspect *.eval logs
@@ -216,26 +228,34 @@ and `.evals/` is gitignored. Same-day reruns of a label get a `-N` suffix.
 
 ```
 ai-security-evals/
-├── skills/                         # the distributable skills (each self-contained)
-│   ├── app-eval/                   #   SKILL.md · promptfooconfig{,.browser}.yaml · lib/ · corpus/ · env.example
-│   ├── app-redteam/                #   SKILL.md · promptfooconfig{,.browser}.yaml · lib/ · env.example
-│   ├── control-isolate/            #   SKILL.md · promptfooconfig.yaml · adapters/ · lib/ · corpus/ · env.example
-│   ├── control-bench/              #   SKILL.md · injection_shim.py · connectors/ · lib/ · runners/
-│   ├── model-bench/                #   SKILL.md · suite.py · run_suite.py · report.py · weights_scan.py
-│   └── control-codegen/            #   SKILL.md · build-prompt.md · specs/ (5 sink-dense) · new_experiment.sh
+├── marketplace.source.json         # marketplace name, owner, plugin list (hand-edited)
+├── .claude-plugin/marketplace.json # GENERATED by scripts/gen_manifests.py
+├── plugins/                        # Agent Plugins 1.0.0 packages
+│   ├── app-evals/                  #   plugin.json · README.md · skills/
+│   │   └── skills/  app-benchmark/ · app-redteam/
+│   ├── model-evals/
+│   │   └── skills/  model-benchmark/
+│   └── defense-evals/
+│       └── skills/  control-isolate/ · control-bench/ · control-codegen/ ·
+│                    tool-codescan/ · tool-assetscan/ · tool-pentest/
+│       (each skill: SKILL.md + its scripts, vendored lib/, and any bundled corpus/)
 ├── targets/                        # things to point the skills at
-│   ├── proxy/                      #   shared LiteLLM AI gateway (any provider via LiteLLM; content-safety guardrails)
-│   ├── aigoat/                     #   AIGoat (adopt): UI + API + defense levels — clone+run docs
-│   └── dvaa/                       #   DVAA (adopt): OpenAI-compatible + MCP — clone+run docs
+│   ├── proxy/                      #   LiteLLM gateway with mock models and a mock content filter (test fixture)
+│   ├── aigoat/ · dvaa/             #   adopted vulnerable apps — clone+run docs
+│   └── meridian/                   #   in-repo vulnerable app with planted chains
 ├── tools/                          # MAINTAINER ONLY (not installed): canonical libs + corpus builder
-│   ├── lib/                        #   source of truth for status_policy{.js,.py}, transform_response.js, summarize.py
+│   ├── lib/                        #   source of truth for the code vendored into skills
 │   ├── build_corpus.py · m2s.py    #   corpus builder + M2S flattening
 │   ├── corpus/sources/             #   vendored datasets (AdvBench, CyberSecEval, XSTest, PromptInject, SafeMTData)
 │   ├── tests/                      #   unit tests (run via scripts/run_tests.sh)
 │   └── sync_skills.sh              #   vendors lib/* + prebuilt corpus into each skill (CI checks no drift)
-├── e2e/                            # real-model end-to-end tests for all four skills (run_e2e.sh)
-├── docs/skills-redesign-plan.md    # design rationale
-└── scripts/run_tests.sh            # all Node + Python tests, offline
+├── scripts/
+│   ├── gen_manifests.py            #   writes the client-specific manifests from the canonical ones
+│   ├── check_plugins.py            #   Agent Plugins + standard-frontmatter conformance
+│   ├── check_independence.sh       #   no skill references anything outside its own folder
+│   └── run_tests.sh                #   all Node + Python tests and the checks above, offline
+├── e2e/                            # real-model end-to-end tests for four of the skills (run_e2e.sh)
+└── docs/                           # tutorials, plans, research
 ```
 
 **Self-contained skills:** each skill carries vendored copies of the runtime it uses in
@@ -260,18 +280,18 @@ bash scripts/run_tests.sh     # verify everything offline (no keys): Node + Pyth
 ### Run a skill (via an agent harness)
 Point your agent at a skill directory (each holds a `SKILL.md` runbook); the agent runs
 the Plan → Run → Analyze flow and asks for the details it needs:
-- `app-eval` — benchmark an app
+- `app-benchmark` — benchmark an app
 - `app-redteam` — adaptive red team
 - `control-isolate` — test a guardrail API
 - `control-bench` — A/B/C a control inside a benchmark
-- `model-bench` — security benchmarks for a model release
+- `model-benchmark` — security benchmarks for a model release
 
 Skills follow the standard `SKILL.md` format, so any compatible harness can load them;
 no harness, no problem — every step is plain CLI (next).
 
-### Run a skill manually (app-eval example)
+### Run a skill manually (app-benchmark example)
 ```bash
-cd skills/app-eval
+cd plugins/app-evals/skills/app-benchmark
 cp env.example .env && $EDITOR .env          # TARGET_URL/KEY, JUDGE_BASE_URL/KEY/MODEL
 bash install_dependencies.sh                 # promptfoo, air-gapped
 set -a; . .env; set +a
@@ -310,7 +330,7 @@ gateway endpoint regardless of backend. The test apps ([AIGoat](targets/aigoat/)
 uv venv .venv-inspect
 .venv-inspect/bin/python -m pip install inspect_ai 'inspect_evals[agentdojo]'
 SHIM_GATEWAY_URL=http://localhost:4000 SHIM_GATEWAY_KEY=$KEY \
-  python skills/control-bench/injection_shim.py --arms arms.json --base-port 8901
+  python plugins/defense-evals/skills/control-bench/injection_shim.py --arms arms.json --base-port 8901
 # prints the env + `inspect eval inspect_evals/<task> --model "openai-api/...,..."` line
 ```
 
@@ -320,7 +340,7 @@ SHIM_GATEWAY_URL=http://localhost:4000 SHIM_GATEWAY_KEY=$KEY \
 
 ```bash
 bash scripts/run_tests.sh     # Node + Python unit tests + no-drift check, all offline
-bash e2e/run_e2e.sh all       # real-model end-to-end for all four skills (any provider key in .env, via LiteLLM)
+bash e2e/run_e2e.sh all       # real-model end-to-end for four of the skills (any provider key in .env, via LiteLLM)
 ```
 CI (`.github/workflows/ci.yml`) runs the unit tests, the no-drift check, and validates
 every promptfoo config.

@@ -40,7 +40,7 @@ redteam:
     # skill uses (objectives/redteam_objectives.json), just the 2-objective subset.
     - id: intent
       config:
-        intent: file://skills/app-redteam/objectives/redteam_objectives.smoke.json   # cwd = repo root (run_e2e.sh)
+        intent: file://plugins/app-evals/skills/app-redteam/objectives/redteam_objectives.smoke.json   # cwd = repo root (run_e2e.sh)
   strategies:
     # crescendo is LOCAL-CAPABLE: with remote gen disabled it uses redteam.provider
     # for the multi-turn attack. (goat / mischievous-user / jailbreak:meta are

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "defense-evals",
+  "version": "0.1.0",
+  "description": "Evaluate how well a defence works: guardrails, guidance placed in front of a coding agent, and security tools, each measured against a baseline or known answers.",
+  "author": {
+    "name": "Wade Cooper"
+  },
+  "homepage": "https://github.com/wtcooper/ai-security-evals",
+  "repository": "https://github.com/wtcooper/ai-security-evals",
+  "license": "MIT",
+  "keywords": [
+    "ai-security",
+    "evaluation",
+    "guardrail",
+    "scanner",
+    "a-b-test"
+  ]
+}

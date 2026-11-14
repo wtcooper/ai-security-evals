@@ -18,7 +18,7 @@ cd damn-vulnerable-ai-agent && docker compose up    # dashboard :9000, agents :7
 ```
 
 ## Point the skills at it
-**Backend API** (`app-eval` / `app-redteam`): the agents speak OpenAI — point
+**Backend API** (`app-benchmark` / `app-redteam`): the agents speak OpenAI — point
 `TARGET_URL` at an agent's chat-completions endpoint (e.g. `http://localhost:7001/v1/chat/completions`)
 and use the OpenAI body shape (the default `messages` body works). No judge mock needed;
 use a real judge or the shared proxy's `mock-judge` for wiring.

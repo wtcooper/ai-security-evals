@@ -4,7 +4,7 @@
 #
 # Requires GCP_AI_STUDIO_API_KEY in .env (Google AI Studio free tier). Kept tiny to
 # stay under free-tier rate limits. Usage:
-#   bash e2e/run_e2e.sh [app-eval|control-isolate|control-bench|app-redteam|all]
+#   bash e2e/run_e2e.sh [app-benchmark|control-isolate|control-bench|app-redteam|all]
 set -uo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
@@ -29,21 +29,21 @@ for i in $(seq 1 40); do curl -s -o /dev/null http://127.0.0.1:4000/health/readi
   && echo "  gateway up" || { echo "  gateway failed; see /tmp/e2e_proxy.log"; exit 1; }
 
 run_app_eval() {
-  note "app-eval  (real target gemini-flash + judge gemini-flash-lite)"
+  note "app-benchmark  (real target gemini-flash + judge gemini-flash-lite)"
   # -j 1 + a small sample: the free tier rate-limits (429) aggressively. The harness
   # retries 429 transiently, but keep the footprint small or runs crawl.
-  npx promptfoo eval -c e2e/app-eval.e2e.yaml --filter-sample 4 -j 1 \
+  npx promptfoo eval -c e2e/app-benchmark.e2e.yaml --filter-sample 4 -j 1 \
     --output /tmp/e2e_app_eval.json --no-progress-bar --no-cache >/tmp/e2e_app_eval.log 2>&1
-  $PY skills/app-eval/lib/summarize.py /tmp/e2e_app_eval.json | tee /tmp/e2e_app_eval.summary
+  $PY plugins/app-evals/skills/app-benchmark/lib/summarize.py /tmp/e2e_app_eval.json | tee /tmp/e2e_app_eval.summary
   grep -q "errors excluded: 0" /tmp/e2e_app_eval.summary && grep -q "answer" /tmp/e2e_app_eval.summary \
-    && ok "app-eval ran with real models, no errors" || bad "app-eval (see /tmp/e2e_app_eval.log)"
+    && ok "app-benchmark ran with real models, no errors" || bad "app-benchmark (see /tmp/e2e_app_eval.log)"
 }
 
 run_control_isolate() {
   note "control-isolate  (real LiteLLM content-filter, 403 blocks)"
   npx promptfoo eval -c e2e/control-isolate.e2e.yaml -j 2 \
     --output /tmp/e2e_ci.json --no-progress-bar --no-cache >/tmp/e2e_ci.log 2>&1
-  $PY skills/control-isolate/lib/summarize.py /tmp/e2e_ci.json | tee /tmp/e2e_ci.summary
+  $PY plugins/defense-evals/skills/control-isolate/lib/summarize.py /tmp/e2e_ci.json | tee /tmp/e2e_ci.summary
   grep -q "block 3" /tmp/e2e_ci.summary && grep -q "403" /tmp/e2e_ci.summary \
     && ok "content-filter 403 blocks auto-classified (no env)" || bad "control-isolate (see /tmp/e2e_ci.log)"
 }
@@ -51,7 +51,7 @@ run_control_isolate() {
 run_control_bench() {
   note "control-bench  (A/B: baseline vs content-filter, real gemini via shim+Inspect)"
   command -v $PY >/dev/null && $PY -c "import inspect_ai" 2>/dev/null || { bad "control-bench: inspect_ai not installed (pip install inspect_ai)"; return; }
-  ( cd skills/control-bench
+  ( cd plugins/defense-evals/skills/control-bench
     for a in "baseline:8951:[]" "guarded:8952:[\"content-filter\"]"; do
       n=${a%%:*}; rest=${a#*:}; p=${rest%%:*}; g=${rest#*:}
       SHIM_CONNECTOR=litellm SHIM_GATEWAY_URL=http://127.0.0.1:4000 SHIM_GATEWAY_KEY=sk-mock \
@@ -90,7 +90,7 @@ run_app_redteam() {
 }
 
 case "$WHICH" in
-  app-eval) run_app_eval ;;
+  app-benchmark) run_app_eval ;;
   control-isolate) run_control_isolate ;;
   control-bench) run_control_bench ;;
   app-redteam) run_app_redteam ;;

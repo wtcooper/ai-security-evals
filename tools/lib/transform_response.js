@@ -1,5 +1,5 @@
 /**
- * Shared promptfoo transformResponse for the app skills (app-eval / app-redteam).
+ * Shared promptfoo transformResponse for the app skills (app-benchmark / app-redteam).
  *
  * Classifies the response via the shared status policy (body-signal first, status as
  * a hint) into answer / block / error / ambiguous, then:

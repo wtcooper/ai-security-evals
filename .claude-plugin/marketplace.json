@@ -1,0 +1,29 @@
+{
+  "name": "ai-security-evals",
+  "owner": {
+    "name": "Wade Cooper"
+  },
+  "metadata": {
+    "description": "Security evaluations for AI models, agents, applications and the defences around them."
+  },
+  "plugins": [
+    {
+      "name": "app-evals",
+      "source": "./plugins/app-evals",
+      "description": "Evaluate an LLM application's endpoint: a fixed adversarial benchmark and adaptive multi-turn red teaming.",
+      "category": "security"
+    },
+    {
+      "name": "model-evals",
+      "source": "./plugins/model-evals",
+      "description": "Evaluate a model release, open-weights or frontier: a fixed suite of security benchmarks run on the same samples for every model.",
+      "category": "security"
+    },
+    {
+      "name": "defense-evals",
+      "source": "./plugins/defense-evals",
+      "description": "Evaluate how well a defence works: guardrails, guidance placed in front of a coding agent, and security tools, each measured against a baseline or known answers.",
+      "category": "security"
+    }
+  ]
+}

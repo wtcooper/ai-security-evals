@@ -10,7 +10,7 @@ It is **not vendored here** (separate repo, ~12 GB RAM, Ollama). This directory 
 how to run it and point the skills at both its **API** and its **web UI**.
 
 ## Why it's a great target for these skills
-- **Both surfaces:** FastAPI API (for `app-eval` / `app-redteam` HTTP provider) **and** a
+- **Both surfaces:** FastAPI API (for `app-benchmark` / `app-redteam` HTTP provider) **and** a
   React chat UI (for the **browser-provider** UI testing — `promptfooconfig.browser.yaml`).
 - **Defense levels 0/1/2** (vulnerable → hardened → NeMo guardrails) map directly onto
   A/B/C control testing: run the same corpus at each level and diff F1/recall/FPR.
@@ -29,11 +29,11 @@ key `sk-mock`, and a `model_name` from the proxy `model_list`. Then a proxy guar
 (e.g. `content-filter`) applies underneath — another A/B/C lever.
 
 ## Point the skills at it
-**Backend API** (`app-eval` / `app-redteam`): set `TARGET_URL` to AIGoat's chat endpoint
+**Backend API** (`app-benchmark` / `app-redteam`): set `TARGET_URL` to AIGoat's chat endpoint
 (find the exact route in `http://localhost:8000/docs`) and edit `providers[0].config.body`
 to its request schema. Build the corpus and run as usual.
 
-**Web UI** (`app-eval` browser variant): use `promptfooconfig.browser.yaml`, set
+**Web UI** (`app-benchmark` browser variant): use `promptfooconfig.browser.yaml`, set
 `TARGET_UI_URL=http://localhost:3000`, and adjust the chat selectors (input box, submit,
 assistant-message) to AIGoat's DOM.
 

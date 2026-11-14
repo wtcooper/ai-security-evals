@@ -1,13 +1,14 @@
 # Contributing to ai-security-evals
 
-Thanks for your interest. This repo hosts distributable Claude Code skills for evaluating AI security defenses. Contributions are welcome whether you're improving an existing skill, adding a new benchmark source, or proposing a new skill entirely.
+Thanks for your interest. This repo hosts distributable agent skills, packaged as Agent Plugins, for evaluating the security of AI models, agents, applications and the defences around them. Contributions are welcome whether you're improving an existing skill, adding a new benchmark source, or proposing a new skill entirely.
 
 ## Ground rules
 
 - **Open an issue first** for non-trivial changes (new skill, new corpus source, breaking API change). This avoids you spending time on something we'd reject for scope or design reasons.
 - **Small, focused PRs** beat large ones. One topic per PR.
 - **Tests required** for every behavior change. The harness's correctness is the product — we can't ship a regression.
-- **No keyword classification in the eval pipeline, ever.** This rule is non-negotiable; see [`skills/ai-guardrail-eval/RESEARCH.md`](skills/ai-guardrail-eval/RESEARCH.md) §6 for why. Mock handlers used purely for local testing (e.g. `local/mock_handlers.py`) are exempt.
+- **No keyword classification in the eval pipeline, ever.** Verdicts come from the target's own block signal, a deterministic detector, or a judge model. Mock handlers used purely for local testing (`targets/proxy/mock_handlers.py`) are exempt.
+- **Evaluations only.** A skill measures a control; it never ships one. No rule files, guardrails or scanners of our own, and no acceptance thresholds.
 - **Match existing style.** Don't reformat unrelated code in your PR.
 
 ## Dev environment
@@ -16,13 +17,8 @@ Thanks for your interest. This repo hosts distributable Claude Code skills for e
 # Python 3.11+; uv installs everything else
 uv sync --extra dev --extra corpus
 
-# Run unit tests (always)
-uv run pytest
-
-# Run integration tests against the bundled mock proxy (optional)
-bash local/start_proxy.sh > /tmp/litellm_proxy.log 2>&1 &
-# wait ~5s for curl -s http://localhost:4000/health/readiness to return 200
-uv run pytest skills/ai-guardrail-eval/tests/test_local_proxy_integration.py
+# Run every offline check: Node + Python tests, vendoring drift, plugin conformance
+bash scripts/run_tests.sh
 ```
 
 If you add a runtime dep, update `pyproject.toml` and run `uv sync` so `uv.lock` is updated and committed.
@@ -62,7 +58,7 @@ We use a light gitflow setup:
 1. Fork the repo (or create a feature branch if you have write access).
 2. Branch from `develop`: `git checkout develop && git pull && git checkout -b your-username/short-topic-name`.
 3. Make your change with a focused commit history (rebase/squash before opening the PR if you have a messy series).
-4. Run `uv run pytest` and confirm green.
+4. Run `bash scripts/run_tests.sh` and confirm green.
 5. Open the PR against **`develop`**. Fill in the template — what changed, why, how you tested.
 6. CI runs automatically. Address review comments by pushing more commits (don't force-push until review is complete; then squash if needed).
 7. Once approved and CI is green, a maintainer merges (squash by default).
@@ -71,17 +67,17 @@ We use a light gitflow setup:
 ## What kinds of changes are easy to land
 
 - New corpus sources (peer-reviewed benchmark, permissive license, clear citation)
-- Provider implementations (real `OpenAICompatibleProvider` / `RESTProvider`)
+- A new adapter for a tool, scanner or guardrail vendor (one file, no harness change)
+- A newly verified benchmark entry in an existing suite
 - Skill-level docs improvements
 - Test coverage on edge cases
-- Performance improvements with a measured baseline → after delta
 
 ## What needs design discussion first
 
-- New skills (open an issue with the SKILL.md frontmatter draft)
-- Changes to the four-outcome taxonomy or judge prompt
-- Changes to corpus tier assignment, scoring weights, or schema
-- Breaking changes to the `Provider` / `Judge` interface
+- New skills (open an issue with the SKILL.md frontmatter draft; names follow `<subject>-<method>`, frontmatter uses the Agent Skills standard fields only)
+- New plugins, or moving a skill between plugins
+- Changes to the shared results contract (`manifest.json`, `samples.jsonl`, `findings.jsonl`) or to the statistics in `tools/lib/evalstats.py`
+- Changes to corpus tier assignment or scoring
 
 ## Security issues
 

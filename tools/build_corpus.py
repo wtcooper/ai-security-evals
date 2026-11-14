@@ -484,7 +484,7 @@ def main():
                     help="also include MHJ M2S cases (CC-BY-NC, NOT redistributable — local dev only)")
     ap.add_argument("--assert", dest="assert_mode", choices=["rubric", "guardrail"],
                     default="rubric",
-                    help="rubric=llm-judge (app-eval); guardrail=control's own verdict (control-isolate)")
+                    help="rubric=llm-judge (app-benchmark); guardrail=control's own verdict (control-isolate)")
     args = ap.parse_args()
 
     domains, sampled, files = build(args.tier, args.seed, args.out,

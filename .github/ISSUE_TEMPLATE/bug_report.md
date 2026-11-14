@@ -22,7 +22,7 @@ assignees: ''
 
 ```bash
 # example
-cd skills/app-eval
+cd skills/app-benchmark
 TARGET_URL=... JUDGE_BASE_URL=... JUDGE_MODEL=... \
 npx promptfoo eval -c promptfooconfig.yaml --output results.json
 python lib/summarize.py results.json

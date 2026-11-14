@@ -30,8 +30,8 @@ package = false
 [tool.pytest.ini_options]
 testpaths = [
     "tools/tests",
-    "skills/control-bench/tests",
-    "skills/model-bench/tests",
+    "plugins/defense-evals/skills/control-bench/tests",
+    "plugins/model-evals/skills/model-benchmark/tests",
 ]
 asyncio_mode = "auto"
 filterwarnings = ["ignore::pytest.PytestCollectionWarning"]

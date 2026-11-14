@@ -25,7 +25,7 @@ from `tools/`.
 
 ## Corpus
 ```bash
-python tools/build_corpus.py --tier full                         # app-eval (rubric)
+python tools/build_corpus.py --tier full                         # app-benchmark (rubric)
 python tools/build_corpus.py --tier full --assert guardrail      # control-isolate
 python tools/build_corpus.py --with-mhj                          # add MHJ (local-only)
 ```

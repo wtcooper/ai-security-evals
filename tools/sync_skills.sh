@@ -11,14 +11,23 @@ cd "$(dirname "$0")"                 # tools/
 ROOT=".."
 PY="${PYTHON:-$ROOT/.venv/bin/python}"
 
+# Skills live at plugins/<plugin>/skills/<skill>; resolve by skill name (names are unique).
+sd() {
+  local d; d=$(ls -d "$ROOT"/plugins/*/skills/"$1" 2>/dev/null | head -1)
+  [ -n "$d" ] || { echo "sync_skills: no skill named $1 under plugins/" >&2; exit 1; }
+  printf '%s' "$d"
+}
+TOOL_SKILLS=$(cd "$ROOT" && ls -d plugins/*/skills/tool-* 2>/dev/null | xargs -n1 basename)
+
 vendor() {  # vendor <skill> <lib-file>...
-  local skill="$1"; shift
-  mkdir -p "$ROOT/skills/$skill/lib"
-  for f in "$@"; do cp "lib/$f" "$ROOT/skills/$skill/lib/$f"; done
+  local skill="$1" dir; shift
+  dir=$(sd "$skill")
+  mkdir -p "$dir/lib"
+  for f in "$@"; do cp "lib/$f" "$dir/lib/$f"; done
 }
 
 # --- runtime libs per skill (only what each one uses) ---
-vendor app-eval        status_policy.js transform_response.js summarize.py extract_transcript.js
+vendor app-benchmark        status_policy.js transform_response.js summarize.py extract_transcript.js
 vendor app-redteam     status_policy.js transform_response.js extract_transcript.js
 vendor control-isolate status_policy.js summarize.py extract_transcript.js
 vendor control-bench   status_policy.py
@@ -28,34 +37,34 @@ vendor control-bench   status_policy.py
 SPINE="evalstats.py sarif_to_findings.py cwe_map.py manifest.py canary_probe.py find_sdlc.sh probelib.py"
 SPINE_SKILLS="control-codegen"
 for s in $SPINE_SKILLS; do vendor "$s" $SPINE; done
-for s in $(cd "$ROOT/skills" && ls -d tool-* 2>/dev/null); do vendor "$s" $SPINE; done
+for s in $TOOL_SKILLS; do vendor "$s" $SPINE; done
 
 # --- promptfoo setup script: each promptfoo skill ships its OWN copy (no cross-skill
 #     reference) so a skill folder is copy-paste self-contained ---
-for s in app-eval app-redteam control-isolate; do
-  cp install_dependencies.sh "$ROOT/skills/$s/install_dependencies.sh"
+for s in app-benchmark app-redteam control-isolate; do
+  cp install_dependencies.sh "$(sd "$s")/install_dependencies.sh"
 done
 
 # --- experiment scaffolder: every skill ships its own copy (self-contained) ---
-for s in app-eval app-redteam control-isolate control-bench model-bench $SPINE_SKILLS \
-         $(cd "$ROOT/skills" && ls -d tool-* 2>/dev/null); do
-  cp new_experiment.sh "$ROOT/skills/$s/new_experiment.sh"
+for s in app-benchmark app-redteam control-isolate control-bench model-benchmark $SPINE_SKILLS \
+         $TOOL_SKILLS; do
+  cp new_experiment.sh "$(sd "$s")/new_experiment.sh"
 done
 
 # --- ephemeral GitHub repo + CodeQL driver: skills that push branches for scoring ---
 REPO_SKILLS="control-codegen tool-codescan"
 for s in $REPO_SKILLS; do
-  [ -d "$ROOT/skills/$s" ] && cp ephemeral_repo.sh "$ROOT/skills/$s/ephemeral_repo.sh"
+  cp ephemeral_repo.sh "$(sd "$s")/ephemeral_repo.sh"
 done
 
 # --- prebuilt, license-clean corpus (full tier; skills sample at run time) ---
-$PY build_corpus.py --tier full --out "$ROOT/skills/app-eval/corpus" >/dev/null
-$PY build_corpus.py --tier full --assert guardrail --out "$ROOT/skills/control-isolate/corpus" >/dev/null
+$PY build_corpus.py --tier full --out "$(sd app-benchmark)/corpus" >/dev/null
+$PY build_corpus.py --tier full --assert guardrail --out "$(sd control-isolate)/corpus" >/dev/null
 
 # --- prebuilt red-team OBJECTIVE pack (drives promptfoo's local `intent` plugin) ---
 $PY build_redteam_objectives.py >/dev/null
-mkdir -p "$ROOT/skills/app-redteam/objectives"
+mkdir -p "$(sd app-redteam)/objectives"
 cp corpus/redteam_objectives.json corpus/redteam_objectives.smoke.json \
-   corpus/redteam_objectives.manifest.json "$ROOT/skills/app-redteam/objectives/"
+   corpus/redteam_objectives.manifest.json "$(sd app-redteam)/objectives/"
 
-echo "synced libs + corpus + redteam objectives into app-eval, app-redteam, control-isolate, control-bench, control-codegen, tool-*"
+echo "synced libs + corpus + redteam objectives into app-benchmark, app-redteam, control-isolate, control-bench, control-codegen, tool-*"

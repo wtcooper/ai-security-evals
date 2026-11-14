@@ -1,6 +1,6 @@
 # Proposal — refocus `ai-security-evals` as a holistic AI security review toolkit
 
-_Status: revision 6, for review before any build · 2026-11-14 · nothing here is implemented_
+_Status: revision 6 · 2026-11-14 · **Phase 0 is implemented** (plugin layout, manifests, standard frontmatter, the `app-benchmark` and `model-benchmark` renames); everything else is still a proposal_
 
 Changes in revision 6: this repo only evaluates scanners; scanning a skill or MCP server
 lives in `ai-security-sdlc`, so `agent-extension-scan` is out (§3.5).
@@ -91,8 +91,8 @@ Where one subject has two benchmarks, a qualifier sits in the middle
 
 ```
 ai-security-evals/
-├── marketplace.yaml                       # single source → generated client marketplace files
-├── .claude-plugin/  .agents/plugins/  .github/plugin/      (generated)
+├── marketplace.source.json                # single source → generated client marketplace files
+├── .claude-plugin/                        (generated; other clients' files added as verified)
 ├── plugins/
 │   ├── ai-review/      review-scope · review-evidence · review-threat-model ·
 │   │                   review-criteria · review-report                           (new)
@@ -103,7 +103,7 @@ ai-security-evals/
 │   └── defense-evals/  guardrail-benchmark · coding-guidance-benchmark ·
 │                       security-tool-benchmark
 │       each plugin:  plugin.json · README.md · skills/<skill>/{SKILL.md, scripts, references, lib (vendored)}
-├── shared/             # source of truth vendored into skills (today's maintainer `lib`)
+├── tools/              # maintainer-only source of truth vendored into skills (unchanged)
 ├── catalog/            # benchmark catalogue + threat coverage map                 (new)
 ├── targets/  evaluations/  e2e/  docs/  scripts/
 ```
@@ -343,7 +343,7 @@ consistency; DecisionRobust and JevBench. Detail in
 
 | Phase | Work |
 |---|---|
-| 0 | Move skills into `plugins/` under their new names; root `plugin.json` per plugin; manifest generator and CI validation; standard frontmatter; repo cleanup (§5.5). No behaviour change. |
+| 0 — done | Skills moved into `plugins/`; root `plugin.json` per plugin; manifest generator and CI validation; standard frontmatter; `app-eval` and `model-bench` renamed. Skills that will be merged keep their old names until Phase 1. Only the Claude marketplace file is generated so far: it is the one Claude Code, Codex and Copilot CLI all read, and the other clients' own formats were not verified. `allowed-tools` was dropped from every skill rather than converted, so no shell access is pre-approved. |
 | 1 | Merge and standardise the existing skills (§5.1, §5.4): the two guardrail skills into `guardrail-benchmark`, the three tool skills into `security-tool-benchmark`, shared Inspect runner, shared contract with context block, depth names, intervals, remove gating wording. |
 | 2 | `ai-review` plugin and the benchmark catalogue. |
 | 3 | `voice-model-benchmark` and `decision-model-benchmark` (both have reviews pending). |

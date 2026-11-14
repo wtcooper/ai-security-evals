@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "model-evals",
+  "version": "0.1.0",
+  "description": "Evaluate a model release, open-weights or frontier: a fixed suite of security benchmarks run on the same samples for every model.",
+  "author": {
+    "name": "Wade Cooper"
+  },
+  "homepage": "https://github.com/wtcooper/ai-security-evals",
+  "repository": "https://github.com/wtcooper/ai-security-evals",
+  "license": "MIT",
+  "keywords": [
+    "ai-security",
+    "evaluation",
+    "model",
+    "benchmark",
+    "inspect-ai"
+  ]
+}
