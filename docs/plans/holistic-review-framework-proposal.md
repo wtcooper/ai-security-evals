@@ -1,8 +1,9 @@
 # Proposal — refocus `ai-security-evals` as a holistic AI security review toolkit
 
-_Status: revision 5, for review before any build · 2026-11-14 · nothing here is implemented_
+_Status: revision 6, for review before any build · 2026-11-14 · nothing here is implemented_
 
-Changes in revision 5: `agent-extension-scan` is reinstated (§3.5, §6.4).
+Changes in revision 6: this repo only evaluates scanners; scanning a skill or MCP server
+lives in `ai-security-sdlc`, so `agent-extension-scan` is out (§3.5).
 Changes in revision 4: this repo evaluates controls and never implements them (§2, §3.5);
 the code-generation skill becomes a plain A/B test of any guidance placed in front of an
 agent, scored on BaxBench (§5.3). Revision 3 added the
@@ -97,8 +98,7 @@ ai-security-evals/
 │   │                   review-criteria · review-report                           (new)
 │   ├── model-evals/    model-benchmark · decision-model-benchmark (new) ·
 │   │                   voice-model-benchmark (new) · image-model-review (new)
-│   ├── agent-evals/    agent-misuse-benchmark (new) · agent-feature-review (new) ·
-│   │                   agent-extension-scan (new)
+│   ├── agent-evals/    agent-misuse-benchmark (new) · agent-feature-review (new)
 │   ├── app-evals/      app-benchmark · app-redteam
 │   └── defense-evals/  guardrail-benchmark · coding-guidance-benchmark ·
 │                       security-tool-benchmark
@@ -108,7 +108,7 @@ ai-security-evals/
 ├── targets/  evaluations/  e2e/  docs/  scripts/
 ```
 
-Five plugins, sixteen skills: five review stages and eleven measurement skills, of which six
+Five plugins, fifteen skills: five review stages and ten measurement skills, of which six
 are the existing nine after merging.
 
 ### 3.3 Shared contracts
@@ -147,7 +147,6 @@ terms. The control itself always comes from the user.
 | App-level defences (system prompt, filters) | `app-benchmark`, `app-redteam` (two-arm runs) | Change in attack success rate |
 | Decision model used as a gate | `decision-model-benchmark` | Fail-open and fail-closed rates; flip rate under attack |
 | Security tools (code scanners, extension scanners, pentest tools) | `security-tool-benchmark` | Recall and precision against known answers |
-| A third-party skill, plugin or MCP server (the thing being enabled, not a control) | `agent-extension-scan` | Findings per scanner, and where scanners disagree |
 
 What this rules out or moves:
 
@@ -155,9 +154,10 @@ What this rules out or moves:
   that authors a Secure Build Plan, and the hand-written rule files. All three produce or
   ship a control.
 - **Withdrawn from the last revision:** a reference CodeGuard arm and a nudge-rule template.
-- **Kept, as an evaluation:** `agent-extension-scan` assesses a submitted skill, plugin or
-  MCP server. The repo ships no scanner of its own: it drives third-party scanners through
-  adapters, the same adapters `security-tool-benchmark` uses to compare them.
+- **Out of scope:** scanning a skill, plugin or MCP server. That lives in
+  `ai-security-sdlc`. This repo keeps only the evaluation of those scanners: the
+  *extension* kind of `security-tool-benchmark`, with adapters for Tencent AI-Infra-Guard,
+  Cisco skill-scanner and mcp-scanner, and NVIDIA SkillSpector to start.
 - **Moved:** `weights_scan.py` reads scan verdicts Hugging Face already publishes. That is
   evidence harvesting, so it moves from `model-benchmark` to `review-evidence`.
 - **Relabelled:** the LiteLLM gateway under `targets/` bundles a mock content filter. It is
@@ -330,7 +330,7 @@ consistency; DecisionRobust and JevBench. Detail in
 - No benchmark exists for background-speech injection in your call flow, tool abuse by
   voice, the transcript-versus-audio guardrail gap, barge-in, SIP spoofing or cost caps.
 
-### 6.4 Vision profile, `image-model-review`, `agent-feature-review`, `agent-extension-scan`
+### 6.4 Vision profile, `image-model-review`, `agent-feature-review`
 
 - **Vision input (a `model-benchmark` profile):** `cyse3_visual_prompt_injection` and
   promptfoo's `vlguard` / `vlsu` run today; computer-use injection suites need VMs (T2).
@@ -338,12 +338,6 @@ consistency; DecisionRobust and JevBench. Detail in
   image generation; a review with provenance checks and a small hand-built probe set.
 - **`agent-feature-review`:** one threat-and-test template per feature (computer use,
   memory, connectors/MCP, code execution, multi-agent, background agents).
-- **`agent-extension-scan`:** scan a skill, plugin or MCP server someone wants to enable.
-  Scanner-agnostic: one adapter per scanner (Tencent AI-Infra-Guard, Cisco skill-scanner
-  and mcp-scanner, NVIDIA SkillSpector to start), the user chooses which to run, and the
-  report shows each scanner's findings and where they disagree. No scanner is the default.
-  The *extension* kind of `security-tool-benchmark` compares the same scanners on labelled
-  malicious and benign samples, which is how to check which one to rely on.
 
 ## 7. Phasing
 
@@ -354,7 +348,7 @@ consistency; DecisionRobust and JevBench. Detail in
 | 2 | `ai-review` plugin and the benchmark catalogue. |
 | 3 | `voice-model-benchmark` and `decision-model-benchmark` (both have reviews pending). |
 | 4 | `agent-misuse-benchmark` with a new public scenario set, then `coding-guidance-benchmark` rebuilt on its engine. |
-| 5 | Vision profile, `image-model-review`, `agent-feature-review`, `agent-extension-scan`. |
+| 5 | Vision profile, `image-model-review`, `agent-feature-review`. |
 
 The GPT Realtime 2.1 review can be run by hand from §6.3 before Phase 3 lands.
 
