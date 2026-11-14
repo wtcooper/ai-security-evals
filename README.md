@@ -18,9 +18,11 @@ teams just the control skills, with no cross-skill dependencies.
 
 ---
 
-## The five skills
+## The skills
 
-Split by **what is under test**. Each is independently installable.
+Split by **what is under test**. Each is independently installable. (The three `tool-*`
+skills — `tool-codescan`, `tool-assetscan`, `tool-pentest` — compare security tools and are
+documented in their own `SKILL.md`.)
 
 | Skill | Under test | Engine | Output |
 |---|---|---|---|
@@ -28,6 +30,7 @@ Split by **what is under test**. Each is independently installable.
 | [`app-redteam`](skills/app-redteam/) | An app endpoint — adaptive attacks | promptfoo `redteam` | which strategies broke through (vuln report) |
 | [`control-isolate`](skills/control-isolate/) | A guardrail API by itself (no model) | promptfoo `eval` | classification F1 / precision / recall / FPR |
 | [`control-bench`](skills/control-bench/) | A control's effect inside a real benchmark | Inspect + inspect_evals | risk-reduction Δ vs baseline (A/B/C) |
+| [`model-bench`](skills/model-bench/) | A **model release** — open-weights or frontier | Inspect + inspect_evals | per-dimension rate ± 95% CI, model-vs-model; weights supply-chain verdict |
 | [`control-codegen`](skills/control-codegen/) | A rules file's effect on **code the agent writes** | git-branch A/B/C + scan ensemble | per-CWE / correct-AND-secure Δ vs no-rules |
 
 Each app skill also has a **web-UI variant** (`promptfooconfig.browser.yaml`) that runs
@@ -44,6 +47,8 @@ provider** — for when the backend API isn't exposed.
 | Compare guardrail vendors head-to-head | `control-isolate` |
 | Prove "enabling guardrail X reduces risk on AgentDojo/CyberSecEval" | `control-bench` |
 | Measure indirect-prompt-injection defense during agent tool calls | `control-bench` |
+| Benchmark a newly released model's security posture against the ones you already use | `model-bench` |
+| Check an open-weights repo's files before pulling them | `model-bench` (`weights_scan.py`) |
 | Prove your `CLAUDE.md`/Cursor/Copilot security rules make the agent write safer code | `control-codegen` |
 | Compare rule-file variants (generic vs CWE-specific) before rolling them out | `control-codegen` |
 
@@ -84,6 +89,16 @@ provider** — for when the backend API isn't exposed.
 | Mechanism | A param-injection **shim** adds `model`+`guardrail` per arm at the model boundary; Inspect runs the A/B/C sweep natively across `openai-api/<arm>/<model>` providers and diffs scores |
 | Output | Inspect's native scores per arm — attack-success (risk ↓) and utility/FRR (over-block cost) |
 | Note | Inspect conflicts with `litellm[proxy]` deps → runs in its own `.venv-inspect` |
+
+### `model-bench` — security benchmarks for a model release (Inspect)
+| Aspect | Detail |
+|---|---|
+| Suite | One check per risk dimension: `cyse4_mitre` (direct misuse) + `cyse4_mitre_frr` (over-refusal), `strong_reject` + `strong_reject_aim` (harmful requests, direct and jailbroken), `cyse4_instruct` (insecure code), `cyse4_multilingual_prompt_injection`, `agentdojo` (injection via tools), `atb_memory_poison` |
+| Comparability | Every model runs the **same seeded sample draw**; results from a later run on the same `--depth`/`--seed` summarize together |
+| Output | Raw rate + 95% Wilson interval per check, and only the model-vs-model differences larger than the noise. No pass/fail threshold — it measures, the caller decides |
+| Guards | Provider API keys stripped so an unrouted judge fails instead of billing; a judge that returns no usable verdict **voids** the check; low agent utility is flagged (a model that can't call tools scores "secure" by doing nothing) |
+| Open weights | `weights_scan.py` reads the scanner verdicts Hugging Face already publishes — `unsafe` / `clean` / `unscanned` (never treated as clean), scanner coverage, pickle-only repos |
+| Note | Shares control-bench's separate `.venv-inspect` |
 
 ### `control-codegen` — secure-code-generation A/B/C (git branches)
 | Aspect | Detail |
@@ -206,6 +221,7 @@ ai-security-evals/
 │   ├── app-redteam/                #   SKILL.md · promptfooconfig{,.browser}.yaml · lib/ · env.example
 │   ├── control-isolate/            #   SKILL.md · promptfooconfig.yaml · adapters/ · lib/ · corpus/ · env.example
 │   ├── control-bench/              #   SKILL.md · injection_shim.py · connectors/ · lib/ · runners/
+│   ├── model-bench/                #   SKILL.md · suite.py · run_suite.py · report.py · weights_scan.py
 │   └── control-codegen/            #   SKILL.md · build-prompt.md · specs/ (5 sink-dense) · new_experiment.sh
 ├── targets/                        # things to point the skills at
 │   ├── proxy/                      #   shared LiteLLM AI gateway (any provider via LiteLLM; content-safety guardrails)
@@ -248,6 +264,7 @@ the Plan → Run → Analyze flow and asks for the details it needs:
 - `app-redteam` — adaptive red team
 - `control-isolate` — test a guardrail API
 - `control-bench` — A/B/C a control inside a benchmark
+- `model-bench` — security benchmarks for a model release
 
 Skills follow the standard `SKILL.md` format, so any compatible harness can load them;
 no harness, no problem — every step is plain CLI (next).

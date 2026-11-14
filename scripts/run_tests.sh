@@ -13,7 +13,7 @@ node skills/control-isolate/tests/generic_guardrail.test.cjs
 echo
 echo "== Python tests (classifier / m2s / corpus / metrics / connectors / shim / A-B-C) =="
 PYTEST="${PYTEST:-.venv/bin/python -m pytest}"
-$PYTEST tools/tests skills/control-bench/tests -q
+$PYTEST tools/tests skills/control-bench/tests skills/model-bench/tests -q
 
 echo
 echo "== Vendored copies in sync with tools/ (no drift) =="

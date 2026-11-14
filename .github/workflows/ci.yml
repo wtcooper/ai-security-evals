@@ -32,7 +32,7 @@ jobs:
           node skills/control-isolate/tests/generic_guardrail.test.cjs
 
       - name: Python tests
-        run: uv run pytest tools/tests skills/control-bench/tests -q
+        run: uv run pytest tools/tests skills/control-bench/tests skills/model-bench/tests -q
 
       - name: No drift — vendored skill copies match tools/
         run: |

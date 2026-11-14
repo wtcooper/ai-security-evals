@@ -37,7 +37,7 @@ for s in app-eval app-redteam control-isolate; do
 done
 
 # --- experiment scaffolder: every skill ships its own copy (self-contained) ---
-for s in app-eval app-redteam control-isolate control-bench $SPINE_SKILLS \
+for s in app-eval app-redteam control-isolate control-bench model-bench $SPINE_SKILLS \
          $(cd "$ROOT/skills" && ls -d tool-* 2>/dev/null); do
   cp new_experiment.sh "$ROOT/skills/$s/new_experiment.sh"
 done

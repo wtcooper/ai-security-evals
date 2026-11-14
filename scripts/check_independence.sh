@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 # (proxy/dvaa/aigoat) must not be referenced either, EXCEPT by the harness skills whose runbooks
 # emit a runtime experiment tree at $EXP/targets/ (a path they create, not a repo reference) —
 # those are allowlisted below. `# payload` tags intentional attack strings in probe suites.
-escape_base='\.\./\.\.|\.\./(app-eval|app-redteam|control-isolate|control-bench|control-codegen|tool-[a-z]+)|(^|[^a-zA-Z._/$-])tools/|/_shared|/Users/|/home/[a-z]'
+escape_base='\.\./\.\.|\.\./(app-eval|app-redteam|control-isolate|control-bench|control-codegen|model-bench|tool-[a-z]+)|(^|[^a-zA-Z._/$-])tools/|/_shared|/Users/|/home/[a-z]'
 targets_rule='(^|[^a-zA-Z._/$-])targets/'
 
 fail=0

@@ -5,7 +5,7 @@
 #
 #   bash new_experiment.sh <skill> "<label>" [engine] [options]
 #
-#   engine   promptfoo (default for app-*/control-isolate) | inspect (control-bench)
+#   engine   promptfoo (default for app-*/control-isolate) | inspect (control-bench, model-bench)
 #            | git-branch-ab (control-codegen) | detection-bench (tool-*)
 #   options  --start-branch B   git-branch-ab: the frozen starting-state branch (default starting-state)
 #            --arms A,B,C,D     arm names (git-branch-ab / detection-bench)
@@ -49,7 +49,7 @@ done
 
 if [ -z "$engine" ]; then
   case "$skill" in
-    control-bench) engine="inspect";;
+    control-bench|model-bench) engine="inspect";;
     control-codegen) engine="git-branch-ab";;
     tool-*) engine="detection-bench";;
     *) engine="promptfoo";;
