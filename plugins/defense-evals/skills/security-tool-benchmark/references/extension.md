@@ -53,8 +53,9 @@ Model/pickle runs go **inside the container** (the adapter does `docker run --ne
 
 ## ANALYZE
 ```bash
-# glue findings.jsonl + labels.jsonl -> verdicts.jsonl (score_assets.build_verdicts_from_findings)
-python3 extension/score_assets.py $EXP/verdicts.jsonl --by config,stratum --out $EXP/summary.md --json $EXP/summary.json
+# builds verdicts.jsonl from findings + labels + the run log, then scores it
+python3 extension/score_assets.py $EXP/verdicts.jsonl --findings $EXP/findings.jsonl \
+  --labels <labels.jsonl> --runs $EXP/runs.jsonl --by config,stratum --out $EXP/summary.md --json $EXP/summary.json
 ```
 Read TPR/FPR (Wilson CIs) per scanner arm; the **shipped vs mutant** split (does the LLM-judge catch
 what the signatures can't); flip rate + Fleiss κ per config (how repeatable the verdict is); compare FPR to

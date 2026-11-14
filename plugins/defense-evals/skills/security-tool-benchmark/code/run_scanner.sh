@@ -26,16 +26,21 @@ here="$(cd "$(dirname "$0")" && pwd)"; root="$(cd "$here" && cd .. && pwd)"
 ad="$here/adapters/$adapter.sh"
 [ -f "$ad" ] || { echo "no adapter '$adapter' — write adapters/$adapter.sh from adapters/README.md" >&2; exit 1; }
 run=$(basename "$exp"); out="$exp/results/$arm/$tid"; mkdir -p "$out"
+# Every run is recorded in <EXP>/runs.jsonl, including the ones that failed. A tool that could
+# not run on a target must be excluded for that target, never read as "found nothing".
+runlog() { printf '{"arm":"%s","target":"%s","tool_run":%s,"status":"%s","reason":"%s"}\n' "$arm" "$1" "$2" "$3" "$4" >> "$exp/runs.jsonl"; }
 t0=$(date +%s)
 for r in $(seq 1 "$repeats"); do
   d="$out/run$r"; mkdir -p "$d"
   if ! bash "$ad" "$tree" "$d" "${extra[@]+"${extra[@]}"}" > "$d/adapter.log" 2>&1; then
-    echo "  run$r: adapter '$arm' failed (see $d/adapter.log)" >&2; continue
+    echo "  run$r: adapter '$arm' FAILED (see $d/adapter.log); recorded as failed, not as a clean scan" >&2
+    runlog "$tid" "$r" failed "adapter exited non-zero"; continue
   fi
   sarif=$(ls "$d"/*.sarif 2>/dev/null | head -1)
-  [ -n "$sarif" ] || { echo "  run$r: adapter produced no *.sarif in $d" >&2; continue; }
+  [ -n "$sarif" ] || { echo "  run$r: adapter produced no *.sarif in $d; recorded as failed" >&2; runlog "$tid" "$r" failed "no SARIF produced"; continue; }
   python3 "$root/lib/sarif_to_findings.py" "$sarif" --tool "$arm" --tool-run "$r" --strip-prefix "$tree" \
       --run "$run" --arm "$arm" --target "$tid" --sample 1 --append "$exp/findings.jsonl"
+  runlog "$tid" "$r" ok ""
 done
 kloc=$(find "$tree" -type f \( -name '*.py' -o -name '*.js' -o -name '*.ts' -o -name '*.go' -o -name '*.java' -o -name '*.rb' -o -name '*.php' -o -name '*.c' -o -name '*.cpp' \) -not -path '*/node_modules/*' -exec cat {} + 2>/dev/null | wc -l | awk '{printf "%.1f", $1/1000}')
 python3 "$root/lib/manifest.py" "$exp" append-sample "{\"run\":\"$run\",\"arm\":\"$arm\",\"target\":\"$tid\",\"sample\":1,\"kloc\":$kloc,\"wall_s\":$(( $(date +%s)-t0 )),\"repeats\":$repeats}" >/dev/null

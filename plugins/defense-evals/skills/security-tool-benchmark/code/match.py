@@ -94,12 +94,37 @@ def main() -> int:
     ap.add_argument("--line-window", type=int, default=5)
     ap.add_argument("--adjudicate", type=Path, default=None); ap.add_argument("--adjudicate-n", type=int, default=30)
     ap.add_argument("--group-by", default="tool"); ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--runs", type=Path, default=None,
+                    help="<EXP>/runs.jsonl: recall for a tool is computed only over targets it "
+                         "actually scanned; a target where every run failed is excluded for it")
     a = ap.parse_args()
     F, G = load(a.findings), load(a.ground_truth)
     by_target = defaultdict(list)
     for g in G:
         by_target[g["target"]].append(g)
     keys = a.group_by.split(",")
+    # Which targets did each tool actually scan? (None = unknown: assume all, as before.)
+    scanned, failed_only = None, {}
+    if a.runs and a.runs.exists():
+        ok, any_run = defaultdict(set), defaultdict(set)
+        for r in load(a.runs):
+            any_run[r["arm"]].add(r["target"])
+            if r.get("status") == "ok":
+                ok[r["arm"]].add(r["target"])
+        scanned = {arm: ok[arm] for arm in any_run}
+        failed_only = {arm: sorted(any_run[arm] - ok[arm]) for arm in any_run if any_run[arm] - ok[arm]}
+    label_key = next((k for k in ("arm", "tool") if k in keys), None)
+
+    def gt_for(grp):
+        """Ground-truth rows this group is answerable for."""
+        rows = G
+        if "target" in keys:
+            rows = [g for g in rows if g["target"] == grp[keys.index("target")]]
+        if scanned is not None and label_key:
+            targets = scanned.get(grp[keys.index(label_key)])
+            if targets is not None:
+                rows = [g for g in rows if g["target"] in targets]
+        return rows
     found = defaultdict(lambda: defaultdict(set))       # group -> level -> {gt ids}
     fp = defaultdict(int); tp = defaultdict(int); unmatched = []
     for f in F:
@@ -123,12 +148,21 @@ def main() -> int:
          f"| {' · '.join(keys)} | findings | matched (TP) | unmatched (FP lower bound) | precision (lower bound) | recall@file | recall@function | recall@line |",
          "|---|---|---|---|---|---|---|---|"]
     J = {}
-    for grp in sorted(set(tp) | set(fp)):
+    groups = set(tp) | set(fp)
+    if scanned is not None and keys == [label_key]:
+        groups |= {(arm,) for arm in scanned}     # a tool that found nothing still gets a row
+    for grp in sorted(groups):
         n = tp[grp] + fp[grp]
-        rec = {lv: len(found[grp][lv]) / n_gt if n_gt else 0 for lv in ("file", "function", "line")}
+        n_grp = len(gt_for(grp))
+        rec = {lv: len(found[grp][lv]) / n_grp if n_grp else 0 for lv in ("file", "function", "line")}
         prec = tp[grp] / n if n else 0
-        J[" · ".join(grp)] = {"findings": n, "tp": tp[grp], "fp_lower_bound": fp[grp], "precision_lower_bound": prec, **{f"recall_{k}": v for k, v in rec.items()}}
+        J[" · ".join(grp)] = {"findings": n, "tp": tp[grp], "fp_lower_bound": fp[grp], "precision_lower_bound": prec,
+                              "ground_truth_scanned": n_grp, **{f"recall_{k}": v for k, v in rec.items()}}
         L.append(f"| {' · '.join(grp)} | {n} | {tp[grp]} | {fp[grp]} | {prec:.2f} | {rec['file']:.2f} | {rec['function']:.2f} | {rec['line']:.2f} |")
+    for arm, targets in sorted(failed_only.items()):
+        L += ["", f"**{arm}** did not complete on {len(targets)} target(s) and is not scored on them: "
+              + ", ".join(targets[:10]) + (" …" if len(targets) > 10 else "") + ". Fix the tool and "
+              "re-run before comparing its recall with a tool that scanned every target."]
     # per CWE family recall (file level), all groups pooled
     fam_gt = Counter(family_of(g.get("cwe")) for g in G)
     fam_found = Counter()

@@ -47,6 +47,8 @@ while [ $# -gt 0 ]; do
     *) extra+=("$1"); shift;;
   esac
 done
+# Start from an empty run dir: a stale findings.sarif must not survive a failed run.
+mkdir -p "$out"; out="$(stb_abs "$out")"; raw="$(stb_fresh_raw "$out")"
 case "$config" in
   static-only) analyzers="yara"; require=(yara);;
   judge-only)  analyzers="llm"; require=(llm);;
@@ -54,10 +56,8 @@ case "$config" in
   behavioral)  analyzers=""; require=(behavioral);;
   *) echo "unknown --config $config (static-only|judge-only|combined|behavioral)" >&2; exit 2;;
 esac
-mkdir -p "$out"; out="$(stb_abs "$out")"
 stb_find_tool CISCO_MCP_SCANNER mcp-scanner cisco-ai-mcp-scanner
 stb_stage_asset "$asset" "$in_place"
-raw="$(stb_fresh_raw "$out")"
 req=(); for a in "${require[@]}"; do req+=(--require-analyzer "$a"); done
 
 conv=()

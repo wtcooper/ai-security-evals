@@ -12,7 +12,7 @@ for arm in tool-a tool-b; do
   bash "$skill/code/run_scanner.sh" "$exp" smoke "$fx/tree" --arm "$arm" --adapter replay -- --sarif "$fx/$arm.sarif"
 done
 python3 "$skill/code/match.py" "$exp/findings.jsonl" "$fx/ground_truth.jsonl" \
-  --out "$exp/matched.jsonl" --report "$exp/match.md" --group-by tool
+  --out "$exp/matched.jsonl" --report "$exp/match.md" --group-by tool --runs "$exp/runs.jsonl"
 python3 "$skill/lib/evalstats.py" "$exp/matched.jsonl" --samples "$exp/samples.jsonl" \
   --pair-on target --baseline tool-a --out "$exp/summary.md" --json "$exp/summary.json" >/dev/null
 cat "$exp/match.md"

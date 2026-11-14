@@ -93,8 +93,9 @@ bash code/run_scanner.sh      "$EXP" <target-id> <tree>  --arm <tool> [--repeats
 bash extension/run_scanner.sh "$EXP" <asset-id>  <asset> --arm <label> [--adapter <tool>] [--repeats N] [-- <tool args>]
 bash pentest/run_dast.sh      "$EXP" <target-id> <url>   --arm <tool> [--k N] [-- <tool args>]
 ```
-A tool that finds nothing is a result, not an error. A tool that fails to run is reported
-and that target is excluded for that tool, never counted as a clean scan. The exact
+Every run is logged in `<EXP>/runs.jsonl` as `ok` or `failed`. A tool that finds nothing is
+a result. A tool that fails to run is not: pass `--runs` when scoring so that target is
+excluded for that tool instead of being counted as a clean scan. The exact
 commands, per-set options and safety rules are in `references/<kind>.md`.
 
 ---
@@ -104,11 +105,12 @@ Score against the known answers, then compute the statistics:
 ```
 # code
 python3 code/match.py "$EXP/findings.jsonl" <ground_truth.jsonl> --out "$EXP/matched.jsonl" \
-  --report "$EXP/match.md" --adjudicate "$EXP/adjudicate.csv" --group-by arm
+  --report "$EXP/match.md" --adjudicate "$EXP/adjudicate.csv" --group-by arm --runs "$EXP/runs.jsonl"
 python3 lib/evalstats.py "$EXP/matched.jsonl" --samples "$EXP/samples.jsonl" --pair-on target \
   --baseline <tool1> --out "$EXP/summary.md" --json "$EXP/summary.json"
 # extension
-python3 extension/score_assets.py "$EXP/verdicts.jsonl" --by config,stratum \
+python3 extension/score_assets.py "$EXP/verdicts.jsonl" --findings "$EXP/findings.jsonl" \
+  --labels <labels.jsonl> --runs "$EXP/runs.jsonl" --by config,stratum \
   --out "$EXP/summary.md" --json "$EXP/summary.json"
 # pentest
 python3 pentest/validate.py "$EXP" <target-id> --arm <tool> --oracle <oracle.sh> --base-url <url>
@@ -116,8 +118,10 @@ python3 lib/evalstats.py "$EXP/findings.jsonl" --samples "$EXP/samples.jsonl" --
   --baseline <tool1> --out "$EXP/summary.md" --json "$EXP/summary.json"
 ```
 Present to the user:
-1. **What did not run**: tools that failed on targets, targets excluded as recognised by
-   the model, sets that could not be fetched.
+1. **What did not run**: tools that failed on targets (the reports list them and the
+   `failed runs` column counts them), targets excluded as recognised by the model, sets that
+   could not be fetched. Do not compare a tool that failed on some targets with one that
+   scanned all of them until it is fixed and re-run.
 2. **Recall and precision (or true- and false-positive rate) per tool, with intervals.**
    Never recall alone: a tool that flags everything has perfect recall.
 3. **The complement**: found by tool A only, tool B only, both, and the union. This is
@@ -151,7 +155,19 @@ last line is `SMOKE OK`.
 - Model files are scanned, never loaded. The container that handles them has no network.
 - State the exact tool version and, for LLM-backed tools, the model, with any number.
 - The adapters named `sdlc-*` drive skills from the separate `ai-security-sdlc` project and
-  are optional; nothing else here depends on that project.
+  are optional; nothing else here depends on that project. `sdlc-scan-skill.sh` passes flags
+  that the current Cisco skill-scanner rejects; prefer `cisco-skill-scanner.sh`.
+- **Comparing extension scanners fairly** (`extension/adapters/README.md` has the detail):
+  adapters ship for Tencent AI-Infra-Guard (`aig-skill-scan`, `aig-mcp-scan`), Cisco
+  skill-scanner and mcp-scanner, and NVIDIA SkillSpector. The Tencent tools have no
+  rule-based mode, so their result is always a language model's and depends on which model
+  is configured; the others have a keyless static mode. Compare static with static and
+  model-assisted with model-assisted, with the same model behind every tool where you can.
+  The adapters scan a copy of each sample without its answer-key file, and turn the silent
+  fallbacks they can detect (a missing key, an unusable model reply) into failed runs.
 - **Not verified:** the kinds were merged from three earlier skills. The `code` path was run
   end to end with replayed SARIF, and the matching, mutation and scoring scripts have unit
-  tests. No real scanner, model-file sandbox or pentest target was run where this was built.
+  tests. For the `extension` kind, the static modes of SkillSpector and both Cisco scanners
+  were run for real on a benign and a synthetic malicious skill; every model-assisted mode
+  and both Tencent tools were exercised only against a mock model, so no detection result
+  exists for Tencent. No code scanner, model-file sandbox or pentest target was run.

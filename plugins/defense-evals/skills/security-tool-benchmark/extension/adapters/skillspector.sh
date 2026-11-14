@@ -24,6 +24,9 @@
 # 2 error. With an LLM requested and no usable provider it exits 2, and on some inputs still
 # writes a report whose only result is AE1 "not completely inspected" at HIGH. This adapter
 # fails on exit 2 and records nothing, so a missing key never turns into a flag or a clean.
+# With a provider configured but its replies unusable, the tool exits 0 or 1 with the static
+# findings and marks the analysis `partial`; in `combined` the adapter fails on that mark, so a
+# run that was in effect static-only is not recorded as a combined one.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 . "$here/_common.sh"
@@ -36,16 +39,16 @@ while [ $# -gt 0 ]; do
     *) extra+=("$1"); shift;;
   esac
 done
+# Start from an empty run dir: a stale findings.sarif must not survive a failed run.
+mkdir -p "$out"; out="$(stb_abs "$out")"; raw="$(stb_fresh_raw "$out")"
 case "$config" in
-  static-only) mode=(--no-llm);;
-  combined)    mode=();;
+  static-only) mode=(--no-llm); check=();;
+  combined)    mode=(); check=(--require-complete);;
   judge-only)  echo "skillspector has no LLM-only mode; use --config static-only or combined" >&2; exit 2;;
   *) echo "unknown --config $config (static-only|combined)" >&2; exit 2;;
 esac
-mkdir -p "$out"; out="$(stb_abs "$out")"
 stb_find_tool SKILLSPECTOR skillspector
 stb_stage_asset "$asset" "$in_place"
-raw="$(stb_fresh_raw "$out")"
 version="$("${STB_TOOL[@]}" --version 2>/dev/null | tail -1 || true)"
 
 rc=0
@@ -56,5 +59,5 @@ if [ "$rc" -ne 0 ] && [ "$rc" -ne 1 ]; then
 fi
 [ -s "$raw/skillspector.sarif" ] || { echo "skillspector wrote no SARIF (exit $rc)" >&2; exit 1; }
 python3 "$here/scan_report_to_sarif.py" normalize "$raw/skillspector.sarif" "$out/findings.sarif" \
-  --tool skillspector --asset-root "$STB_ASSET" \
+  --tool skillspector --asset-root "$STB_ASSET" ${check[@]+"${check[@]}"} \
   --meta adapter=skillspector --meta "config=$config" --meta "tool_version=$version" --meta "tool_exit=$rc"

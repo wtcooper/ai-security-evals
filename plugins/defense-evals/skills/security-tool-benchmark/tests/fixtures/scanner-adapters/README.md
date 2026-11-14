@@ -28,6 +28,8 @@ Samples the tools were run on:
 | `cisco-mcp-scanner/flagged-poisoned-tools.json` | same on `poisoned-mcp/tools.json` |
 | `cisco-mcp-scanner/llm-requested-but-not-run.json` | `--analyzers yara,llm` on `poisoned-mcp/tools.json` with no LLM key: warning on stderr, exit 0, no `llm_analyzer` entry |
 | `cisco-mcp-scanner/behavioral-nothing-analysed.json` | `mcp-scanner behavioral <benign-mcp> --format raw` when the model reply was unusable: exit 0, empty list |
+| `cisco-skill-scanner/llm-analysis-failed-mockllm.sarif` | `skill-scanner scan <staged-fetch> --use-llm` with a key set and the mock model answering text that is not JSON: exit 0, rule findings plus one INFO `LLM_ANALYSIS_FAILED` |
+| `skillspector/llm-replies-unusable-mockllm.sarif` | `skillspector scan <staged-fetch>` with `SKILLSPECTOR_PROVIDER=openai_compatible` and the same mock: exit 1, static findings, analysis marked `partial` |
 | `*-mockllm.*` | the real tool and its real report writer, with the model replaced by `tests/mock_openai_server.py` replaying a file from `mock-replies/`. They show the report shape. They are not evidence of what a model would find. |
 
 No API key was available when these were captured, so there is no fixture from a real model run.

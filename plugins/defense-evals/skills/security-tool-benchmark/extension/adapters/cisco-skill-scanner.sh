@@ -15,7 +15,9 @@
 #                       and correlation analyzers off, so only the judge reports. A --policy you
 #                       pass through replaces that policy (the last --policy wins).
 # LLM configs need SKILL_SCANNER_LLM_API_KEY and SKILL_SCANNER_LLM_MODEL (or cloud credentials).
-# With --use-llm and no usable key the tool exits 2 and writes nothing; it does not fall back.
+# With --use-llm and no usable key the tool exits 2 and writes nothing. When the key is there but
+# the model call or its reply fails, the tool exits 0 with its rule findings plus one INFO result
+# LLM_ANALYSIS_FAILED; the adapter fails on that result instead of recording a rules-only run.
 #
 # Install: pip install cisco-ai-skill-scanner   (Python >= 3.11)
 # Tool location: CISCO_SKILL_SCANNER_BIN, or CISCO_SKILL_SCANNER_SPEC (a uvx requirement such as
@@ -35,11 +37,11 @@ while [ $# -gt 0 ]; do
     *) extra+=("$1"); shift;;
   esac
 done
+# Start from an empty run dir: a stale findings.sarif must not survive a failed run.
+mkdir -p "$out"; out="$(stb_abs "$out")"; raw="$(stb_fresh_raw "$out")"
 case "$config" in static-only|judge-only|combined) ;; *) echo "unknown --config $config (static-only|judge-only|combined)" >&2; exit 2;; esac
-mkdir -p "$out"; out="$(stb_abs "$out")"
 stb_find_tool CISCO_SKILL_SCANNER skill-scanner cisco-ai-skill-scanner
 stb_stage_asset "$asset" "$in_place"
-raw="$(stb_fresh_raw "$out")"
 version="$("${STB_TOOL[@]}" --version 2>/dev/null | tail -1 || true)"
 
 mode=()

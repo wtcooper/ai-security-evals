@@ -11,7 +11,7 @@ Used by the adapters in this folder as their last step. Stdlib only. Two modes:
   # A tool that already emits SARIF: check it, put the severity on the harness scale, tidy paths
   python3 scan_report_to_sarif.py normalize <in.sarif> <out.sarif>
       --tool skillspector|cisco-skill-scanner|aig-skill-scan|aig-mcp-scan
-      [--asset-root DIR] [--allow-incomplete] [--meta key=value ...]
+      [--asset-root DIR] [--require-complete] [--allow-incomplete] [--meta key=value ...]
 
 Every result leaves with a rule id, a file location, `properties.severity` on the harness scale
 (critical | high | medium | low | info) and the tool's own value in `properties.original_severity`.
@@ -55,10 +55,14 @@ SEVERITY_MAPS = {
             "medium": "medium", "中危": "medium", "low": "low", "低危": "low",
             "info": "info", "informational": "info"},
 }
-# normalize profiles: expected SARIF driver name and severity table.
+# normalize profiles: expected SARIF driver name, severity table, and rule ids with which the tool
+# reports that one of its own analyzers failed (a marker, not a finding about the asset).
 PROFILES = {
     "skillspector": {"driver": "skillspector", "severity": "skillspector"},
-    "cisco-skill-scanner": {"driver": "skill-scanner", "severity": "cisco-skill-scanner"},
+    # skill-scanner exits 0 and keeps its rule findings when the LLM call or its reply fails,
+    # adding one INFO result LLM_ANALYSIS_FAILED ("completed with static analysis only").
+    "cisco-skill-scanner": {"driver": "skill-scanner", "severity": "cisco-skill-scanner",
+                            "failure_rules": {"LLM_ANALYSIS_FAILED"}},
     "aig-skill-scan": {"driver": "aig-skill-scan", "severity": "aig"},
     "aig-mcp-scan": {"driver": "aig-mcp-scan", "severity": "aig"},
 }
@@ -248,8 +252,9 @@ def convert_cisco_mcp(doc, *, sources: dict, asset_root: str | None, require: li
 
 # ---------------------------------------------------------------------- native SARIF -> checked
 def normalize_sarif(doc, *, tool: str, asset_root: str | None, allow_incomplete: bool,
-                    meta: dict) -> dict:
+                    meta: dict, require_complete: bool = False) -> dict:
     prof = PROFILES[tool]
+    failure_rules = prof.get("failure_rules", set())
     sev_map = SEVERITY_MAPS[prof["severity"]]
     if not isinstance(doc, dict):
         raise Malformed("SARIF must be a JSON object")
@@ -267,8 +272,21 @@ def normalize_sarif(doc, *, tool: str, asset_root: str | None, allow_incomplete:
             raise Malformed(f"runs[{ri}] was written by {driver!r}, expected {prof['driver']!r} "
                             f"for --tool {tool}")
         for inv in run.get("invocations") or []:
-            if isinstance(inv, dict) and inv.get("executionSuccessful") is False:
+            if not isinstance(inv, dict):
+                continue
+            if inv.get("executionSuccessful") is False:
                 problems.append(f"runs[{ri}]: the tool reports executionSuccessful=false")
+            # SkillSpector: when model replies are unusable it keeps executionSuccessful=true and
+            # reports the static findings, with analysisCompleteness.isComplete=false. Checked
+            # only on request, because a static scan can be partial for reasons that are the
+            # tool's honest result on that asset (an unreadable file, a size limit).
+            comp = (inv.get("properties") or {}).get("analysisCompleteness")
+            if require_complete and isinstance(comp, dict) and comp.get("isComplete") is False:
+                reasons = sorted({str((n.get("properties") or {}).get("reasonCode"))
+                                  for n in inv.get("toolExecutionNotifications") or []
+                                  if isinstance(n, dict) and (n.get("properties") or {}).get("reasonCode")})
+                problems.append(f"runs[{ri}]: the tool reports analysis {comp.get('status')!r}"
+                                f" ({', '.join(reasons) or 'no reason given'})")
         note = (run.get("properties") or {}).get("scanNote")
         if note not in (None, "complete"):
             problems.append(f"runs[{ri}]: the tool reports scanNote={note!r}")
@@ -278,6 +296,9 @@ def normalize_sarif(doc, *, tool: str, asset_root: str | None, allow_incomplete:
                 raise Malformed(f"runs[{ri}].results[{xi}] is not an object")
             if not res.get("ruleId"):
                 res["ruleId"] = "UNSPECIFIED"
+            if res["ruleId"] in failure_rules:
+                problems.append(f"runs[{ri}]: the tool reports {res['ruleId']}: "
+                                f"{str((res.get('message') or {}).get('text') or '')[:160]}")
             if not isinstance(res.get("message"), dict):
                 res["message"] = {"text": str(res.get("message") or "")}
             props = res.get("properties")
@@ -338,6 +359,8 @@ def main(argv=None) -> int:
                    help="accept a report that lists no scanned item (default: incomplete scan)")
     n = sub.add_parser("normalize", parents=[common], help="check and normalise a tool's own SARIF")
     n.add_argument("--tool", required=True, choices=sorted(PROFILES))
+    n.add_argument("--require-complete", action="store_true",
+                   help="fail when the tool reports its analysis as partial (use for LLM configs)")
     a = ap.parse_args(argv)
     try:
         meta = parse_meta(a.meta)
@@ -349,7 +372,8 @@ def main(argv=None) -> int:
                                     meta=meta, allow_empty=a.allow_empty)
         else:
             out = normalize_sarif(doc, tool=a.tool, asset_root=a.asset_root,
-                                  allow_incomplete=a.allow_incomplete, meta=meta)
+                                  allow_incomplete=a.allow_incomplete, meta=meta,
+                                  require_complete=a.require_complete)
     except (Malformed, Incomplete) as e:
         a.output.unlink(missing_ok=True)
         code = 2 if isinstance(e, Malformed) else 3

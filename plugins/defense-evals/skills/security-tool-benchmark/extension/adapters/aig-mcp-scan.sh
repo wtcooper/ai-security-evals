@@ -16,9 +16,13 @@
 # writes the tool's own JSON, not SARIF.
 #
 # This adapter passes `--language en` (the tool's default is zh) and runs the tool from an empty
-# directory, because the tool loads a `.env` from its working directory. When the tool marks its
-# own result `possibly-incomplete` (the agent ended with no output), the adapter fails instead of
-# recording a clean asset.
+# directory, because the tool loads a `.env` from its working directory.
+#
+# Two cases where the tool would otherwise hand back a clean-looking result, turned into failures:
+#   - the tool marks its own result `possibly-incomplete` (the agent ended with no output);
+#   - a model call fails after the tool's retries. aig-mcp-scan 0.2.0 does not stop: it feeds the
+#     agent a placeholder reply and carries on, one retry cycle per agent step. The adapter
+#     watches the tool's log for that message, stops the tool and fails the run.
 #
 # Install: pip install aig-mcp-scan   (Python >= 3.10)
 # Tool location: AIG_MCP_SCAN_BIN, or AIG_MCP_SCAN_SPEC (a uvx requirement such as
@@ -38,6 +42,8 @@ while [ $# -gt 0 ]; do
     *) extra+=("$1"); shift;;
   esac
 done
+# Start from an empty run dir: a stale findings.sarif must not survive a failed run.
+mkdir -p "$out"; out="$(stb_abs "$out")"; raw="$(stb_fresh_raw "$out")"
 case "$config" in
   judge-only) ;;
   static-only|combined) echo "aig-mcp-scan is LLM-only: it has no $config mode; use --config judge-only" >&2; exit 2;;
@@ -46,15 +52,24 @@ esac
 if [ "$has_key_arg" -eq 0 ] && [ -z "${LLM_API_KEY:-}" ] && [ -z "${OPENAI_API_KEY:-}" ] && [ -z "${OPENROUTER_API_KEY:-}" ]; then
   echo "aig-mcp-scan needs a model key: set LLM_API_KEY (or OPENAI_API_KEY / OPENROUTER_API_KEY)" >&2; exit 1
 fi
-mkdir -p "$out"; out="$(stb_abs "$out")"
 stb_find_tool AIG_MCP_SCAN aig-mcp-scan aig-mcp-scan
 stb_stage_asset "$asset" "$in_place"
 [ -d "$STB_ASSET" ] || { echo "aig-mcp-scan needs an MCP server source directory, got a file" >&2; exit 1; }
-raw="$(stb_fresh_raw "$out")"
 
-rc=0
-(cd "$raw" && "${STB_TOOL[@]}" --repo "$STB_ASSET" --language en -o "$raw/aig-mcp-scan.sarif" \
-    ${extra[@]+"${extra[@]}"}) || rc=$?
+log="$raw/aig-mcp-scan.log"
+llm_failed='LLM chat failed after retries|LLM chat error, retry 5 times'   # log lines of mcp_scan/utils/llm.py
+(cd "$raw" && exec "${STB_TOOL[@]}" --repo "$STB_ASSET" --language en -o "$raw/aig-mcp-scan.sarif" \
+    ${extra[@]+"${extra[@]}"}) > "$log" 2>&1 &
+pid=$!
+while kill -0 "$pid" 2>/dev/null; do
+  if grep -qE "$llm_failed" "$log" 2>/dev/null; then kill "$pid" 2>/dev/null || true; break; fi
+  sleep 2
+done
+rc=0; wait "$pid" 2>/dev/null || rc=$?
+tail -n 200 "$log" >&2 || true
+if grep -qE "$llm_failed" "$log"; then
+  echo "aig-mcp-scan could not reach its model; no findings recorded for this run" >&2; exit 1
+fi
 if [ "$rc" -ne 0 ]; then
   echo "aig-mcp-scan failed (exit $rc); no findings recorded for this run" >&2; exit 1
 fi

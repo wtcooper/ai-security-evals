@@ -27,14 +27,19 @@ here="$(cd "$(dirname "$0")" && pwd)"; root="$(cd "$here" && cd .. && pwd)"
 ad="$here/adapters/$adapter.sh"
 [ -f "$ad" ] || { echo "no adapter '$adapter' — write adapters/$adapter.sh from adapters/README.md" >&2; exit 1; }
 run=$(basename "$exp"); out="$exp/results/$arm/$aid"; mkdir -p "$out"
+# Every run is recorded in <EXP>/runs.jsonl, including the ones that failed. A tool that could
+# not run on a target must be excluded for that target, never read as "found nothing".
+runlog() { printf '{"arm":"%s","target":"%s","tool_run":%s,"status":"%s","reason":"%s"}\n' "$arm" "$1" "$2" "$3" "$4" >> "$exp/runs.jsonl"; }
 for r in $(seq 1 "$repeats"); do
   d="$out/run$r"; mkdir -p "$d"
   if ! bash "$ad" "$asset" "$d" "${extra[@]+"${extra[@]}"}" > "$d/adapter.log" 2>&1; then
-    echo "  run$r: adapter '$adapter' failed (see $d/adapter.log)" >&2; continue
+    echo "  run$r: adapter '$adapter' FAILED (see $d/adapter.log); recorded as failed, not as a clean scan" >&2
+    runlog "$aid" "$r" failed "adapter exited non-zero"; continue
   fi
   sarif=$(ls "$d"/*.sarif 2>/dev/null | head -1)
-  [ -n "$sarif" ] || { echo "  run$r: no *.sarif in $d" >&2; continue; }
+  [ -n "$sarif" ] || { echo "  run$r: no *.sarif in $d; recorded as failed" >&2; runlog "$aid" "$r" failed "no SARIF produced"; continue; }
   python3 "$root/lib/sarif_to_findings.py" "$sarif" --tool "$arm" --tool-run "$r" \
       --run "$run" --arm "$arm" --target "$aid" --sample 1 --append "$exp/findings.jsonl"
+  runlog "$aid" "$r" ok ""
 done
 echo "SCANNED=$aid arm=$arm repeats=$repeats"

@@ -247,6 +247,27 @@ def test_normalize_degraded_scans_fail_instead_of_reading_as_clean_or_flagged(tm
     assert r.returncode == 3 and "possibly-incomplete" in r.stderr and not out.exists()
 
 
+def test_normalize_llm_failures_the_tools_report_with_exit_0_or_1(tmp_path):
+    out = tmp_path / "f.sarif"
+    # Cisco skill-scanner, `--use-llm`, model reply unusable: exit 0, the rule findings, plus one
+    # INFO marker. Recorded as-is it would be a rules-only run under a combined label.
+    src = FX / "cisco-skill-scanner" / "llm-analysis-failed-mockllm.sarif"
+    assert "LLM_ANALYSIS_FAILED" in {x["ruleId"] for x in results_of(src)} and len(results_of(src)) == 7
+    r = convert("normalize", src, out, "--tool", "cisco-skill-scanner")
+    assert r.returncode == 3 and "LLM_ANALYSIS_FAILED" in r.stderr and not out.exists()
+    # SkillSpector, provider reachable, replies unusable: exit 1, executionSuccessful=true, the
+    # static findings, analysis marked partial. Fails only when completeness is asked for.
+    src = FX / "skillspector" / "llm-replies-unusable-mockllm.sarif"
+    r = convert("normalize", src, out, "--tool", "skillspector", "--require-complete")
+    assert r.returncode == 3 and "'partial'" in r.stderr and not out.exists()
+    assert convert("normalize", src, out, "--tool", "skillspector").returncode == 0
+    assert len(results_of(out)) == 4
+    # a complete scan passes the same check
+    r = convert("normalize", FX / "skillspector" / "flagged-staged-fetch.sarif", out,
+                "--tool", "skillspector", "--require-complete")
+    assert r.returncode == 0, r.stderr
+
+
 @pytest.mark.parametrize("body", [
     "", "{", "[]", "{}", '{"version": "2.1.0"}', '{"version": "2.1.0", "runs": []}',
     '{"version": "1.0", "runs": [{"tool": {"driver": {"name": "skillspector"}}, "results": []}]}',
@@ -493,6 +514,47 @@ def test_real_skill_scanner_static_only(tmp_path, adapter, prefix, binary):
     # an LLM config with no key must fail, never fall back to a rules-only result
     r = run_adapter(adapter, mutant, tmp_path / "c", "--config", "combined", env=env)
     assert r.returncode != 0 and not (tmp_path / "c" / "findings.sarif").exists()
+
+
+def test_real_skill_scanners_fail_when_the_model_reply_is_unusable(tmp_path, mock_llm):
+    """With a key set and a model that answers rubbish, both tools still exit 0/1 with their rule
+    findings. The adapters must not record that as a combined run."""
+    mutant = make_mutant(make_benign_skill(tmp_path / "benign"), tmp_path / "mutant")
+    url = mock_llm(FX / "mock-replies" / "unusable.txt")
+    ran = 0
+    for adapter, prefix, binary, llm in (
+            ("cisco-skill-scanner", "CISCO_SKILL_SCANNER", "skill-scanner",
+             {"SKILL_SCANNER_LLM_API_KEY": "dummy", "SKILL_SCANNER_LLM_MODEL": "openai/mock-model",
+              "SKILL_SCANNER_LLM_BASE_URL": url}),
+            ("skillspector", "SKILLSPECTOR", "skillspector",
+             {"SKILLSPECTOR_PROVIDER": "openai_compatible", "SKILLSPECTOR_COMPAT_API_KEY": "dummy",
+              "SKILLSPECTOR_COMPAT_BASE_URL": url, "SKILLSPECTOR_MODEL": "mock-model"})):
+        path = os.environ.get(f"{prefix}_BIN") or shutil.which(binary)
+        if not path:
+            continue
+        ran += 1
+        out = tmp_path / adapter
+        r = run_adapter(adapter, mutant, out, "--config", "combined",
+                        env=keyless_env(**{f"{prefix}_BIN": path}, **llm))
+        assert r.returncode != 0 and "incomplete scan" in r.stderr, (adapter, r.stderr[-400:])
+        assert not (out / "findings.sarif").exists()
+    if not ran:
+        pytest.skip("neither skill-scanner nor skillspector is installed")
+
+
+def test_real_cisco_skill_scanner_llm_configs_against_mock_model(tmp_path, mock_llm):
+    """Plumbing only: a canned "no findings" reply. judge-only must then report nothing, because
+    its policy turns the rule analyzers off; combined must still report the rule findings."""
+    env = {**tool_env("CISCO_SKILL_SCANNER", "skill-scanner"), "SKILL_SCANNER_LLM_API_KEY": "dummy",
+           "SKILL_SCANNER_LLM_MODEL": "openai/mock-model",
+           "SKILL_SCANNER_LLM_BASE_URL": mock_llm(FX / "mock-replies" / "cisco-skill-llm-clean.json")}
+    mutant = make_mutant(make_benign_skill(tmp_path / "benign"), tmp_path / "mutant")
+    r = run_adapter("cisco-skill-scanner", mutant, tmp_path / "j", "--config", "judge-only", env=env)
+    assert r.returncode == 0, r.stderr
+    assert results_of(tmp_path / "j" / "findings.sarif") == []
+    r = run_adapter("cisco-skill-scanner", mutant, tmp_path / "c", "--config", "combined", env=env)
+    assert r.returncode == 0, r.stderr
+    assert check_flagged(tmp_path / "c" / "findings.sarif", tmp_path)
 
 
 def test_real_cisco_mcp_scanner(tmp_path, mock_llm):

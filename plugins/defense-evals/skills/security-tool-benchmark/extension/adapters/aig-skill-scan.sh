@@ -34,6 +34,8 @@ while [ $# -gt 0 ]; do
     *) extra+=("$1"); shift;;
   esac
 done
+# Start from an empty run dir: a stale findings.sarif must not survive a failed run.
+mkdir -p "$out"; out="$(stb_abs "$out")"; raw="$(stb_fresh_raw "$out")"
 case "$config" in
   judge-only) ;;
   static-only|combined) echo "aig-skill-scan is LLM-only: it has no $config mode; use --config judge-only" >&2; exit 2;;
@@ -42,11 +44,9 @@ esac
 if [ "$has_key_arg" -eq 0 ] && [ -z "${LLM_API_KEY:-}" ] && [ -z "${OPENAI_API_KEY:-}" ]; then
   echo "aig-skill-scan needs a model key: set LLM_API_KEY (or OPENAI_API_KEY)" >&2; exit 1
 fi
-mkdir -p "$out"; out="$(stb_abs "$out")"
 stb_find_tool AIG_SKILL_SCAN aig-skill-scan aig-skill-scan
 stb_stage_asset "$asset" "$in_place"
 [ -d "$STB_ASSET" ] || { echo "aig-skill-scan needs a skill directory, got a file" >&2; exit 1; }
-raw="$(stb_fresh_raw "$out")"
 
 rc=0
 (cd "$raw" && "${STB_TOOL[@]}" --repo "$STB_ASSET" --language en -o "$raw/aig-skill-scan.sarif" \
