@@ -232,8 +232,8 @@ temp/
 # --- security-eval: build scratch + run artifacts ---
 # The Python template's `lib/` rule (above) would swallow our vendored runtime dirs —
 # re-include them (they ARE committed: the self-contained-skill source of truth).
-!skills/**/lib/
-!skills/**/lib/**
+!plugins/**/lib/
+!plugins/**/lib/**
 !tools/lib/
 !tools/lib/**
 # The per-skill corpus (skills/*/corpus/) IS committed (prebuilt, license-clean).

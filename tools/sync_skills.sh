@@ -32,6 +32,9 @@ vendor app-redteam     status_policy.js transform_response.js extract_transcript
 vendor control-isolate status_policy.js summarize.py extract_transcript.js
 vendor control-bench   status_policy.py
 
+# --- shared helpers + the Inspect suite/runner/report (one runner, the arm axis differs) ---
+vendor model-benchmark evalkit.py inspect_suite.py inspect_runner.py inspect_report.py
+
 # --- shared eval spine (design doc §2.3): findings/samples contract, paired stats,
 #     SARIF normaliser, manifest editor, contamination probe, sdlc locator, probe helpers ---
 SPINE="evalstats.py sarif_to_findings.py cwe_map.py manifest.py canary_probe.py find_sdlc.sh probelib.py"
