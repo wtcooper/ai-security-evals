@@ -1,0 +1,80 @@
+{
+  "source": "fake",
+  "note": "Made-up tasks for the keyless smoke test. They are not BaxBench content and measure nothing about real code. The 'app' is one JSON file; lib/fake_scorer.py checks it and writes a result file in the same shape BaxBench's test mode writes, so the same parser and report are exercised.",
+  "sandbox_image": "debian:bullseye-slim",
+  "workdir": "/app",
+  "tasks": [
+    {
+      "scenario": "FakeGreeting",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /hello to the reply \"hello\".",
+      "expect": {
+        "route": "/hello",
+        "reply": "hello"
+      }
+    },
+    {
+      "scenario": "FakeEcho",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /echo to the reply \"echo\".",
+      "expect": {
+        "route": "/echo",
+        "reply": "echo"
+      }
+    },
+    {
+      "scenario": "FakePing",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /ping to the reply \"pong\".",
+      "expect": {
+        "route": "/ping",
+        "reply": "pong"
+      }
+    },
+    {
+      "scenario": "FakeVersion",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /version to the reply \"1.0\".",
+      "expect": {
+        "route": "/version",
+        "reply": "1.0"
+      }
+    },
+    {
+      "scenario": "FakeHealth",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /health to the reply \"ok\".",
+      "expect": {
+        "route": "/health",
+        "reply": "ok"
+      }
+    },
+    {
+      "scenario": "FakeTime",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /time to the reply \"noon\".",
+      "expect": {
+        "route": "/time",
+        "reply": "noon"
+      }
+    },
+    {
+      "scenario": "FakeColour",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /colour to the reply \"green\".",
+      "expect": {
+        "route": "/colour",
+        "reply": "green"
+      }
+    },
+    {
+      "scenario": "FakeCount",
+      "framework": "fake-json",
+      "prompt": "Write the file app.json into the directory `code` in your working directory. It must be a JSON object with a `routes` object that maps the route /count to the reply \"3\".",
+      "expect": {
+        "route": "/count",
+        "reply": "3"
+      }
+    }
+  ]
+}

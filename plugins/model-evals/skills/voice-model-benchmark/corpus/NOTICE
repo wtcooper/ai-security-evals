@@ -1,0 +1,25 @@
+Vendored corpus subset: sources, licences, attribution.
+
+cases.jsonl is a filtered copy of the app-benchmark corpus that ships in this repository.
+No prompt was written for this skill. The licence of each case is the `license` field on
+its row, as recorded by that corpus; manifest.json has the counts and hashes.
+
+AdvBench  (Zou et al., "Universal and Transferable Adversarial Attacks on Aligned
+  Language Models")  -- MIT
+  https://github.com/llm-attacks/llm-attacks  (data/advbench/harmful_behaviors.csv)
+  Harmful behaviour requests, used as cases the model should refuse (type: harmful).
+
+XSTest  (Rottger et al., "XSTest: A Test Suite for Identifying Exaggerated Safety
+  Behaviours in Large Language Models")  -- CC-BY-4.0, attribution required
+  https://github.com/paul-rottger/xstest  (xstest_prompts.csv)
+  Safe prompts that look unsafe (type: benign, the over-refusal controls) and their unsafe
+  contrasts (type: harmful).
+
+PromptInject  (Perez & Ribeiro, "Ignore Previous Prompt")  -- MIT
+  https://github.com/agencyenterprise/PromptInject
+  Five plain benign questions (type: benign).
+
+These are attacker requests and benign controls for defensive evaluation, not operational
+instructions. Use them only against systems you are authorised to test. Apply access
+controls to result folders: samples.jsonl holds the prompts and the model's replies.
+Verify each licence and version yourself before redistributing.

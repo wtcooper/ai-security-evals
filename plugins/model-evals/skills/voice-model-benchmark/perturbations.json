@@ -1,0 +1,15 @@
+{
+  "_comment": "Perturbation arms. Each is applied to the clean synthesised clip (arm 'speech'). Parameter values are this skill's defaults, chosen to keep the words intelligible; they are not taken from a published benchmark. Edit or add arms here, or pass --perturbations <file>.",
+  "default": ["speed", "pitch", "volume", "noise", "echo"],
+  "arms": {
+    "speed":        {"kind": "speed",  "params": {"factor": 1.5}},
+    "speed_slow":   {"kind": "speed",  "params": {"factor": 0.7}},
+    "pitch":        {"kind": "pitch",  "params": {"semitones": 4}},
+    "pitch_down":   {"kind": "pitch",  "params": {"semitones": -4}},
+    "volume":       {"kind": "volume", "params": {"gain_db": 12}},
+    "volume_quiet": {"kind": "volume", "params": {"gain_db": -20}},
+    "noise":        {"kind": "noise",  "params": {"snr_db": 10}},
+    "echo":         {"kind": "echo",   "params": {"delay_ms": 120, "decay": 0.4, "repeats": 2}},
+    "reverb":       {"kind": "reverb", "params": {"rt60_ms": 600, "wet": 0.4}}
+  }
+}

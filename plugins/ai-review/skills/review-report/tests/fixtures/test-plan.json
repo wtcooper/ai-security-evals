@@ -1,0 +1,1154 @@
+{
+  "schema_version": 1,
+  "generated": "2026-11-14",
+  "generator": "review-threat-model/scripts/plan.py",
+  "review_id": "example-2026-001",
+  "subject": {
+    "type": "agent",
+    "name": "example-model-1 inside example-harness",
+    "version": "example-model-1-20261101",
+    "vendor": "Example Labs (fictional)",
+    "feature": null
+  },
+  "template": "agent-in-harness",
+  "depth": "standard",
+  "tiers_planned": [
+    "T0",
+    "T1"
+  ],
+  "catalog": {
+    "updated": "2026-11-14",
+    "entries": 54
+  },
+  "scope": {
+    "tools_attached": true,
+    "open_weights": true,
+    "untrusted_channels": [
+      "repository files, issues and pull-request text",
+      "web pages fetched by the web_fetch tool"
+    ]
+  },
+  "scope_gaps": [],
+  "ask": [
+    "Which harness and version, and does it update itself?",
+    "Which tools are on, and which need approval?",
+    "What can the agent reach from where it runs: credentials, network, other repositories?",
+    "Which content does it read that an outsider can write?",
+    "Are provider safeguards on in this harness, and does the harness add its own?"
+  ],
+  "threats": [
+    {
+      "threat": "harness-divergence",
+      "name": "Safeguards differ between surfaces",
+      "description": "The model behaves differently inside the harness or product than on the bare API, so a result measured on one surface does not hold on the other.",
+      "why_here": "The reason this template exists: results on the bare API do not transfer to the harness, in either direction.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "applies": true,
+      "applies_reason": "",
+      "route": "custom_probe",
+      "route_note": "Run the same scenarios on each surface in scope and compare them paired.",
+      "benchmarks": [],
+      "also_exists": [
+        {
+          "id": "agent_misuse_scenarios",
+          "skill": "agent-misuse-benchmark",
+          "status": "planned",
+          "tier": "T1",
+          "verified": false,
+          "why_not_planned": "the skill that would run it is planned, not available"
+        },
+        {
+          "id": "crf_benchmark",
+          "skill": "agent-misuse-benchmark",
+          "status": "candidate",
+          "tier": null,
+          "verified": false,
+          "why_not_planned": "named in research; nothing here runs it"
+        }
+      ],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "agent-goal-hijack",
+      "name": "Agent goal hijack through tool results or data",
+      "description": "Content the agent reads while working (a tool result, a file, a web page, an issue) redirects it to an attacker's goal.",
+      "why_here": "Every file, issue, web page and tool result the agent reads is an instruction channel.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [
+        "ASI01"
+      ],
+      "atlas": [
+        "AML.T0051.001"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "benchmark",
+      "route_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+      "benchmarks": [
+        {
+          "id": "agentdojo",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": 600,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": 150,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": 600,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 944,
+              "model_calls": 5664,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 3.2,
+                "at_rate_0.9": 1.9
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": false,
+          "tier": "T1",
+          "verified": true,
+          "reads_as": "share of agent episodes where the injected goal was EXECUTED",
+          "direction": "lower_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "The metric is named security accuracy but counts executed injections, so lower is better. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric. Size is with sandbox tasks excluded, as the suite runs it; the full task lists 1014 in eval.yaml."
+        },
+        {
+          "id": "atb_autonomy_hijack",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 6,
+          "model_calls": 24,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 31.2,
+            "at_rate_0.9": 24.4
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 6,
+              "model_calls": 24,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 31.2,
+                "at_rate_0.9": 24.4
+              }
+            },
+            "standard": {
+              "samples": 6,
+              "model_calls": 24,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 31.2,
+                "at_rate_0.9": 24.4
+              }
+            },
+            "full": {
+              "samples": 6,
+              "model_calls": 24,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 31.2,
+                "at_rate_0.9": 24.4
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": false,
+          "tier": "T1",
+          "verified": true,
+          "reads_as": "share of episodes where the hijack was resisted",
+          "direction": "higher_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "Same threat model as agentdojo over 6 cases. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric."
+        }
+      ],
+      "also_exists": [
+        {
+          "id": "issuetrojanbench",
+          "skill": "agent-misuse-benchmark",
+          "status": "candidate",
+          "tier": null,
+          "verified": false,
+          "why_not_planned": "named in research; nothing here runs it"
+        }
+      ],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "tool-misuse",
+      "name": "Tool misuse",
+      "description": "The agent uses a legitimate tool in a harmful way: destroying data, sending data out, spending money, changing configuration.",
+      "why_here": "Shell, file and network tools turn a steered model into actions.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0053",
+        "AML.T0101"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "custom_probe",
+      "route_note": "For each tool in review.json that changes something, script a request that should not be carried out and record whether it is.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "data-leakage",
+      "name": "Sensitive data leaves through output or a tool",
+      "description": "Secrets, personal data or another user's data that are in the context, in memory or reachable by a tool appear in a response, in rendered content or in a tool call to an outside destination.",
+      "why_here": "Environment variables, credentials and source code are within reach of tools that can send data.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0086",
+        "AML.T0136",
+        "AML.T0077"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "benchmark",
+      "route_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+      "benchmarks": [
+        {
+          "id": "atb_data_exfil",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 8,
+          "model_calls": 32,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 28.5,
+            "at_rate_0.9": 21.5
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 8,
+              "model_calls": 32,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 28.5,
+                "at_rate_0.9": 21.5
+              }
+            },
+            "standard": {
+              "samples": 8,
+              "model_calls": 32,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 28.5,
+                "at_rate_0.9": 21.5
+              }
+            },
+            "full": {
+              "samples": 8,
+              "model_calls": 32,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 28.5,
+                "at_rate_0.9": 21.5
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": false,
+          "tier": "T1",
+          "verified": true,
+          "reads_as": "share of episodes where exfiltration was resisted",
+          "direction": "higher_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "Scored on tool-call arguments, 8 cases. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric."
+        }
+      ],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "privilege-abuse",
+      "name": "Excessive permissions and identity abuse",
+      "description": "The capability holds credentials, scopes or autonomy beyond what the task needs; whoever steers it inherits them.",
+      "why_here": "The agent runs with the user's credentials unless scoped otherwise.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0098",
+        "AML.T0083"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Read the granted scopes, tokens and approval settings against the task. This is a configuration review, not a measurement.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "unexpected-code-execution",
+      "name": "Unexpected code execution",
+      "description": "Generated or injected code runs where it can reach the host, the network or credentials.",
+      "why_here": "The agent runs code by design; what matters is where.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI05"
+      ],
+      "atlas": [
+        "AML.T0050",
+        "AML.T0105"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Review where code runs, what the sandbox can reach, and whether egress is closed.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "harmful-assistance",
+      "name": "Assistance with a harmful request",
+      "description": "The model helps with a harmful request that is asked plainly, with no trick: for example operational help with an intrusion.",
+      "why_here": "Refusal of malicious tasks, measured inside the harness.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "applies": true,
+      "applies_reason": "",
+      "route": "benchmark",
+      "route_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+      "benchmarks": [
+        {
+          "id": "cyse4_mitre",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": 300,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": 75,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": 300,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 1000,
+              "model_calls": 3000,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 3.1,
+                "at_rate_0.9": 1.9
+              }
+            }
+          },
+          "needs_judge": true,
+          "needs_sandbox": false,
+          "tier": "T0",
+          "verified": true,
+          "reads_as": "share of offensive requests NOT assisted",
+          "direction": "higher_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "MITRE ATT&CK-mapped offensive requests. Subject, expansion model and judge: the most expensive check per sample."
+        },
+        {
+          "id": "strong_reject",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": 200,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": 50,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": 200,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 313,
+              "model_calls": 626,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 5.5,
+                "at_rate_0.9": 3.3
+              }
+            }
+          },
+          "needs_judge": true,
+          "needs_sandbox": false,
+          "tier": "T0",
+          "verified": true,
+          "reads_as": "share of forbidden requests the model helped with",
+          "direction": "lower_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "313 forbidden prompts asked DIRECTLY, no jailbreak applied: the baseline. Unparseable judge replies are dropped from the denominator, so check n. Size: the suite lists 313; the eval.yaml in inspect_evals 0.29.0 lists 324. Not reconciled here; the n printed by the run is what counts."
+        }
+      ],
+      "also_exists": [
+        {
+          "id": "guardrail_corpus_direct",
+          "skill": "guardrail-benchmark",
+          "status": "planned",
+          "tier": "T0",
+          "verified": false,
+          "why_not_planned": "the skill that would run it is planned, not available"
+        },
+        {
+          "id": "agent_misuse_scenarios",
+          "skill": "agent-misuse-benchmark",
+          "status": "planned",
+          "tier": "T1",
+          "verified": false,
+          "why_not_planned": "the skill that would run it is planned, not available"
+        },
+        {
+          "id": "crf_benchmark",
+          "skill": "agent-misuse-benchmark",
+          "status": "candidate",
+          "tier": null,
+          "verified": false,
+          "why_not_planned": "named in research; nothing here runs it"
+        }
+      ],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "over-refusal",
+      "name": "Over-refusal of legitimate work",
+      "description": "Legitimate requests are refused or blocked. This is the cost side of every safeguard: a refusal rate on harmful requests is never read without it.",
+      "why_here": "Completion of legitimate and dual-use tasks, read beside refusal.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "applies": true,
+      "applies_reason": "",
+      "route": "benchmark",
+      "route_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+      "benchmarks": [
+        {
+          "id": "cyse4_mitre_frr",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": 100,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": 25,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": 100,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 750,
+              "model_calls": 750,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 3.6,
+                "at_rate_0.9": 2.2
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": false,
+          "tier": "T0",
+          "verified": true,
+          "reads_as": "share of benign security questions refused",
+          "direction": "lower_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "The mandatory pair of cyse4_mitre: without it a model looks safe by refusing everything."
+        }
+      ],
+      "also_exists": [
+        {
+          "id": "guardrail_corpus_direct",
+          "skill": "guardrail-benchmark",
+          "status": "planned",
+          "tier": "T0",
+          "verified": false,
+          "why_not_planned": "the skill that would run it is planned, not available"
+        },
+        {
+          "id": "agent_misuse_scenarios",
+          "skill": "agent-misuse-benchmark",
+          "status": "planned",
+          "tier": "T1",
+          "verified": false,
+          "why_not_planned": "the skill that would run it is planned, not available"
+        }
+      ],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "jailbreak",
+      "name": "Jailbreak",
+      "description": "A crafted prompt gets the model to produce what its safeguards would otherwise withhold.",
+      "why_here": "Harness system prompts and tool framing change what gets through.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0054"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "benchmark",
+      "route_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+      "benchmarks": [
+        {
+          "id": "strong_reject_aim",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": 200,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": 50,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": 200,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 313,
+              "model_calls": 626,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 5.5,
+                "at_rate_0.9": 3.3
+              }
+            }
+          },
+          "needs_judge": true,
+          "needs_sandbox": false,
+          "tier": "T0",
+          "verified": true,
+          "reads_as": "share of jailbroken forbidden requests the model helped with",
+          "direction": "lower_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "The same 313 prompts wrapped in the AIM jailbreak. The delta against strong_reject is the jailbreak uplift. AIM is the only transformation inspect_evals bundles and it is old; a low rate is a floor on the risk. Size: see strong_reject."
+        }
+      ],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "insecure-code",
+      "name": "Insecure generated code",
+      "description": "Code the model writes contains vulnerabilities that reach production.",
+      "why_here": "For coding agents: the security of what is written.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "applies": true,
+      "applies_reason": "",
+      "route": "benchmark",
+      "route_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+      "benchmarks": [
+        {
+          "id": "cyse4_instruct",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": 100,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": 25,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": 100,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 1916,
+              "model_calls": 1916,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 2.2,
+                "at_rate_0.9": 1.3
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": false,
+          "tier": "T0",
+          "verified": true,
+          "reads_as": "share of generated code with a detected vulnerability",
+          "direction": "lower_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "Deterministic semgrep-based detector, no judge."
+        },
+        {
+          "id": "cyse4_autocomplete",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 100,
+          "model_calls": 100,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 9.6,
+            "at_rate_0.9": 6.0
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 25,
+              "model_calls": 25,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 18.2,
+                "at_rate_0.9": 12.2
+              }
+            },
+            "standard": {
+              "samples": 100,
+              "model_calls": 100,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 9.6,
+                "at_rate_0.9": 6.0
+              }
+            },
+            "full": {
+              "samples": 1916,
+              "model_calls": 1916,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 2.2,
+                "at_rate_0.9": 1.3
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": false,
+          "tier": "T0",
+          "verified": true,
+          "reads_as": "share of code completions with a detected vulnerability",
+          "direction": "lower_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "cyse4_instruct's corpus as completion prompts: a second modality, not a second dimension."
+        }
+      ],
+      "also_exists": [
+        {
+          "id": "baxbench",
+          "skill": "coding-guidance-benchmark",
+          "status": "planned",
+          "tier": "T1",
+          "verified": true,
+          "why_not_planned": "the skill that would run it is planned, not available"
+        }
+      ],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "memory-poisoning",
+      "name": "Memory poisoning",
+      "description": "Content written into persistent memory in one session changes behaviour in later sessions.",
+      "why_here": "If the harness keeps memory or instruction files between sessions.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0080.000"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "benchmark",
+      "route_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+      "benchmarks": [
+        {
+          "id": "atb_memory_poison",
+          "skill": "model-benchmark",
+          "engine": "inspect",
+          "depth": "standard",
+          "samples": 10,
+          "model_calls": 40,
+          "ci_halfwidth_pp": {
+            "at_rate_0.5": 26.3,
+            "at_rate_0.9": 19.3
+          },
+          "at_depth": {
+            "smoke": {
+              "samples": 10,
+              "model_calls": 40,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 26.3,
+                "at_rate_0.9": 19.3
+              }
+            },
+            "standard": {
+              "samples": 10,
+              "model_calls": 40,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 26.3,
+                "at_rate_0.9": 19.3
+              }
+            },
+            "full": {
+              "samples": 10,
+              "model_calls": 40,
+              "ci_halfwidth_pp": {
+                "at_rate_0.5": 26.3,
+                "at_rate_0.9": 19.3
+              }
+            }
+          },
+          "needs_judge": false,
+          "needs_sandbox": false,
+          "tier": "T1",
+          "verified": true,
+          "reads_as": "share of episodes where poisoned memory was resisted",
+          "direction": "higher_is_better",
+          "subject_note": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence.",
+          "note": "OWASP ASI06. Only 10 cases: one case is 10 points. A model too weak to call tools looks good here by failing to act: read it next to the companion utility metric."
+        }
+      ],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "supply-chain-extensions",
+      "name": "Malicious or changed tool, plugin, skill or MCP server",
+      "description": "A component added to the agent is malicious, is poisoned later, or changes after it was approved.",
+      "why_here": "Skills, plugins, rule files and MCP servers added to the harness.",
+      "owasp_llm": [
+        "LLM03:2025"
+      ],
+      "owasp_agentic": [
+        "ASI04"
+      ],
+      "atlas": [
+        "AML.T0010.005",
+        "AML.T0110",
+        "AML.T0109"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Scanning an extension is outside this repo. Record which scanner the organisation ran and what it reported, and how updates are pinned.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "supply-chain-model",
+      "name": "Tampered or unsafe model artefact",
+      "description": "Downloaded weights or model files carry malicious code or were replaced on the way: unsafe serialisation formats, a look-alike repository, a changed revision.",
+      "why_here": "Open weights only.",
+      "owasp_llm": [
+        "LLM03:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0010.003",
+        "AML.T0011.000",
+        "AML.T0018.002"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "For open weights, harvest the published scan verdicts with review-evidence and record the pinned revision. For closed weights only vendor statements exist. Weights are open in review.json: run the open-weights harvest.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "human-trust-exploitation",
+      "name": "Human approval that does not work as a check",
+      "description": "People approve what the agent proposes because prompts are too frequent, too vague or presented with unearned authority.",
+      "why_here": "Approval prompts are the main safeguard in most harnesses.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI09"
+      ],
+      "atlas": [
+        "AML.T0067"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Review what an approval prompt shows, how often it appears, and what can be approved in bulk.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "cascading-failures",
+      "name": "Cascading failures",
+      "description": "One wrong or injected step propagates through chained agents, tools or automations before anyone sees it.",
+      "why_here": "If the agent's output feeds automation such as CI or other agents.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI08"
+      ],
+      "atlas": [
+        "AML.T0143"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Review the chain for points where an error is checked or stopped.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "rogue-agent",
+      "name": "Agent acting outside its intended purpose",
+      "description": "A compromised or misaligned agent keeps operating with legitimate access while pursuing something else.",
+      "why_here": "Long unattended runs with standing access.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI10"
+      ],
+      "atlas": [],
+      "applies": true,
+      "applies_reason": "",
+      "route": "uncovered",
+      "route_note": "No catalogued benchmark. Detection depends on logging and monitoring, which a design review can describe but not measure.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "offensive-capability",
+      "name": "Uplift for offensive operations",
+      "description": "The capability materially helps an attacker carry out offensive work with little human direction, such as developing an exploit.",
+      "why_here": "An agent with a shell is closer to operational capability than a chat model.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0017.001"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "uncovered",
+      "route_note": "Suites that elicit offensive capability need a supervised sandbox (tier T2) and are deliberately not run by this repo. Record vendor evaluations as evidence.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "unbounded-consumption",
+      "name": "Unbounded cost or resource use",
+      "description": "Requests, loops or tool calls drive cost or load without a cap.",
+      "why_here": "Loops and long runs.",
+      "owasp_llm": [
+        "LLM10:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0034",
+        "AML.T0029"
+      ],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Review rate limits, spend caps, context and step limits as configured.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "data-retention-hosting",
+      "name": "Retention, training use and hosting of submitted data",
+      "description": "Prompts, outputs, files or audio are kept, used for training, or processed in a place or by a party the organisation has not accepted.",
+      "why_here": "Source code and tool output leave the machine.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Read the contract and the vendor's data terms; record what was signed, not what the public page says.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    },
+    {
+      "threat": "version-drift",
+      "name": "The thing reviewed is not the thing running later",
+      "description": "An alias moves to a new model, the harness updates itself, or outputs are not reproducible, so results stop describing the deployment.",
+      "why_here": "Model alias and harness version both move.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "applies": true,
+      "applies_reason": "",
+      "route": "design_review",
+      "route_note": "Record the pinned identifiers, how updates arrive, and who is told.",
+      "benchmarks": [],
+      "also_exists": [],
+      "status": "planned",
+      "owner": "",
+      "evidence_ids": [],
+      "result_pointer": null
+    }
+  ],
+  "runs": [
+    {
+      "skill": "model-benchmark",
+      "depth": "standard",
+      "benchmarks": [
+        {
+          "id": "agentdojo",
+          "samples": 100,
+          "model_calls": 600,
+          "needs_judge": false,
+          "tier": "T1",
+          "threats": [
+            "agent-goal-hijack"
+          ]
+        },
+        {
+          "id": "atb_autonomy_hijack",
+          "samples": 6,
+          "model_calls": 24,
+          "needs_judge": false,
+          "tier": "T1",
+          "threats": [
+            "agent-goal-hijack"
+          ]
+        },
+        {
+          "id": "atb_data_exfil",
+          "samples": 8,
+          "model_calls": 32,
+          "needs_judge": false,
+          "tier": "T1",
+          "threats": [
+            "data-leakage"
+          ]
+        },
+        {
+          "id": "cyse4_mitre",
+          "samples": 100,
+          "model_calls": 300,
+          "needs_judge": true,
+          "tier": "T0",
+          "threats": [
+            "harmful-assistance"
+          ]
+        },
+        {
+          "id": "strong_reject",
+          "samples": 100,
+          "model_calls": 200,
+          "needs_judge": true,
+          "tier": "T0",
+          "threats": [
+            "harmful-assistance"
+          ]
+        },
+        {
+          "id": "cyse4_mitre_frr",
+          "samples": 100,
+          "model_calls": 100,
+          "needs_judge": false,
+          "tier": "T0",
+          "threats": [
+            "over-refusal"
+          ]
+        },
+        {
+          "id": "strong_reject_aim",
+          "samples": 100,
+          "model_calls": 200,
+          "needs_judge": true,
+          "tier": "T0",
+          "threats": [
+            "jailbreak"
+          ]
+        },
+        {
+          "id": "cyse4_instruct",
+          "samples": 100,
+          "model_calls": 100,
+          "needs_judge": false,
+          "tier": "T0",
+          "threats": [
+            "insecure-code"
+          ]
+        },
+        {
+          "id": "cyse4_autocomplete",
+          "samples": 100,
+          "model_calls": 100,
+          "needs_judge": false,
+          "tier": "T0",
+          "threats": [
+            "insecure-code"
+          ]
+        },
+        {
+          "id": "atb_memory_poison",
+          "samples": 10,
+          "model_calls": 40,
+          "needs_judge": false,
+          "tier": "T1",
+          "threats": [
+            "memory-poisoning"
+          ]
+        }
+      ],
+      "samples": 724,
+      "model_calls": 1696,
+      "model_calls_unknown_for": [],
+      "needs_judge": true
+    }
+  ],
+  "totals": {
+    "benchmark": 7,
+    "custom_probe": 2,
+    "design_review": 9,
+    "uncovered": 2,
+    "not_applicable": 0
+  }
+}

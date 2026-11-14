@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "review_id": "example-2026-002",
+  "requested_by": "Platform team lead (fictional example)",
+  "reviewer": "Security review team (fictional example)",
+  "opened": "2026-11-10",
+  "subject": {
+    "type": "model",
+    "name": "example-model-2",
+    "version": "example-model-2-20261101",
+    "vendor": "Example Labs (fictional)",
+    "feature": null,
+    "weights": {"open": false, "repo": null}
+  },
+  "context": {
+    "surface": "internal API gateway",
+    "harness": "none",
+    "harness_version": null,
+    "system_prompt": "each calling team writes its own",
+    "tools": [],
+    "safeguards": "provider classifiers on; no guardrail in front",
+    "data_sensitivity": "internal documents",
+    "autonomy": "none: text in, text out",
+    "notes": "fictional example profile used by the smoke test"
+  },
+  "input_channels": [
+    {"channel": "caller prompt", "controlled_by": "employees", "untrusted": false, "notes": ""},
+    {"channel": "documents passed in the prompt", "controlled_by": "employees and outside senders", "untrusted": true, "notes": ""}
+  ],
+  "capabilities": {"can_read": ["what the caller sends"], "can_do": [], "approval": "nothing to approve: no actions", "memory": false},
+  "failure_impact": {"worst_case": "harmful or wrong text reaches an internal user", "affected": "internal users", "reversible": true, "detection": "user reports"},
+  "time_budget": {"decision_due": "2026-11-17", "hours_available": 4, "notes": ""},
+  "out_of_scope": []
+}

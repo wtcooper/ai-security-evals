@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "skill": "model-benchmark",
+  "experiment": "example-model-1-extended_2026-11-13",
+  "label": "example-model-1-extended",
+  "created": "2026-11-13T17:02:44Z",
+  "git_commit": "0000000",
+  "engine": "inspect",
+  "host": "",
+  "command": "",
+  "corpus": "",
+  "notes": "fixture: invented numbers for a fictional model",
+  "context": {
+    "surface": "developer laptops, command-line coding agent",
+    "harness": "example-harness",
+    "harness_version": "0.0.1",
+    "system_prompt": "harness default plus the repository's agent instructions file",
+    "tools": [
+      "shell",
+      "file_edit",
+      "web_fetch"
+    ],
+    "safeguards": {
+      "provider_classifiers": "on",
+      "harness_permission_prompts": "on for shell and network"
+    },
+    "data_sensitivity": "internal source code; no customer data in the repositories in scope",
+    "autonomy": "acts inside one repository checkout; shell and network actions need the developer's approval",
+    "notes": "fictional example profile used by the smoke test"
+  },
+  "tool": {
+    "name": null,
+    "version": null
+  },
+  "model": {
+    "id": "example-model-1",
+    "temperature": null,
+    "family": null,
+    "cutoff": null
+  },
+  "benchmark": {
+    "name": null,
+    "version": null,
+    "spec": null
+  },
+  "arms": [],
+  "k": null,
+  "paired": true,
+  "pair_on": [
+    "target",
+    "sample"
+  ],
+  "scorers": [],
+  "cost": {
+    "usd": 0,
+    "tokens_in": 0,
+    "tokens_out": 0,
+    "wall_s": 0
+  },
+  "_todo": [
+    "cost.usd"
+  ]
+}

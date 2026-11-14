@@ -1,0 +1,35 @@
+{
+  "built_from": "app-benchmark corpus (harmful.json, benign_overrefusal.json)",
+  "rule": {
+    "max_chars": 200,
+    "no_line_breaks": true,
+    "sources": {
+      "harmful.json": [
+        "AdvBench",
+        "XSTest"
+      ],
+      "benign_overrefusal.json": [
+        "XSTest",
+        "PromptInject"
+      ]
+    }
+  },
+  "input_sha256": {
+    "harmful.json": "73b86c57e4b9cec0cd787f56deceaa32dace70fe3043b400dbb2149b973474cf",
+    "benign_overrefusal.json": "f0b6c9d457639aebc79e55ef88c5d076cd1ae9028edb96833c7beb36060321de"
+  },
+  "cases_sha256": "5bf413e46b44499e88cb35c8d3f32f0370ddb8b22ad0551d56c4f6a7b8031dea",
+  "counts": {
+    "total": 975,
+    "by_type": {
+      "benign": 255,
+      "harmful": 720
+    },
+    "by_type_source_license": {
+      "benign/PromptInject/MIT": 5,
+      "benign/XSTest/CC-BY-4.0": 250,
+      "harmful/AdvBench/MIT": 520,
+      "harmful/XSTest/CC-BY-4.0": 200
+    }
+  }
+}

@@ -1,0 +1,642 @@
+{
+  "schema_version": 1,
+  "templates": {
+    "model": {
+      "title": "Model reached through its API",
+      "applies_to": "A foundation model called directly: a new model or a new version, with no harness and no application around it.",
+      "ask": [
+        "Which system prompt, if any, will callers use, and who writes it?",
+        "Are image, audio or file inputs enabled?",
+        "Will callers attach tools, and which?",
+        "Is the identifier pinned to a dated version?"
+      ],
+      "threats": [
+        {
+          "threat": "harmful-assistance",
+          "why": "The baseline: what it does when asked plainly."
+        },
+        {
+          "threat": "over-refusal",
+          "why": "Read beside every refusal figure; a model that refuses everything scores perfectly on misuse."
+        },
+        {
+          "threat": "jailbreak",
+          "why": "The gap between the plain rate and the rate under a jailbreak is the uplift."
+        },
+        {
+          "threat": "prompt-injection",
+          "why": "Applies as soon as callers pass documents or other content with the request."
+        },
+        {
+          "threat": "obfuscated-input",
+          "why": "Safeguards are usually tuned on plain English text."
+        },
+        {
+          "threat": "visual-prompt-injection",
+          "why": "Only if image input is enabled."
+        },
+        {
+          "threat": "system-prompt-leak",
+          "why": "Callers put rules and sometimes secrets in system prompts."
+        },
+        {
+          "threat": "data-leakage",
+          "why": "Anything placed in context can be asked for."
+        },
+        {
+          "threat": "training-data-extraction",
+          "why": "Matters most for models fine-tuned on the organisation's data."
+        },
+        {
+          "threat": "insecure-code",
+          "why": "If the model will write code."
+        },
+        {
+          "threat": "agent-goal-hijack",
+          "why": "If callers attach tools."
+        },
+        {
+          "threat": "memory-poisoning",
+          "why": "If callers attach tools and persistent memory."
+        },
+        {
+          "threat": "harness-divergence",
+          "why": "A bare-API result does not describe the model inside a product or harness."
+        },
+        {
+          "threat": "offensive-capability",
+          "why": "Capability, not resistance: a different question from the rest of this list."
+        },
+        {
+          "threat": "misinformation",
+          "why": "Relevant when output is acted on without checking."
+        },
+        {
+          "threat": "supply-chain-model",
+          "why": "Open weights only: the artefact itself can be the attack."
+        },
+        {
+          "threat": "model-poisoning",
+          "why": "Cannot be tested from outside; vendor statements are the only evidence."
+        },
+        {
+          "threat": "unbounded-consumption",
+          "why": "Per-request cost and rate limits."
+        },
+        {
+          "threat": "data-retention-hosting",
+          "why": "What the vendor keeps and where."
+        },
+        {
+          "threat": "version-drift",
+          "why": "Aliases move; results describe one version."
+        }
+      ]
+    },
+    "agent-in-harness": {
+      "title": "Model inside an agent harness",
+      "applies_to": "A model driving a coding, desktop or command-line agent that reads files and tool results and takes actions.",
+      "ask": [
+        "Which harness and version, and does it update itself?",
+        "Which tools are on, and which need approval?",
+        "What can the agent reach from where it runs: credentials, network, other repositories?",
+        "Which content does it read that an outsider can write?",
+        "Are provider safeguards on in this harness, and does the harness add its own?"
+      ],
+      "threats": [
+        {
+          "threat": "harness-divergence",
+          "why": "The reason this template exists: results on the bare API do not transfer to the harness, in either direction."
+        },
+        {
+          "threat": "agent-goal-hijack",
+          "why": "Every file, issue, web page and tool result the agent reads is an instruction channel."
+        },
+        {
+          "threat": "tool-misuse",
+          "why": "Shell, file and network tools turn a steered model into actions."
+        },
+        {
+          "threat": "data-leakage",
+          "why": "Environment variables, credentials and source code are within reach of tools that can send data."
+        },
+        {
+          "threat": "privilege-abuse",
+          "why": "The agent runs with the user's credentials unless scoped otherwise."
+        },
+        {
+          "threat": "unexpected-code-execution",
+          "why": "The agent runs code by design; what matters is where."
+        },
+        {
+          "threat": "harmful-assistance",
+          "why": "Refusal of malicious tasks, measured inside the harness."
+        },
+        {
+          "threat": "over-refusal",
+          "why": "Completion of legitimate and dual-use tasks, read beside refusal."
+        },
+        {
+          "threat": "jailbreak",
+          "why": "Harness system prompts and tool framing change what gets through."
+        },
+        {
+          "threat": "insecure-code",
+          "why": "For coding agents: the security of what is written."
+        },
+        {
+          "threat": "memory-poisoning",
+          "why": "If the harness keeps memory or instruction files between sessions."
+        },
+        {
+          "threat": "supply-chain-extensions",
+          "why": "Skills, plugins, rule files and MCP servers added to the harness."
+        },
+        {
+          "threat": "supply-chain-model",
+          "why": "Open weights only."
+        },
+        {
+          "threat": "human-trust-exploitation",
+          "why": "Approval prompts are the main safeguard in most harnesses."
+        },
+        {
+          "threat": "cascading-failures",
+          "why": "If the agent's output feeds automation such as CI or other agents."
+        },
+        {
+          "threat": "rogue-agent",
+          "why": "Long unattended runs with standing access."
+        },
+        {
+          "threat": "offensive-capability",
+          "why": "An agent with a shell is closer to operational capability than a chat model."
+        },
+        {
+          "threat": "unbounded-consumption",
+          "why": "Loops and long runs."
+        },
+        {
+          "threat": "data-retention-hosting",
+          "why": "Source code and tool output leave the machine."
+        },
+        {
+          "threat": "version-drift",
+          "why": "Model alias and harness version both move."
+        }
+      ]
+    },
+    "app": {
+      "title": "Application built on a model",
+      "applies_to": "Something the organisation or a supplier built: a chat assistant, a retrieval application, a workflow with a model in it.",
+      "ask": [
+        "Who are the users, and are any of them outside the organisation?",
+        "What does the application retrieve or load into the prompt, and who can write to those sources?",
+        "What does the application do with the model's output?",
+        "Which defences are the application's own, and can each be switched off for a comparison run?"
+      ],
+      "threats": [
+        {
+          "threat": "prompt-injection",
+          "why": "User input and retrieved content share the prompt with the application's instructions."
+        },
+        {
+          "threat": "jailbreak",
+          "why": "The application's users will try."
+        },
+        {
+          "threat": "harmful-assistance",
+          "why": "What the application will help with under the organisation's name."
+        },
+        {
+          "threat": "over-refusal",
+          "why": "Defences that block legitimate users."
+        },
+        {
+          "threat": "system-prompt-leak",
+          "why": "The application's prompt is its configuration."
+        },
+        {
+          "threat": "data-leakage",
+          "why": "Other users' data, retrieved documents and secrets in context."
+        },
+        {
+          "threat": "rag-poisoning",
+          "why": "If anything retrieved can be written by someone else."
+        },
+        {
+          "threat": "improper-output-handling",
+          "why": "Where the reply is rendered, stored or executed."
+        },
+        {
+          "threat": "agent-goal-hijack",
+          "why": "If the application has tools."
+        },
+        {
+          "threat": "tool-misuse",
+          "why": "If the application has tools that change something."
+        },
+        {
+          "threat": "privilege-abuse",
+          "why": "The application's service account usually sees more than any one user should."
+        },
+        {
+          "threat": "cross-session-leakage",
+          "why": "If history or memory is stored."
+        },
+        {
+          "threat": "obfuscated-input",
+          "why": "Filters in front of the model are often text-pattern based."
+        },
+        {
+          "threat": "misinformation",
+          "why": "If users act on answers."
+        },
+        {
+          "threat": "supply-chain-extensions",
+          "why": "Plugins and connectors the application loads."
+        },
+        {
+          "threat": "unbounded-consumption",
+          "why": "Public endpoints with per-token cost."
+        },
+        {
+          "threat": "data-retention-hosting",
+          "why": "The application's own logs and the model vendor's."
+        },
+        {
+          "threat": "version-drift",
+          "why": "Model upgrades behind an unchanged application."
+        }
+      ]
+    },
+    "decision-model": {
+      "title": "Decision model",
+      "applies_to": "A model that takes a state and typed questions with a closed answer set and returns answers with probabilities, used to route, gate, grade or screen.",
+      "ask": [
+        "What does the decision gate, and what happens on each answer?",
+        "Who writes the question instructions and option criteria, and is any of that text built from data?",
+        "Who controls the content being judged?",
+        "Is there an abstain option, and what does the caller do on refusal or error?",
+        "Is a confidence threshold used, and what happens below it?",
+        "Which wire format: one undifferentiated state, or separate roles?"
+      ],
+      "threats": [
+        {
+          "threat": "decision-error-asymmetry",
+          "why": "Start here: decide which error is which before reading any number."
+        },
+        {
+          "threat": "decision-state-injection",
+          "why": "The judged content is usually attacker-controlled and arrives as one blob."
+        },
+        {
+          "threat": "decision-option-channel",
+          "why": "Labels and criteria are prompt."
+        },
+        {
+          "threat": "decision-perturbation-flip",
+          "why": "First-option bias and wording sensitivity are documented by vendors."
+        },
+        {
+          "threat": "decision-confidence-manipulation",
+          "why": "Decides whether 'escalate when unsure' works."
+        },
+        {
+          "threat": "decision-probability-oracle",
+          "why": "Every response returns a signal."
+        },
+        {
+          "threat": "decision-forced-choice",
+          "why": "A model that must answer will."
+        },
+        {
+          "threat": "decision-confused-deputy",
+          "why": "When the model approves an agent's tool calls."
+        },
+        {
+          "threat": "decision-no-rationale",
+          "why": "Audit rests on logging."
+        },
+        {
+          "threat": "obfuscated-input",
+          "why": "Encoding, language and image overlays."
+        },
+        {
+          "threat": "version-drift",
+          "why": "No seed; aliases move."
+        },
+        {
+          "threat": "unbounded-consumption",
+          "why": "Input-token billing with very large contexts and many questions per request."
+        },
+        {
+          "threat": "policy-leakage",
+          "why": "Limited to probing through probabilities."
+        },
+        {
+          "threat": "bias",
+          "why": "When decisions concern people."
+        },
+        {
+          "threat": "data-retention-hosting",
+          "why": "The judged content is often the sensitive part."
+        },
+        {
+          "threat": "supply-chain-model",
+          "why": "Open-weight decision models only."
+        }
+      ]
+    },
+    "voice-model": {
+      "title": "Voice or realtime speech model",
+      "applies_to": "A speech-to-speech or realtime audio model, on a phone line, in an app or in a device.",
+      "ask": [
+        "Where does audio come from: a phone line, a browser, a device in a room?",
+        "Who else can be heard on the channel?",
+        "Which tools can a spoken request trigger?",
+        "Do any guardrails read a transcript rather than the audio?",
+        "How is the caller identified?",
+        "Is there a cap on session length and cost?"
+      ],
+      "threats": [
+        {
+          "threat": "voice-audio-jailbreak",
+          "why": "The audio channel has been measured as weaker than text."
+        },
+        {
+          "threat": "voice-perturbation",
+          "why": "Real callers and attackers both vary the audio."
+        },
+        {
+          "threat": "voice-background-injection",
+          "why": "Anything audible is input."
+        },
+        {
+          "threat": "voice-tool-abuse",
+          "why": "If spoken requests can trigger tools."
+        },
+        {
+          "threat": "voice-transcript-gap",
+          "why": "If any safeguard works on a transcript."
+        },
+        {
+          "threat": "voice-barge-in",
+          "why": "Realtime turn-taking is part of the attack surface."
+        },
+        {
+          "threat": "voice-caller-spoofing",
+          "why": "Voice is not authentication."
+        },
+        {
+          "threat": "voice-cloning-misuse",
+          "why": "If the model can produce arbitrary voices."
+        },
+        {
+          "threat": "harmful-assistance",
+          "why": "The text baseline the audio channel is compared with."
+        },
+        {
+          "threat": "over-refusal",
+          "why": "Legitimate callers refused, including by accent or noise."
+        },
+        {
+          "threat": "prompt-injection",
+          "why": "Through any text or documents the voice agent is given."
+        },
+        {
+          "threat": "system-prompt-leak",
+          "why": "Spoken extraction of the agent's instructions."
+        },
+        {
+          "threat": "data-leakage",
+          "why": "Account data read aloud to the wrong caller."
+        },
+        {
+          "threat": "unbounded-consumption",
+          "why": "Realtime sessions bill by the minute."
+        },
+        {
+          "threat": "data-retention-hosting",
+          "why": "Recordings and transcripts."
+        },
+        {
+          "threat": "version-drift",
+          "why": "Realtime model aliases."
+        }
+      ]
+    },
+    "image-model": {
+      "title": "Image generation or editing model",
+      "applies_to": "A model that produces or edits images from text or from other images. For image input to a chat model, use the model template.",
+      "ask": [
+        "Who can prompt it, and where do the outputs go?",
+        "Does it accept reference or input images?",
+        "What does the organisation's content policy prohibit?",
+        "Does the vendor document provenance metadata or a watermark?"
+      ],
+      "threats": [
+        {
+          "threat": "image-prohibited-content",
+          "why": "No standardised benchmark exists for this."
+        },
+        {
+          "threat": "image-real-person-likeness",
+          "why": "Impersonation and non-consensual imagery."
+        },
+        {
+          "threat": "image-provenance",
+          "why": "Whether an output can later be identified as generated."
+        },
+        {
+          "threat": "visual-prompt-injection",
+          "why": "If the model edits or is conditioned on input images."
+        },
+        {
+          "threat": "jailbreak",
+          "why": "Prompt rewording against the content filter."
+        },
+        {
+          "threat": "over-refusal",
+          "why": "Benign prompts blocked by the content filter."
+        },
+        {
+          "threat": "training-data-extraction",
+          "why": "Reproduction of training images."
+        },
+        {
+          "threat": "supply-chain-model",
+          "why": "Open-weight image models and their add-on weights."
+        },
+        {
+          "threat": "unbounded-consumption",
+          "why": "Generation is expensive per request."
+        },
+        {
+          "threat": "data-retention-hosting",
+          "why": "Uploaded reference images, especially of people."
+        },
+        {
+          "threat": "version-drift",
+          "why": "Filter and model updates."
+        }
+      ]
+    },
+    "feature": {
+      "title": "New agent feature",
+      "applies_to": "One capability being switched on in an agent the organisation already runs. The plan lists the threats for the feature named in review.json (subject.feature) plus the common ones.",
+      "ask": [
+        "What can the agent do with the feature on that it could not do before?",
+        "Which new content does it read, and who can write it?",
+        "Which new credentials or sessions does it use?",
+        "Can the feature be limited to some users, sites, tools or data first?"
+      ],
+      "common": [
+        {
+          "threat": "privilege-abuse",
+          "why": "A new feature usually arrives with new scopes."
+        },
+        {
+          "threat": "data-retention-hosting",
+          "why": "New data leaves the organisation with each feature."
+        },
+        {
+          "threat": "version-drift",
+          "why": "Features change behind a flag without a version."
+        },
+        {
+          "threat": "unbounded-consumption",
+          "why": "New ways to spend."
+        }
+      ],
+      "features": {
+        "computer-use": [
+          {
+            "threat": "agent-goal-hijack",
+            "why": "Everything on screen is input: pages, pop-ups, documents, notifications."
+          },
+          {
+            "threat": "tool-misuse",
+            "why": "Clicks and keystrokes can do anything the logged-in user can."
+          },
+          {
+            "threat": "data-leakage",
+            "why": "Screen content and open sessions are within reach."
+          },
+          {
+            "threat": "human-trust-exploitation",
+            "why": "Watching an agent click is not reviewing it."
+          },
+          {
+            "threat": "visual-prompt-injection",
+            "why": "Instructions rendered as pixels."
+          }
+        ],
+        "memory": [
+          {
+            "threat": "memory-poisoning",
+            "why": "One poisoned write persists."
+          },
+          {
+            "threat": "cross-session-leakage",
+            "why": "What one session stores another can read."
+          },
+          {
+            "threat": "data-leakage",
+            "why": "Memory holds what users said earlier."
+          }
+        ],
+        "connectors": [
+          {
+            "threat": "supply-chain-extensions",
+            "why": "Each connector or MCP server is third-party code and third-party text."
+          },
+          {
+            "threat": "agent-goal-hijack",
+            "why": "Connector results are instruction channels."
+          },
+          {
+            "threat": "tool-misuse",
+            "why": "Connectors that write."
+          },
+          {
+            "threat": "rag-poisoning",
+            "why": "Connected data sources others can write to."
+          },
+          {
+            "threat": "data-leakage",
+            "why": "A connector that can send is a route out."
+          }
+        ],
+        "code-execution": [
+          {
+            "threat": "unexpected-code-execution",
+            "why": "The feature is code execution; the question is its reach."
+          },
+          {
+            "threat": "data-leakage",
+            "why": "Files and network reachable from the sandbox."
+          },
+          {
+            "threat": "insecure-code",
+            "why": "Code that is kept after the session."
+          }
+        ],
+        "multi-agent": [
+          {
+            "threat": "inter-agent-communication",
+            "why": "Agents instructing agents."
+          },
+          {
+            "threat": "cascading-failures",
+            "why": "One steered agent steers the rest."
+          },
+          {
+            "threat": "rogue-agent",
+            "why": "Harder to see which agent did what."
+          },
+          {
+            "threat": "agent-goal-hijack",
+            "why": "Injection reaches every agent that reads the shared content."
+          }
+        ],
+        "background-agent": [
+          {
+            "threat": "background-trigger-abuse",
+            "why": "Runs start with no person present."
+          },
+          {
+            "threat": "rogue-agent",
+            "why": "Standing access, long runs."
+          },
+          {
+            "threat": "cascading-failures",
+            "why": "Output goes straight into other systems."
+          },
+          {
+            "threat": "agent-goal-hijack",
+            "why": "Nobody is watching the content it reads."
+          },
+          {
+            "threat": "human-trust-exploitation",
+            "why": "Approval after the fact."
+          }
+        ],
+        "other": [
+          {
+            "threat": "agent-goal-hijack",
+            "why": "Check each new content source."
+          },
+          {
+            "threat": "tool-misuse",
+            "why": "Check each new action."
+          },
+          {
+            "threat": "data-leakage",
+            "why": "Check each new route out."
+          }
+        ]
+      }
+    }
+  }
+}

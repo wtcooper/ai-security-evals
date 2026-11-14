@@ -1,0 +1,760 @@
+{
+  "schema_version": 1,
+  "note": "Threat registry for review-threat-model. Framework ids are listed only where they were checked against the primary source (frameworks.json); a threat with no id in a column has no verified match there. `fallback` is how the threat is assessed when no available catalogued benchmark covers it.",
+  "threats": [
+    {
+      "id": "harmful-assistance",
+      "name": "Assistance with a harmful request",
+      "description": "The model helps with a harmful request that is asked plainly, with no trick: for example operational help with an intrusion.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Write a small set of requests that matter in this deployment and their benign twins."
+    },
+    {
+      "id": "jailbreak",
+      "name": "Jailbreak",
+      "description": "A crafted prompt gets the model to produce what its safeguards would otherwise withhold.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0054"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Apply current jailbreak transformations to requests the subject refuses when asked plainly; report the uplift over the plain rate."
+    },
+    {
+      "id": "over-refusal",
+      "name": "Over-refusal of legitimate work",
+      "description": "Legitimate requests are refused or blocked. This is the cost side of every safeguard: a refusal rate on harmful requests is never read without it.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Collect legitimate requests from the deployment that look risky and count refusals."
+    },
+    {
+      "id": "prompt-injection",
+      "name": "Prompt injection through input or content",
+      "description": "Text in the user's input, or in content the model is asked to process, overrides the instructions the system gave it.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0051",
+        "AML.T0051.000",
+        "AML.T0051.001"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Plant instructions in each untrusted input channel listed in review.json and score whether they are followed."
+    },
+    {
+      "id": "obfuscated-input",
+      "name": "Attack carried by encoding, language or modality",
+      "description": "An attack that plain-English safeguards catch gets through when it is encoded, obfuscated, written in another language or moved to another modality.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0068"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Re-send a sample of refused requests in the encodings, languages and modalities the deployment accepts."
+    },
+    {
+      "id": "visual-prompt-injection",
+      "name": "Instructions hidden in an image",
+      "description": "Text or patterns inside an input image are followed as instructions.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0051.001",
+        "AML.T0129"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Embed instructions in images of the kind the deployment receives and score whether they are followed."
+    },
+    {
+      "id": "system-prompt-leak",
+      "name": "System prompt disclosure",
+      "description": "The system prompt or other configuration is revealed, exposing rules, internal details or secrets that were placed in it.",
+      "owasp_llm": [
+        "LLM07:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0069.002",
+        "AML.T0085.003"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Run extraction prompts against the deployed system prompt; separately, read the prompt for secrets that should not be there."
+    },
+    {
+      "id": "data-leakage",
+      "name": "Sensitive data leaves through output or a tool",
+      "description": "Secrets, personal data or another user's data that are in the context, in memory or reachable by a tool appear in a response, in rendered content or in a tool call to an outside destination.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0086",
+        "AML.T0136",
+        "AML.T0077"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Seed the context with canary values and test each route out: the reply, rendered links or images, and each tool that can send data."
+    },
+    {
+      "id": "training-data-extraction",
+      "name": "Memorised training data is recovered",
+      "description": "The model reproduces personal, confidential or copyrighted material it memorised during training or fine-tuning.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0137.003"
+      ],
+      "requires": [],
+      "fallback": "uncovered",
+      "fallback_note": "No catalogued benchmark. For a model the organisation fine-tuned on its own data, a canary study is possible; for a vendor model only vendor statements exist."
+    },
+    {
+      "id": "insecure-code",
+      "name": "Insecure generated code",
+      "description": "Code the model writes contains vulnerabilities that reach production.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Score generated code for the organisation's own languages and frameworks with the scanners it already trusts."
+    },
+    {
+      "id": "misinformation",
+      "name": "Wrong output that is acted on",
+      "description": "Confident but false output is relied on by people or by downstream systems.",
+      "owasp_llm": [
+        "LLM09:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "uncovered",
+      "fallback_note": "Accuracy on the organisation's task is a capability evaluation, outside this repo."
+    },
+    {
+      "id": "offensive-capability",
+      "name": "Uplift for offensive operations",
+      "description": "The capability materially helps an attacker carry out offensive work with little human direction, such as developing an exploit.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0017.001"
+      ],
+      "requires": [],
+      "fallback": "uncovered",
+      "fallback_note": "Suites that elicit offensive capability need a supervised sandbox (tier T2) and are deliberately not run by this repo. Record vendor evaluations as evidence."
+    },
+    {
+      "id": "agent-goal-hijack",
+      "name": "Agent goal hijack through tool results or data",
+      "description": "Content the agent reads while working (a tool result, a file, a web page, an issue) redirects it to an attacker's goal.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [
+        "ASI01"
+      ],
+      "atlas": [
+        "AML.T0051.001"
+      ],
+      "requires": [
+        "tools"
+      ],
+      "fallback": "custom_probe",
+      "fallback_note": "Plant goal-changing instructions in each data source the agent's tools read and score whether the attacker's action is taken."
+    },
+    {
+      "id": "tool-misuse",
+      "name": "Tool misuse",
+      "description": "The agent uses a legitimate tool in a harmful way: destroying data, sending data out, spending money, changing configuration.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0053",
+        "AML.T0101"
+      ],
+      "requires": [
+        "tools"
+      ],
+      "fallback": "custom_probe",
+      "fallback_note": "For each tool in review.json that changes something, script a request that should not be carried out and record whether it is."
+    },
+    {
+      "id": "privilege-abuse",
+      "name": "Excessive permissions and identity abuse",
+      "description": "The capability holds credentials, scopes or autonomy beyond what the task needs; whoever steers it inherits them.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0098",
+        "AML.T0083"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Read the granted scopes, tokens and approval settings against the task. This is a configuration review, not a measurement."
+    },
+    {
+      "id": "unexpected-code-execution",
+      "name": "Unexpected code execution",
+      "description": "Generated or injected code runs where it can reach the host, the network or credentials.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI05"
+      ],
+      "atlas": [
+        "AML.T0050",
+        "AML.T0105"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review where code runs, what the sandbox can reach, and whether egress is closed."
+    },
+    {
+      "id": "memory-poisoning",
+      "name": "Memory poisoning",
+      "description": "Content written into persistent memory in one session changes behaviour in later sessions.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0080.000"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Write a planted instruction to memory in one session and test whether a fresh session acts on it."
+    },
+    {
+      "id": "cross-session-leakage",
+      "name": "Memory or context leaks across sessions or users",
+      "description": "Something stored in one session or by one user surfaces in another's.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0085.002"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Store a canary as one user or session and query for it as another."
+    },
+    {
+      "id": "rag-poisoning",
+      "name": "Poisoned retrieval or connected data",
+      "description": "Content planted in an index or a connected data source is retrieved and steers the answer or the agent.",
+      "owasp_llm": [
+        "LLM08:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0070",
+        "AML.T0099"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Add a marked document to the index or data source and score whether its instruction is followed when retrieved."
+    },
+    {
+      "id": "improper-output-handling",
+      "name": "Model output trusted by downstream code",
+      "description": "Output is rendered, executed or passed to another system without validation, turning a model reply into script injection, a query, a command or an outbound request.",
+      "owasp_llm": [
+        "LLM05:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0077"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Trace where output goes in the application's code. The weakness is in the code around the model."
+    },
+    {
+      "id": "human-trust-exploitation",
+      "name": "Human approval that does not work as a check",
+      "description": "People approve what the agent proposes because prompts are too frequent, too vague or presented with unearned authority.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI09"
+      ],
+      "atlas": [
+        "AML.T0067"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review what an approval prompt shows, how often it appears, and what can be approved in bulk."
+    },
+    {
+      "id": "inter-agent-communication",
+      "name": "Insecure communication between agents",
+      "description": "One agent accepts another's message as trusted instruction with no authentication or scoping.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI07"
+      ],
+      "atlas": [],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review how agents authenticate each other and what one may ask of another."
+    },
+    {
+      "id": "cascading-failures",
+      "name": "Cascading failures",
+      "description": "One wrong or injected step propagates through chained agents, tools or automations before anyone sees it.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI08"
+      ],
+      "atlas": [
+        "AML.T0143"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review the chain for points where an error is checked or stopped."
+    },
+    {
+      "id": "rogue-agent",
+      "name": "Agent acting outside its intended purpose",
+      "description": "A compromised or misaligned agent keeps operating with legitimate access while pursuing something else.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI10"
+      ],
+      "atlas": [],
+      "requires": [],
+      "fallback": "uncovered",
+      "fallback_note": "No catalogued benchmark. Detection depends on logging and monitoring, which a design review can describe but not measure."
+    },
+    {
+      "id": "background-trigger-abuse",
+      "name": "Unattended trigger started or steered by an outsider",
+      "description": "A schedule, webhook, inbox or other trigger lets someone outside start or steer a run when no person is present.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "List every trigger, who can cause it, and what the run can do before a person sees it."
+    },
+    {
+      "id": "harness-divergence",
+      "name": "Safeguards differ between surfaces",
+      "description": "The model behaves differently inside the harness or product than on the bare API, so a result measured on one surface does not hold on the other.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Run the same scenarios on each surface in scope and compare them paired."
+    },
+    {
+      "id": "supply-chain-model",
+      "name": "Tampered or unsafe model artefact",
+      "description": "Downloaded weights or model files carry malicious code or were replaced on the way: unsafe serialisation formats, a look-alike repository, a changed revision.",
+      "owasp_llm": [
+        "LLM03:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0010.003",
+        "AML.T0011.000",
+        "AML.T0018.002"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "For open weights, harvest the published scan verdicts with review-evidence and record the pinned revision. For closed weights only vendor statements exist."
+    },
+    {
+      "id": "supply-chain-extensions",
+      "name": "Malicious or changed tool, plugin, skill or MCP server",
+      "description": "A component added to the agent is malicious, is poisoned later, or changes after it was approved.",
+      "owasp_llm": [
+        "LLM03:2025"
+      ],
+      "owasp_agentic": [
+        "ASI04"
+      ],
+      "atlas": [
+        "AML.T0010.005",
+        "AML.T0110",
+        "AML.T0109"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Scanning an extension is outside this repo. Record which scanner the organisation ran and what it reported, and how updates are pinned."
+    },
+    {
+      "id": "model-poisoning",
+      "name": "Poisoned training data or backdoored model",
+      "description": "The model was trained or modified so that it misbehaves on a trigger.",
+      "owasp_llm": [
+        "LLM04:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0020",
+        "AML.T0018.000"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Not testable from outside without knowing the trigger. Record the vendor's statements on training-data provenance, or their absence."
+    },
+    {
+      "id": "unbounded-consumption",
+      "name": "Unbounded cost or resource use",
+      "description": "Requests, loops or tool calls drive cost or load without a cap.",
+      "owasp_llm": [
+        "LLM10:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0034",
+        "AML.T0029"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review rate limits, spend caps, context and step limits as configured."
+    },
+    {
+      "id": "data-retention-hosting",
+      "name": "Retention, training use and hosting of submitted data",
+      "description": "Prompts, outputs, files or audio are kept, used for training, or processed in a place or by a party the organisation has not accepted.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Read the contract and the vendor's data terms; record what was signed, not what the public page says."
+    },
+    {
+      "id": "version-drift",
+      "name": "The thing reviewed is not the thing running later",
+      "description": "An alias moves to a new model, the harness updates itself, or outputs are not reproducible, so results stop describing the deployment.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Record the pinned identifiers, how updates arrive, and who is told."
+    },
+    {
+      "id": "decision-state-injection",
+      "name": "Injection through the judged content",
+      "description": "Text inside the content being judged changes the decision. Unverified opinions and flawed arguments work about as well as explicit commands.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0051.001"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Add injected text to labelled cases the model gets right and count flips, beside the flip rate of identical re-runs."
+    },
+    {
+      "id": "decision-option-channel",
+      "name": "Policy override through option labels or criteria",
+      "description": "Option labels and criteria are part of the prompt. If any of that text is attacker-influenced or templated from data, the gate fails open.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Edit one label or criterion at a time on labelled cases and count flips toward the permissive option."
+    },
+    {
+      "id": "decision-perturbation-flip",
+      "name": "Decision flips under benign-looking changes",
+      "description": "Irrelevant context, paraphrase or option order changes the answer.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0015",
+        "AML.T0043"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Reorder options, paraphrase and pad labelled cases; report consistency."
+    },
+    {
+      "id": "decision-confidence-manipulation",
+      "name": "Confidence pushed across a review threshold",
+      "description": "Input shifts the reported confidence so that a wrong answer stays confident or a right answer is sent to human review.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Record the full distribution for clean and attacked cases and compare the confidence of flipped decisions."
+    },
+    {
+      "id": "decision-probability-oracle",
+      "name": "Returned probabilities guide an attack",
+      "description": "The probabilities in the response give an attacker a signal to optimise against without any model access.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0043.001"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "An adaptive attack using returned probabilities as feedback; costly, for shortlisted models only."
+    },
+    {
+      "id": "decision-error-asymmetry",
+      "name": "Fail-open and fail-closed errors hidden in one number",
+      "description": "A single accuracy figure hides which way the model fails. Allowing what should be blocked and blocking what should be allowed cost different things.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Score labelled cases from the deployment's own policy and report fail-open and fail-closed rates separately."
+    },
+    {
+      "id": "decision-forced-choice",
+      "name": "Forced choice and refusal handling",
+      "description": "The model always answers unless an abstain option exists; a refusal or error treated as allow is an evasion path.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Send cases with no correct option, and cases that provoke refusal or error, and record what the calling code does with each."
+    },
+    {
+      "id": "decision-no-rationale",
+      "name": "No rationale to audit",
+      "description": "The model returns no explanation, so a decision can be audited only from the logged input and the full returned distribution.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review what is logged for each decision and for how long."
+    },
+    {
+      "id": "decision-confused-deputy",
+      "name": "Gate reads content controlled by the party it judges",
+      "description": "A decision model used as an agent gate reads tool output or content written by the attacker whose action it is approving.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0051.001"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Place the model as tool-call approver in front of a fixed agent and report utility and attack success together."
+    },
+    {
+      "id": "policy-leakage",
+      "name": "Policy or data inferred through probabilities",
+      "description": "The policy text or properties of the judged data are inferred by probing.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "uncovered",
+      "fallback_note": "No published study or benchmark was found."
+    },
+    {
+      "id": "bias",
+      "name": "Decisions differ by protected attribute",
+      "description": "Decisions about people change with attributes that should not matter.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "uncovered",
+      "fallback_note": "No fairness benchmark for decision models was found."
+    },
+    {
+      "id": "voice-audio-jailbreak",
+      "name": "Spoken request succeeds where text is refused",
+      "description": "A request the model refuses as text is fulfilled when delivered as speech.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0054"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Synthesise refused text requests as speech locally and compare the two channels paired."
+    },
+    {
+      "id": "voice-perturbation",
+      "name": "Acoustic variation changes the outcome",
+      "description": "Accent, noise, speed, pitch or audio effects change whether a request is refused.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0043"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Apply a fixed set of perturbations to the same spoken requests and report the change from the clean recording."
+    },
+    {
+      "id": "voice-background-injection",
+      "name": "Background speech followed as an instruction",
+      "description": "Speech from another person, a played recording or media in the room is treated as the caller's instruction.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0051.001",
+        "AML.T0129"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "No benchmark exists. Mix planted speech into recordings of the real call flow."
+    },
+    {
+      "id": "voice-tool-abuse",
+      "name": "Tool call triggered by voice",
+      "description": "A spoken instruction, including one from the background, triggers a tool call the caller should not be able to cause.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0053"
+      ],
+      "requires": [
+        "tools"
+      ],
+      "fallback": "custom_probe",
+      "fallback_note": "No benchmark exists. Script spoken requests for each tool that changes something."
+    },
+    {
+      "id": "voice-transcript-gap",
+      "name": "Guardrail sees the transcript, the model hears the audio",
+      "description": "Safeguards that read a transcript miss what transcription drops or alters.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "No benchmark exists. Compare guardrail verdicts on transcripts with the model's behaviour on the audio for the same recordings."
+    },
+    {
+      "id": "voice-barge-in",
+      "name": "Interruption and turn-taking manipulation",
+      "description": "Interrupting, overlapping or timing speech changes what the model accepts.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "No benchmark exists. Script interruptions at the points where the call flow confirms an action."
+    },
+    {
+      "id": "voice-caller-spoofing",
+      "name": "Caller identity taken on trust",
+      "description": "Caller ID, signalling headers or a familiar-sounding voice are treated as authentication.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0073",
+        "AML.T0088"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review what the call flow uses to establish who is speaking."
+    },
+    {
+      "id": "voice-cloning-misuse",
+      "name": "Voice output used to impersonate a person",
+      "description": "Generated speech imitates a real person's voice.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0088",
+        "AML.T0052.001"
+      ],
+      "requires": [],
+      "fallback": "design_review",
+      "fallback_note": "Review which voices can be produced and the vendor's stated restrictions."
+    },
+    {
+      "id": "image-prohibited-content",
+      "name": "Prohibited imagery is generated",
+      "description": "The model produces images the organisation or the law prohibits, directly or through prompt rewording.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0054"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "No standardised benchmark exists. Hand-build a small probe set from the organisation's content policy, with benign twins."
+    },
+    {
+      "id": "image-real-person-likeness",
+      "name": "Likeness of a real person",
+      "description": "The model produces a convincing image of a real, identifiable person.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0088"
+      ],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "No standardised benchmark exists. Probe with named public figures and with uploaded reference photos if the product accepts them."
+    },
+    {
+      "id": "image-provenance",
+      "name": "Missing or removable provenance",
+      "description": "Outputs carry no provenance signal, or it is lost on the first re-save or crop.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "requires": [],
+      "fallback": "custom_probe",
+      "fallback_note": "Inspect outputs for provenance metadata and any vendor-documented watermark; re-encode and re-check."
+    }
+  ]
+}

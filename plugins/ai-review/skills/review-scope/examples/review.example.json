@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "review_id": "example-2026-001",
+  "requested_by": "Head of Engineering (fictional example)",
+  "reviewer": "Security review team (fictional example)",
+  "opened": "2026-11-10",
+  "subject": {
+    "type": "agent",
+    "name": "example-model-1 inside example-harness",
+    "version": "example-model-1-20261101",
+    "vendor": "Example Labs (fictional)",
+    "feature": null,
+    "weights": {"open": true, "repo": "example-org/example-model-1"}
+  },
+  "context": {
+    "surface": "developer laptops, command-line coding agent",
+    "harness": "example-harness",
+    "harness_version": "0.0.1",
+    "system_prompt": "harness default plus the repository's agent instructions file",
+    "tools": ["shell", "file_edit", "web_fetch"],
+    "safeguards": {"provider_classifiers": "on", "harness_permission_prompts": "on for shell and network"},
+    "data_sensitivity": "internal source code; no customer data in the repositories in scope",
+    "autonomy": "acts inside one repository checkout; shell and network actions need the developer's approval",
+    "notes": "fictional example profile used by the smoke test"
+  },
+  "input_channels": [
+    {"channel": "developer prompt", "controlled_by": "employee", "untrusted": false, "notes": ""},
+    {"channel": "repository files, issues and pull-request text", "controlled_by": "employees and outside contributors", "untrusted": true, "notes": "open-source dependencies are read by the agent"},
+    {"channel": "web pages fetched by the web_fetch tool", "controlled_by": "anyone on the internet", "untrusted": true, "notes": ""}
+  ],
+  "capabilities": {
+    "can_read": ["the repository checkout", "environment variables of the developer's shell"],
+    "can_do": ["edit files in the checkout", "run shell commands", "make outbound HTTP requests"],
+    "approval": "the developer approves each shell command and each new network host; file edits are not approved one by one",
+    "memory": false
+  },
+  "failure_impact": {
+    "worst_case": "credentials in the developer's environment are sent to an outside host, or malicious code is committed",
+    "affected": "the developer, the repository's users",
+    "reversible": false,
+    "detection": "code review on pull requests; no monitoring of the agent's network requests"
+  },
+  "time_budget": {"decision_due": "2026-11-17", "hours_available": 8, "notes": "one working day of reviewer time"},
+  "out_of_scope": [
+    {"item": "the vendor's hosted web chat product", "reason": "not being enabled"},
+    {"item": "use on repositories that hold customer data", "reason": "the requester excluded them from this rollout"}
+  ]
+}

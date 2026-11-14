@@ -1,0 +1,52 @@
+{
+  "repo": "example-org/example-model-1",
+  "revision": "main",
+  "verdict": "unscanned",
+  "scans_done": true,
+  "unsafe_files": [],
+  "weight_files": 2,
+  "unscanned_weight_files": [
+    "pytorch_model.bin"
+  ],
+  "scanner_coverage": {
+    "protectAiScan": 1,
+    "avScan": 1,
+    "pickleImportScan": 0,
+    "virusTotalScan": 0,
+    "jFrogScan": 0
+  },
+  "pickle_format_files": [
+    "pytorch_model.bin"
+  ],
+  "pickle_only": false,
+  "files": [
+    {
+      "path": "model.safetensors",
+      "size": 1,
+      "status": "safe",
+      "verdicts": {
+        "protectAiScan": "safe",
+        "avScan": "safe"
+      },
+      "messages": {}
+    },
+    {
+      "path": "pytorch_model.bin",
+      "size": 1,
+      "status": "unscanned",
+      "verdicts": {
+        "avScan": "queued"
+      },
+      "messages": {}
+    },
+    {
+      "path": "config.json",
+      "size": 1,
+      "status": "safe",
+      "verdicts": {
+        "avScan": "safe"
+      },
+      "messages": {}
+    }
+  ]
+}
