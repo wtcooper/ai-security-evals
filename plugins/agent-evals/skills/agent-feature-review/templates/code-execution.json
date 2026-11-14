@@ -1,0 +1,242 @@
+{
+  "schema": "agent-feature-review/template/1",
+  "feature": "code-execution",
+  "title": "Code execution sandboxes",
+  "prefix": "exec",
+  "trust_boundary": [
+    "Before: the model writes code that a person reads and runs. After: model-written code runs automatically, with whatever files, network and credentials the environment has.",
+    "The sandbox boundary (container, microVM, process) becomes a control you rely on. If the vendor hosts it you did not build it; if you host it you must operate it.",
+    "Uploaded files and downloaded results cross the boundary, and packages installed at run time come from public registries.",
+    "If the same session reads untrusted content, that content can decide what code runs."
+  ],
+  "context_questions": [
+    "Who hosts the sandbox, and what isolates one session and one customer from another?",
+    "Is outbound network access on, off or restricted to a list?",
+    "What is inside: uploaded files, mounted data, environment variables, credentials?"
+  ],
+  "threats": [
+    {
+      "id": "exec-01",
+      "title": "Planted instructions decide what code runs",
+      "description": "A file, a web page or a repository the session reads tells the model to run something, and it does.",
+      "owasp_llm": [
+        "LLM01:2025",
+        "LLM05:2025"
+      ],
+      "owasp_agentic": [
+        "ASI05"
+      ],
+      "atlas": [
+        "AML.T0050",
+        "AML.T0051.001"
+      ],
+      "questions": [
+        "What untrusted content can reach a session that can execute code?",
+        "Is there any step between the model writing code and the code running?",
+        "How does the vendor test injection that ends in execution?"
+      ],
+      "vendor_evidence": [
+        "Injection results for agents that execute code.",
+        "Any execution-time checks."
+      ],
+      "benchmarks": [
+        "codeipi",
+        "redcode"
+      ],
+      "own_tests": [
+        {
+          "skill": "agent-misuse-benchmark",
+          "how": "a model inside a coding harness on malicious and benign scenarios."
+        }
+      ],
+      "no_standard_test": [
+        "Your own repositories and files as the injection carrier."
+      ]
+    },
+    {
+      "id": "exec-02",
+      "title": "Escape from, or reach beyond, the sandbox",
+      "description": "Code inside reaches the host, another session or another customer.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI05"
+      ],
+      "atlas": [
+        "AML.T0105"
+      ],
+      "questions": [
+        "What is the isolation technology, and is each session a fresh instance?",
+        "Has the sandbox been tested by an outside party, and is it in a bug-bounty scope?",
+        "If you host it: what configuration departs from the hardened default?"
+      ],
+      "vendor_evidence": [
+        "Isolation architecture.",
+        "Third-party security testing of the sandbox.",
+        "Incident history."
+      ],
+      "benchmarks": [
+        "sandbox_escape_bench"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "The vendor's actual sandbox. The public benchmark measures whether a model can break out of containers with planted weaknesses; it says nothing about a given product's isolation."
+      ]
+    },
+    {
+      "id": "exec-03",
+      "title": "Network egress: data out, and internal services in reach",
+      "description": "Code sends data to an outside host, or reaches internal addresses and metadata services.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0086"
+      ],
+      "questions": [
+        "Is egress on by default? Is there an allowlist, and who maintains it?",
+        "From inside, what answers: your internal network, cloud metadata endpoints, other tenants?"
+      ],
+      "vendor_evidence": [
+        "Documented network policy of the sandbox."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Check it yourself from inside the sandbox; no benchmark does this for you."
+      ]
+    },
+    {
+      "id": "exec-04",
+      "title": "Credentials and data left inside the environment",
+      "description": "Secrets in environment variables, mounted volumes or leftover files are readable by any code that runs.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0055",
+        "AML.T0037"
+      ],
+      "questions": [
+        "What credentials exist inside the sandbox, and why?",
+        "Do files persist between sessions or users?"
+      ],
+      "vendor_evidence": [
+        "What the environment contains by default.",
+        "Persistence and clean-up behaviour."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Design review of what you mount and inject."
+      ]
+    },
+    {
+      "id": "exec-05",
+      "title": "Packages pulled in at run time",
+      "description": "Model-written code installs a package that is malicious, typosquatted, or registered under a name the model invented.",
+      "owasp_llm": [
+        "LLM03:2025"
+      ],
+      "owasp_agentic": [
+        "ASI04"
+      ],
+      "atlas": [
+        "AML.T0011.001",
+        "AML.T0060"
+      ],
+      "questions": [
+        "Can code install packages, from which registries?",
+        "Is there a mirror, an allowlist or a pre-built image?"
+      ],
+      "vendor_evidence": [
+        "Package-installation policy of the sandbox."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "No standard test of a sandbox's package policy."
+      ]
+    },
+    {
+      "id": "exec-06",
+      "title": "Resource and cost abuse",
+      "description": "Long-running or looping jobs consume compute and budget.",
+      "owasp_llm": [
+        "LLM10:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0034.002"
+      ],
+      "questions": [
+        "What limits apply per session: time, CPU, memory, spend?",
+        "Who is alerted when they are hit?"
+      ],
+      "vendor_evidence": [
+        "Documented limits and billing controls."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Check the limits by reading the configuration."
+      ]
+    },
+    {
+      "id": "exec-07",
+      "title": "Files and output handed on without checking",
+      "description": "Something produced in the sandbox (a document, HTML, a script) is opened or rendered by a person or another system that trusts it.",
+      "owasp_llm": [
+        "LLM05:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "Where do generated files go, and who or what opens them?",
+        "Is output rendered as HTML or executed anywhere downstream?"
+      ],
+      "vendor_evidence": [
+        "Handling of generated artefacts in the product."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Your own downstream handling."
+      ]
+    },
+    {
+      "id": "exec-08",
+      "title": "The sandbox used as attack infrastructure by its user",
+      "description": "A user has the model write and run scanners, exploits or abusive automation from the vendor's or your network.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "What does the usage policy say, and what is enforced?",
+        "Whose address space do outbound connections come from?"
+      ],
+      "vendor_evidence": [
+        "Misuse evaluations for code execution.",
+        "Abuse monitoring."
+      ],
+      "benchmarks": [
+        "cyse2_interpreter_abuse",
+        "redcode"
+      ],
+      "own_tests": [
+        {
+          "skill": "agent-misuse-benchmark",
+          "how": "refusal on malicious tasks beside completion on benign ones, inside an agent harness."
+        }
+      ],
+      "no_standard_test": [
+        "Misuse specific to your network position."
+      ]
+    }
+  ]
+}

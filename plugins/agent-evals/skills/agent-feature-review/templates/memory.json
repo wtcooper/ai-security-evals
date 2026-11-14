@@ -1,0 +1,176 @@
+{
+  "schema": "agent-feature-review/template/1",
+  "feature": "memory",
+  "title": "Persistent memory",
+  "prefix": "mem",
+  "trust_boundary": [
+    "Before: each conversation starts from the system prompt and what the user types. After: content written in one session is loaded into later sessions as context the model trusts.",
+    "Anything that can cause a write (a user message, a document, a tool result, a web page) can influence every later session that reads it.",
+    "Memory may be shared: across a user's devices and projects, across members of a workspace, across agents.",
+    "Stored memory is a new data store, with its own retention, access and deletion."
+  ],
+  "context_questions": [
+    "What causes a memory write: an explicit request from the user, or the model's own judgement while reading content?",
+    "Who shares a memory: one user, a project, a team, several agents?",
+    "Can the organisation turn memory off, make it read-only, or inspect it?"
+  ],
+  "threats": [
+    {
+      "id": "mem-01",
+      "title": "Memory poisoning: planted content is saved and steers later sessions",
+      "description": "An instruction or false fact arrives in a document, a tool result or a message, is written to memory, and acts in sessions where the attacker is no longer present.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0080.000",
+        "AML.T0051.001"
+      ],
+      "questions": [
+        "Can content from documents, tools or the web cause a write, or only the user's own words?",
+        "Is the user shown each write when it happens, with where it came from?",
+        "When memory is loaded, is it marked as stored data or presented like instructions?"
+      ],
+      "vendor_evidence": [
+        "How writes are triggered and surfaced.",
+        "Injection testing that carries across sessions, not only within one.",
+        "Whether memory can be disabled or restricted per deployment."
+      ],
+      "benchmarks": [
+        "agent_threat_bench",
+        "asb"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "The vendor's real memory implementation. Public benchmarks model memory as a store inside their own harness."
+      ]
+    },
+    {
+      "id": "mem-02",
+      "title": "Something remembered in one context surfaces in another",
+      "description": "A detail from a personal or confidential conversation appears in an unrelated one: another project, another audience, a shared screen.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0085.002"
+      ],
+      "questions": [
+        "Are memories scoped by project, workspace or topic, and who sets the scope?",
+        "Does the vendor measure inappropriate use of memory in unrelated conversations?"
+      ],
+      "vendor_evidence": [
+        "Scoping rules for memory.",
+        "Results on cross-context leakage."
+      ],
+      "benchmarks": [
+        "persistbench"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "Leakage across your own project and workspace boundaries."
+      ]
+    },
+    {
+      "id": "mem-03",
+      "title": "Leakage between users or tenants of a shared memory",
+      "description": "In a team workspace or a shared agent, one person's content reaches another through memory.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "Is any memory shared between users? Between an end user and an administrator?",
+        "What isolates one customer's memory from another's on the vendor's side?"
+      ],
+      "vendor_evidence": [
+        "The isolation model for memory stores.",
+        "Independent audit covering it."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "No public benchmark tests a vendor's tenant isolation. Vendor evidence and a two-account test of your own."
+      ]
+    },
+    {
+      "id": "mem-04",
+      "title": "Sensitive data is written to memory and kept",
+      "description": "Secrets, personal data or regulated data end up in a store nobody planned for.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "Where is memory stored, for how long, and who at the vendor and in your organisation can read it?",
+        "Does deletion by the user remove it everywhere, including backups and derived data?",
+        "Is memory content used for training?"
+      ],
+      "vendor_evidence": [
+        "Data-handling terms that name memory explicitly.",
+        "Export and deletion features."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "A data-handling review. No benchmark."
+      ]
+    },
+    {
+      "id": "mem-05",
+      "title": "Stored content degrades later answers",
+      "description": "Remembered beliefs and preferences make the model agree with the user where it should not, or bias later work.",
+      "owasp_llm": [
+        "LLM09:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "Will users rely on answers where a remembered belief could mislead: advice, analysis, review?",
+        "Does the vendor measure the effect of memory on answer quality?"
+      ],
+      "vendor_evidence": [
+        "Results on memory-induced sycophancy or similar."
+      ],
+      "benchmarks": [
+        "persistbench"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "The effect on your own tasks."
+      ]
+    },
+    {
+      "id": "mem-06",
+      "title": "A planted memory persists unseen",
+      "description": "The user cannot see or audit what is stored, so a planted entry stays until someone finds it; entries can be edited to hide what was done.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0080.000",
+        "AML.T0092"
+      ],
+      "questions": [
+        "Can the user and an administrator list, search, edit and delete memories?",
+        "Is there a log of writes with the source of each?",
+        "Would anyone be alerted to a write caused by external content?"
+      ],
+      "vendor_evidence": [
+        "Memory management and audit features."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "No public test. Record what is in place."
+      ]
+    }
+  ]
+}

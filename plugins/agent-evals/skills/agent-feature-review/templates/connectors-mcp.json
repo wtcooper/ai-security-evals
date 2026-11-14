@@ -1,0 +1,253 @@
+{
+  "schema": "agent-feature-review/template/1",
+  "feature": "connectors-mcp",
+  "title": "Connectors and MCP servers",
+  "prefix": "mcp",
+  "trust_boundary": [
+    "Before: the model sees what the user pastes. After: it reads from and writes to other systems through tools whose names, descriptions and results are supplied by whoever runs the server.",
+    "Tool descriptions and tool results enter the context as text the model cannot authenticate. A server can change its tool list after it was approved.",
+    "The connector holds credentials (OAuth tokens, API keys) and acts with a user's or a service account's permissions.",
+    "With several connectors enabled, data read through one can be sent out through another."
+  ],
+  "context_questions": [
+    "Which connectors and servers, run by whom: the model vendor, the system's own vendor, a third party, yourselves?",
+    "Read-only or read-write? Acting as the user or as a shared service account?",
+    "Who may add a new connector: an administrator, or any user?"
+  ],
+  "threats": [
+    {
+      "id": "mcp-01",
+      "title": "Tool poisoning: instructions hidden in tool descriptions",
+      "description": "A tool's metadata tells the model to do something the user never asked for. Nothing has to be called for the text to take effect.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [
+        "ASI04"
+      ],
+      "atlas": [
+        "AML.T0110",
+        "AML.T0011.002"
+      ],
+      "questions": [
+        "Who wrote each tool description, and has anyone read them?",
+        "Does the client show descriptions to the user or an administrator, and flag changes?",
+        "How does the model behave when a description contains instructions?"
+      ],
+      "vendor_evidence": [
+        "Model or client testing against poisoned tool metadata.",
+        "Review or signing of connectors in the vendor's directory."
+      ],
+      "benchmarks": [
+        "mcptox",
+        "msb"
+      ],
+      "own_tests": [
+        {
+          "skill": "security-tool-benchmark",
+          "how": "its extension kind measures how well a scanner of MCP servers and skills detects bad ones. It evaluates the scanner, not your servers; scanning itself is outside this repo."
+        }
+      ],
+      "no_standard_test": [
+        "The servers you will actually connect. Public sets use their own server collections."
+      ]
+    },
+    {
+      "id": "mcp-02",
+      "title": "Injection through what a tool returns",
+      "description": "A ticket, email, document or record fetched by a connector carries instructions, and the agent follows them.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [
+        "ASI01"
+      ],
+      "atlas": [
+        "AML.T0051.001",
+        "AML.T0099"
+      ],
+      "questions": [
+        "Which connectors return content that outsiders can write: inboxes, issue trackers, shared drives, web search?",
+        "Is tool output marked as data when it reaches the model?",
+        "What can the agent do next if it is hijacked: which write actions are in reach?"
+      ],
+      "vendor_evidence": [
+        "Published injection results for tool use: benchmark, attack type, safeguards on or off.",
+        "A description of safeguards on tool output."
+      ],
+      "benchmarks": [
+        "agentdojo",
+        "agent_threat_bench",
+        "injecagent",
+        "msb"
+      ],
+      "own_tests": [
+        {
+          "skill": "app-redteam",
+          "how": "adaptive attacks against your own endpoint, if the connectors sit behind one."
+        },
+        {
+          "skill": "app-benchmark",
+          "how": "a fixed set of attack and benign prompts against the same endpoint."
+        }
+      ],
+      "no_standard_test": [
+        "Your own connectors, data and permissions."
+      ]
+    },
+    {
+      "id": "mcp-03",
+      "title": "A malicious, compromised or changed server",
+      "description": "The server itself is hostile: published to be installed, taken over later, renamed to collide with a trusted one, or changed after approval.",
+      "owasp_llm": [
+        "LLM03:2025"
+      ],
+      "owasp_agentic": [
+        "ASI04"
+      ],
+      "atlas": [
+        "AML.T0010.005",
+        "AML.T0109",
+        "AML.T0115.002"
+      ],
+      "questions": [
+        "Where does each server come from, and who vets it before it is enabled?",
+        "Is the version pinned? Is anyone told when the tool list or a description changes?",
+        "Can two servers offer a tool with the same name, and which one wins?"
+      ],
+      "vendor_evidence": [
+        "How the vendor's directory reviews connectors.",
+        "Client behaviour on changed tool definitions."
+      ],
+      "benchmarks": [
+        "msb"
+      ],
+      "own_tests": [
+        {
+          "skill": "security-tool-benchmark",
+          "how": "extension kind, as under mcp-01: it tells you how far to trust a scanner."
+        }
+      ],
+      "no_standard_test": [
+        "Change over time. No benchmark watches a server you depend on."
+      ]
+    },
+    {
+      "id": "mcp-04",
+      "title": "Over-broad permissions and credential handling",
+      "description": "The connector's token can do more than the task needs, is stored where it can be read, or lets one user act with another's rights.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0098",
+        "AML.T0083"
+      ],
+      "questions": [
+        "What scopes does each token carry, and are they the narrowest the system offers?",
+        "Where are tokens stored, and can the model or a tool read them?",
+        "Does the connector act as the asking user, with that user's permissions, every time?"
+      ],
+      "vendor_evidence": [
+        "The authorisation model of each connector.",
+        "Token storage and rotation."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Design review of scopes and identities. No benchmark."
+      ]
+    },
+    {
+      "id": "mcp-05",
+      "title": "Data read through one tool leaves through another",
+      "description": "Private content fetched by one connector is written, sent or encoded into a call to another that an attacker can read.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0086",
+        "AML.T0085.001"
+      ],
+      "questions": [
+        "Which enabled tools can send data outside: email, web requests, posting, file sharing?",
+        "Can a session hold private data and an outbound tool at the same time?",
+        "Are tool calls and their arguments logged?"
+      ],
+      "vendor_evidence": [
+        "Exfiltration results in the vendor's tool-use testing.",
+        "Controls on combining connectors."
+      ],
+      "benchmarks": [
+        "agent_threat_bench",
+        "agentdojo",
+        "injecagent"
+      ],
+      "own_tests": [
+        {
+          "skill": "app-redteam",
+          "how": "against your own endpoint, with canary data you plant."
+        }
+      ],
+      "no_standard_test": [
+        "The particular combination of connectors you enable."
+      ]
+    },
+    {
+      "id": "mcp-06",
+      "title": "Destructive or unintended writes through tools",
+      "description": "The agent deletes, overwrites, sends or changes something in a connected system, by error or under manipulation.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0101",
+        "AML.T0053"
+      ],
+      "questions": [
+        "Which tools write, and which writes cannot be undone?",
+        "Which calls need a person's approval, and what does the approval show?"
+      ],
+      "vendor_evidence": [
+        "Per-tool approval settings.",
+        "Unintended-action rates on benign tasks."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Your own tools' write actions."
+      ]
+    },
+    {
+      "id": "mcp-07",
+      "title": "The server or its transport is itself exposed",
+      "description": "A server reachable without authentication, a local server that runs commands with the user's rights, or a server that can be made to fetch internal addresses.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0132"
+      ],
+      "questions": [
+        "Is each remote server authenticated, and to whom is it reachable?",
+        "Do local servers run commands or read files with the user's privileges?"
+      ],
+      "vendor_evidence": [
+        "Security documentation or audit of each server."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Conventional security review of the server. Outside what an AI benchmark measures."
+      ]
+    }
+  ]
+}

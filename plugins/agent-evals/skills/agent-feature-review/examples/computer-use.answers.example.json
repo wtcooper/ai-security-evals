@@ -1,0 +1,77 @@
+{
+  "_comment": "Invented example. ExampleVendor, its assistant and every URL, path and number here are placeholders. Replace all of it with what you found.",
+  "feature": "computer-use",
+  "subject": {
+    "product": "Example Assistant browser agent",
+    "vendor": "ExampleVendor",
+    "model": "example-model-4",
+    "feature_version": "preview 2026-10"
+  },
+  "reviewer": "security-review@your-org.example",
+  "date": "2026-11-14",
+  "deployment": {
+    "aws_scope": 2,
+    "agency": "Reads and acts in web applications reachable from a managed browser profile; cannot install software",
+    "autonomy": "Plans and clicks on its own inside a task a person started; stops for approval before sending, buying or deleting",
+    "started_by": "human",
+    "human_approval": "per consequential action",
+    "security_dimensions": {
+      "identity_context": "Runs in a dedicated browser profile signed in as the requesting user through SSO",
+      "data_memory_state": "No persistent memory enabled",
+      "audit_logging": "Vendor keeps an action log with screenshots for 30 days; we export nothing yet",
+      "agent_llm_controls": "Vendor injection classifier on by default",
+      "agency_perimeters": "",
+      "orchestration": ""
+    },
+    "feature_context": [
+      {"question": "Where does it run: a vendor-hosted browser or VM, an isolated profile of yours, or the user's own desktop and browser?", "answer": "Vendor-hosted browser"},
+      {"question": "Which sites and applications can it reach, and which accounts are signed in there?", "answer": "Open web plus our ticketing system and wiki through SSO"},
+      {"question": "Does a person watch each session, approve some steps, or neither?", "answer": "Approves consequential steps; does not watch the rest"}
+    ]
+  },
+  "context": {
+    "surface": "vendor web app, enterprise workspace",
+    "harness": "vendor-hosted browser agent",
+    "safeguards": "vendor defaults",
+    "data_sensitivity": "internal tickets and wiki pages; no customer personal data intended"
+  },
+  "threats": {
+    "cu-01": {
+      "answers": [
+        {"question": "", "answer": "The open web and our ticket queue: customers can write ticket text."},
+        {"question": "", "answer": "The system card describes a classifier and reports results on the vendor's own static attack set only."},
+        {"question": "", "answer": ""}
+      ],
+      "vendor_evidence": [
+        {"claim": "The system card reports an attack success rate for browser-agent prompt injection on the vendor's own attack set with safeguards on, and does not report an adaptive-attack result.", "source": "https://vendor.example/system-card#browser-agent", "kind": "system_card"}
+      ],
+      "vendor_absent": [
+        {"looked_for": "Results on a public computer-use injection benchmark", "source": "https://vendor.example/system-card"}
+      ],
+      "tests": [
+        {"claim": "AgentDojo security 0.91 (95% CI 0.84-0.95, n=100) with utility 0.78 for example-model-4 through the bare API.", "pointer": ".evals/model-benchmark/example-model-4_2026-11-12/summary.json", "benchmark": "AgentDojo", "skill": "model-benchmark", "note": "Tool-output injection on the bare model. Not the browser agent and not its screen."}
+      ]
+    },
+    "cu-02": {
+      "answers": [
+        {"question": "", "answer": "Dedicated profile, but signed in to SSO, so every internal app the user can open."},
+        {"question": "", "answer": "Unknown."},
+        {"question": "", "answer": ""}
+      ]
+    },
+    "cu-03": {
+      "reviewed": [
+        {"claim": "In the admin console the approval step for send, purchase and delete is on and cannot be disabled by users.", "source": "admin console, workspace settings, viewed with the workspace owner", "note": "Checked 2026-11-13."}
+      ]
+    },
+    "cu-06": {
+      "vendor_evidence": [
+        {"claim": "Documentation states that an action log with screenshots is retained for 30 days and is visible to workspace administrators.", "source": "https://vendor.example/docs/browser-agent/audit"}
+      ]
+    },
+    "cu-07": {
+      "applies": false,
+      "reason": "The hosted browser cannot download or execute files in this preview, per the vendor documentation cited under cu-06."
+    }
+  }
+}

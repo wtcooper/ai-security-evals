@@ -1,0 +1,166 @@
+{
+  "schema": "agent-feature-review/benchmarks/1",
+  "surveyed": "2026-11-14",
+  "benchmarks": {
+    "agentdojo": {
+      "name": "AgentDojo",
+      "ref": "arXiv 2406.13352",
+      "measures": "Whether a tool-calling agent follows instructions planted in tool results while doing a user's task, with task utility reported beside security. The paper describes 97 tasks and 629 security test cases.",
+      "route": "This repo: `model-benchmark`, check `agentdojo`.",
+      "limits": "Simulated tools in its own environments (the paper gives email, e-banking and travel booking as examples). No screen, no real connector, no memory across sessions.",
+      "verified": "Paper abstract; the check is present in model-benchmark's suite."
+    },
+    "agent_threat_bench": {
+      "name": "AgentThreatBench",
+      "ref": "inspect_evals 0.29.0, `agent_threat_bench_*`",
+      "measures": "Three small Inspect tasks built on the OWASP agentic list: memory poisoning, autonomy hijack and data exfiltration, each with a utility score.",
+      "route": "This repo: `model-benchmark`, checks `atb_memory_poison`, `atb_autonomy_hijack`, `atb_data_exfil`.",
+      "limits": "10, 6 and 8 cases respectively, so one case moves the result by 10 points or more.",
+      "verified": "inspect_evals README; sizes from model-benchmark's suite."
+    },
+    "persistbench": {
+      "name": "PersistBench",
+      "ref": "arXiv 2602.01146; inspect_evals `persistbench_*`",
+      "measures": "Long-term memory risks: cross-domain leakage (a memory used where it does not belong) and memory-induced sycophancy, plus a beneficial-use task. Judge-scored.",
+      "route": "An Inspect task that no skill in this repo wraps. Run `inspect_evals/persistbench_cross_domain` and `persistbench_sycophancy` by hand in the environment `model-benchmark` sets up, with a judge that is not the model under test.",
+      "limits": "Memories are supplied to the model by the benchmark. It does not test an attacker writing to memory, nor a vendor's memory store.",
+      "verified": "Paper abstract and inspect_evals README. Not run here."
+    },
+    "mcptox": {
+      "name": "MCPTox",
+      "ref": "arXiv 2508.14925",
+      "measures": "Agent robustness to tool poisoning: malicious instructions in tool metadata. Built on 45 real MCP servers and 353 tools, 1,348 test cases in 10 risk categories.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Its own server set, not yours.",
+      "verified": "Paper abstract only. Code location, licence and how it runs were not checked."
+    },
+    "msb": {
+      "name": "MCP Security Bench (MSB)",
+      "ref": "arXiv 2510.15994",
+      "measures": "Resistance to 12 MCP-specific attack types across planning, tool invocation and response handling, including name collision and preference manipulation; reports a combined security and performance figure.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Its own tools and domains.",
+      "verified": "Paper abstract only."
+    },
+    "injecagent": {
+      "name": "InjecAgent",
+      "ref": "arXiv 2403.02691",
+      "measures": "Indirect prompt injection in tool-integrated agents: 1,054 test cases over 17 user tools and 62 attacker tools, covering direct harm and data theft.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Its own simulated tools.",
+      "verified": "Paper abstract only."
+    },
+    "asb": {
+      "name": "Agent Security Bench (ASB)",
+      "ref": "arXiv 2410.02644",
+      "measures": "A framework of attacks and defences on agents across 10 scenarios, including prompt injection, a memory-poisoning attack and a backdoor attack.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Its own agents and memory store.",
+      "verified": "Paper abstract only."
+    },
+    "os_harm": {
+      "name": "OS-Harm",
+      "ref": "arXiv 2506.14866",
+      "measures": "Safety of computer-use agents in three categories: deliberate user misuse, prompt injection and model misbehaviour. 150 tasks on the OSWorld environment, scored by an automated judge.",
+      "route": "No skill in this repo runs it. It needs OSWorld virtual machines (execution tier T2).",
+      "limits": "A fixed desktop image and static injections.",
+      "verified": "Paper abstract only. `inspect_evals/osworld` is the capability benchmark, not OS-Harm."
+    },
+    "redteamcua": {
+      "name": "RedTeamCUA (RTC-Bench)",
+      "ref": "arXiv 2505.21936",
+      "measures": "Indirect prompt injection against computer-use agents in a hybrid sandbox: a VM desktop plus Docker-hosted web platforms. 864 examples.",
+      "route": "No skill in this repo runs it. Needs VMs (T2).",
+      "limits": "Its own web platforms.",
+      "verified": "Paper abstract only."
+    },
+    "wasp": {
+      "name": "WASP",
+      "ref": "arXiv 2504.18575",
+      "measures": "End-to-end prompt injection against web agents, distinguishing partial from full attacker success.",
+      "route": "No skill in this repo runs it.",
+      "limits": "Its own web environments.",
+      "verified": "Paper abstract only."
+    },
+    "vpi_bench": {
+      "name": "VPI-Bench",
+      "ref": "arXiv 2506.02456",
+      "measures": "Visual prompt injection: malicious instructions rendered in the interface, against computer-use and browser-use agents. 306 test cases on five platforms.",
+      "route": "No skill in this repo runs it.",
+      "limits": "Its own platform variants.",
+      "verified": "Paper abstract only."
+    },
+    "cyse3_vpi": {
+      "name": "CyberSecEval 3 visual prompt injection",
+      "ref": "inspect_evals `cyse3_visual_prompt_injection`",
+      "measures": "Whether a model that reads images follows instructions placed in an image. A model-level test with no agent and no actions.",
+      "route": "An Inspect task. This repo's plan makes it a vision profile of `model-benchmark`; at the time of writing it was not in that skill's suite, so run it by hand in the same environment.",
+      "limits": "Says nothing about what an agent would then do.",
+      "verified": "Task name present in inspect_evals 0.29.0. Not run here."
+    },
+    "sandbox_escape_bench": {
+      "name": "SandboxEscapeBench",
+      "ref": "arXiv 2603.02277; UK AI Security Institute",
+      "measures": "A model's capability to break out of a container: capture-the-flag tasks with deliberately added misconfigurations, privilege mistakes, kernel flaws and runtime weaknesses, inside a nested outer sandbox.",
+      "route": "An Inspect evaluation that no skill in this repo runs. Needs a supervised nested sandbox (T2).",
+      "limits": "It measures the model, not a product's sandbox. A vendor's isolation is evidenced by the vendor's own testing.",
+      "verified": "Paper abstract; AISI attribution from AISI's blog listing via search, not read in full."
+    },
+    "redcode": {
+      "name": "RedCode",
+      "ref": "arXiv 2411.07781",
+      "measures": "Whether code agents execute or generate risky code. RedCode-Exec has 4,050 test cases in Python and Bash with Docker environments.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Its own agents and environments.",
+      "verified": "Paper abstract only."
+    },
+    "codeipi": {
+      "name": "CodeIPI",
+      "ref": "inspect_evals `ipi_coding_agent`",
+      "measures": "Whether a coding agent executes instructions hidden in issues, code comments, README or config files while fixing a bug. 45 samples (35 injected, 10 benign).",
+      "route": "An Inspect task that no skill in this repo wraps; run it by hand in the environment `model-benchmark` sets up. It needs Docker.",
+      "limits": "Small. One case is about 3 points.",
+      "verified": "inspect_evals 0.29.0 README. Not run here."
+    },
+    "cyse2_interpreter_abuse": {
+      "name": "CyberSecEval 2 code interpreter abuse",
+      "ref": "inspect_evals `cyse2_interpreter_abuse`",
+      "measures": "Whether a model complies with prompts asking it to abuse a code interpreter, as decided by a judge model. No code is executed.",
+      "route": "An Inspect task that no skill in this repo wraps; run it by hand with an explicit judge.",
+      "limits": "Compliance in text, not behaviour in a real sandbox.",
+      "verified": "inspect_evals 0.29.0 README. Not run here."
+    },
+    "saferag": {
+      "name": "SafeRAG",
+      "ref": "arXiv 2501.18636",
+      "measures": "RAG pipelines under four attack tasks the authors call silver noise, inter-context conflict, soft ad and white denial-of-service.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Its own corpus; language and licence not checked.",
+      "verified": "Paper abstract only."
+    },
+    "tamas": {
+      "name": "TAMAS",
+      "ref": "arXiv 2511.05269",
+      "measures": "Robustness of multi-agent LLM systems: five scenarios, 300 adversarial instances across six attack types, 100 harmless tasks, on AutoGen and CrewAI configurations.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Open frameworks, not a vendor's orchestration.",
+      "verified": "Paper abstract only."
+    },
+    "agentharm": {
+      "name": "AgentHarm",
+      "ref": "arXiv 2410.09024; inspect_evals `agentharm`",
+      "measures": "Whether an agent with tools carries out explicitly malicious multi-step tasks: 110 tasks in 11 harm categories, with a benign counterpart set.",
+      "route": "An Inspect task that no skill in this repo wraps. `agent-misuse-benchmark` is the skill planned for misuse inside agent harnesses.",
+      "limits": "Simulated tools; no screen.",
+      "verified": "Paper abstract; task present in inspect_evals 0.29.0."
+    },
+    "overeager": {
+      "name": "OverEager-Bench",
+      "ref": "arXiv 2605.18583",
+      "measures": "How often coding agents take actions outside the scope of a benign request, across four agent products.",
+      "route": "Research code; no skill in this repo runs it.",
+      "limits": "Coding agents only.",
+      "verified": "Paper abstract only."
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "image-model-review/threats/1",
+  "frameworks_verified": {
+    "atlas": "MITRE ATLAS data release 2026.10 (mitre-atlas/atlas-data, dist/v6/ATLAS-2026.10.yaml), read 2026-11-14",
+    "owasp_llm": "OWASP Top 10 for LLM Applications 2025 (genai.owasp.org/llm-top-10), read 2026-11-14",
+    "note": "The OWASP list is written for text LLM applications. An id is given only where the entry plainly applies to an image model; most threats here carry none."
+  },
+  "threats": [
+    {
+      "id": "img-01",
+      "title": "Phishing and brand-impersonation assets",
+      "atlas": ["AML.T0052", "AML.T0073"],
+      "owasp_llm": [],
+      "probe_categories": ["brand_impersonation"],
+      "harvest_items": ["H-03", "H-04", "H-06", "H-07"]
+    },
+    {
+      "id": "img-02",
+      "title": "Identity documents and proof-of-something documents",
+      "atlas": ["AML.T0048.000"],
+      "owasp_llm": [],
+      "probe_categories": ["identity_document"],
+      "harvest_items": ["H-03", "H-04", "H-06", "H-07"]
+    },
+    {
+      "id": "img-03",
+      "title": "Machine-readable payloads: QR codes and barcodes",
+      "atlas": ["AML.T0011.003"],
+      "owasp_llm": [],
+      "probe_categories": ["qr_payload"],
+      "harvest_items": ["H-03", "H-07"]
+    },
+    {
+      "id": "img-04",
+      "title": "Hidden payloads: instructions or data concealed in a generated image",
+      "atlas": ["AML.T0129", "AML.T0051.001"],
+      "owasp_llm": ["LLM01:2025"],
+      "probe_categories": ["hidden_payload"],
+      "harvest_items": ["H-03", "H-07"]
+    },
+    {
+      "id": "img-05",
+      "title": "Likeness of real people",
+      "atlas": ["AML.T0088", "AML.T0052.001"],
+      "owasp_llm": [],
+      "probe_categories": ["real_person_likeness"],
+      "harvest_items": ["H-03", "H-04", "H-06", "H-07", "H-09"]
+    },
+    {
+      "id": "img-06",
+      "title": "Editing an uploaded image: altering real documents and removing marks",
+      "atlas": ["AML.T0048.000"],
+      "owasp_llm": [],
+      "probe_categories": ["image_edit"],
+      "harvest_items": ["H-07", "H-09"]
+    },
+    {
+      "id": "img-07",
+      "title": "Provenance marks are present on what the model returns",
+      "atlas": [],
+      "owasp_llm": [],
+      "probe_categories": [],
+      "harvest_items": ["H-05", "H-08"]
+    },
+    {
+      "id": "img-08",
+      "title": "Provenance marks survive ordinary handling",
+      "atlas": [],
+      "owasp_llm": [],
+      "probe_categories": [],
+      "harvest_items": ["H-05"]
+    },
+    {
+      "id": "img-09",
+      "title": "Safeguards are bypassed by rewording, by another route, or differ by surface",
+      "atlas": [],
+      "owasp_llm": [],
+      "probe_categories": ["safeguard_bypass"],
+      "harvest_items": ["H-02", "H-04", "H-07", "H-08", "H-13"]
+    },
+    {
+      "id": "img-10",
+      "title": "Handling of prompts, uploaded images and outputs",
+      "atlas": [],
+      "owasp_llm": [],
+      "probe_categories": [],
+      "harvest_items": ["H-10"]
+    },
+    {
+      "id": "img-11",
+      "title": "Misuse cannot be traced: logging, attribution and abuse reporting",
+      "atlas": [],
+      "owasp_llm": [],
+      "probe_categories": [],
+      "harvest_items": ["H-11"]
+    },
+    {
+      "id": "img-12",
+      "title": "Cost and quota abuse",
+      "atlas": ["AML.T0034"],
+      "owasp_llm": ["LLM10:2025"],
+      "probe_categories": [],
+      "harvest_items": ["H-12"]
+    },
+    {
+      "id": "img-13",
+      "title": "Video generation: the same threats in motion, with sound",
+      "atlas": ["AML.T0088", "AML.T0052.001"],
+      "owasp_llm": [],
+      "probe_categories": ["video"],
+      "harvest_items": ["H-14"],
+      "applies_when": "the model or product generates video"
+    }
+  ],
+  "probe_categories": {
+    "brand_impersonation": {"threats": ["img-01"], "what": "assets that pass for a named organisation's: logos, login or payment screens, invoices, letterheads, branded notices"},
+    "identity_document": {"threats": ["img-02"], "what": "documents that pass for an issued one: identity cards, passports, licences, payslips, bills, tickets, certificates"},
+    "qr_payload": {"threats": ["img-03"], "what": "images carrying a QR code or barcode that scans to a destination the requester chose"},
+    "hidden_payload": {"threats": ["img-04"], "what": "images with text or data a person would not notice but a machine reads"},
+    "real_person_likeness": {"threats": ["img-05"], "what": "recognisable likenesses of named or uploaded real people in a deceptive setting"},
+    "image_edit": {"threats": ["img-06"], "what": "edits to an uploaded real image: changed fields on a document, removed watermarks or labels"},
+    "safeguard_bypass": {"threats": ["img-09"], "what": "a request the model blocked when asked plainly, asked again another way"},
+    "video": {"threats": ["img-13"], "what": "any of the categories above as a video request"},
+    "benign_control": {"threats": [], "what": "legitimate requests in the same subject areas, to see how much ordinary work is blocked"}
+  },
+  "harvest_items": [
+    {"id": "H-01", "title": "A system card or model card exists for this exact model and version", "threats": []},
+    {"id": "H-02", "title": "Safety evaluation results: what was measured, how, on which surface", "threats": ["img-09"]},
+    {"id": "H-03", "title": "Evaluation of this review's security categories (fraud documents, brands, QR codes, hidden payloads, likeness)", "threats": ["img-01", "img-02", "img-03", "img-04", "img-05"]},
+    {"id": "H-04", "title": "Red teaming: who did it, what was in scope, what is disclosed", "threats": ["img-01", "img-02", "img-05", "img-09"]},
+    {"id": "H-05", "title": "Provenance: metadata, watermark, detector, stated robustness", "threats": ["img-07", "img-08"]},
+    {"id": "H-06", "title": "Usage policy: impersonation, fraud, deception and real people", "threats": ["img-01", "img-02", "img-05"]},
+    {"id": "H-07", "title": "Safeguards: the layers, and which settings a customer can change", "threats": ["img-01", "img-02", "img-03", "img-04", "img-05", "img-06", "img-09"]},
+    {"id": "H-08", "title": "Surfaces: which the published results apply to, and how they differ", "threats": ["img-07", "img-09"]},
+    {"id": "H-09", "title": "Image input and editing: rules for uploads of people and documents", "threats": ["img-05", "img-06"]},
+    {"id": "H-10", "title": "Data handling: retention, training use, region, abuse-monitoring copies", "threats": ["img-10"]},
+    {"id": "H-11", "title": "Logging, attribution and abuse reporting available to the customer", "threats": ["img-11"]},
+    {"id": "H-12", "title": "Rate limits, quotas and spend controls", "threats": ["img-12"]},
+    {"id": "H-13", "title": "Independent evaluations and public bypass reports", "threats": ["img-09"]},
+    {"id": "H-14", "title": "Video: evaluations, provenance in video files, likeness and voice rules", "threats": ["img-13"]}
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "schema": "agent-feature-review/template/1",
+  "feature": "background-agents",
+  "title": "Scheduled and background agents",
+  "prefix": "bg",
+  "trust_boundary": [
+    "Before: a person starts each run, watches it and reads the result. After: runs start from a clock, an event or another system, with nobody watching, using credentials stored for the purpose.",
+    "Whatever fires the trigger (an incoming email, a webhook, a new issue, a dropped file) is input an outsider may be able to send.",
+    "Stored credentials outlive the session and sometimes the person who set the task up.",
+    "Results land somewhere and may be acted on later by people or automations that never saw the run."
+  ],
+  "context_questions": [
+    "What starts a run: a schedule, an event, another agent? Who can cause that event?",
+    "Whose credentials does it run with, and when do they expire?",
+    "Who is told when a run fails or does something unusual, and who can stop it?"
+  ],
+  "threats": [
+    {
+      "id": "bg-01",
+      "title": "A trigger an outsider can fire or shape",
+      "description": "An email, an issue, a webhook or a file starts a run and also supplies its instructions.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [
+        "ASI01"
+      ],
+      "atlas": [
+        "AML.T0051.002",
+        "AML.T0093"
+      ],
+      "questions": [
+        "Can someone outside the organisation cause the triggering event?",
+        "Is the triggering content treated as data, or as the task?"
+      ],
+      "vendor_evidence": [
+        "Injection testing with event-triggered runs.",
+        "Controls on who or what may trigger."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Event-triggered runs. The public injection benchmarks start from a user's request, not from an event."
+      ]
+    },
+    {
+      "id": "bg-02",
+      "title": "Standing credentials and permissions",
+      "description": "Long-lived tokens with broad scope sit in a task definition, and keep working after their owner has moved on.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0083",
+        "AML.T0055"
+      ],
+      "questions": [
+        "What can the stored credential do, and is that the least the task needs?",
+        "What happens to the task when its owner leaves or loses access?"
+      ],
+      "vendor_evidence": [
+        "How credentials for unattended runs are stored, scoped and rotated."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Design review."
+      ]
+    },
+    {
+      "id": "bg-03",
+      "title": "Actions with nobody present to approve",
+      "description": "Approvals are granted in advance or skipped, so the agent's first mistake or manipulation takes effect.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0053"
+      ],
+      "questions": [
+        "Which actions can an unattended run take, and which are held for a person?",
+        "How often does the agent do more than it was asked on ordinary tasks?"
+      ],
+      "vendor_evidence": [
+        "Permission modes for unattended runs.",
+        "Rates of out-of-scope actions on benign tasks."
+      ],
+      "benchmarks": [
+        "overeager"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "Unattended operation of a given product. The one benchmark found covers coding agents on benign tasks."
+      ]
+    },
+    {
+      "id": "bg-04",
+      "title": "A changed task or a delayed instruction keeps running",
+      "description": "A schedule, a task definition or the agent's configuration is altered once and the change executes every time after.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI10"
+      ],
+      "atlas": [
+        "AML.T0081",
+        "AML.T0094",
+        "AML.T0142"
+      ],
+      "questions": [
+        "Who can edit a task or the agent's configuration, and is every change logged and reviewed?",
+        "Can a run modify its own schedule, prompt or configuration?"
+      ],
+      "vendor_evidence": [
+        "Change control and audit for task definitions."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "No standard test."
+      ]
+    },
+    {
+      "id": "bg-05",
+      "title": "Runaway runs",
+      "description": "Loops, retries and fan-out consume budget or repeat an action many times.",
+      "owasp_llm": [
+        "LLM10:2025"
+      ],
+      "owasp_agentic": [
+        "ASI08"
+      ],
+      "atlas": [
+        "AML.T0034.002"
+      ],
+      "questions": [
+        "What caps run time, frequency, retries and spend?",
+        "Does an alert reach a person?"
+      ],
+      "vendor_evidence": [
+        "Documented limits."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Read the configuration."
+      ]
+    },
+    {
+      "id": "bg-06",
+      "title": "Nobody notices",
+      "description": "Failures, drift after a model update and misbehaviour go unseen because no one reads the output of a job that usually works.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI10"
+      ],
+      "atlas": [],
+      "questions": [
+        "Who reviews run results, and how often?",
+        "Is the model version pinned, and who is told when it changes?"
+      ],
+      "vendor_evidence": [
+        "Monitoring, alerting and version-pinning features."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "No standard test."
+      ]
+    },
+    {
+      "id": "bg-07",
+      "title": "Stopping it",
+      "description": "No clear way, or no clear owner, to pause or remove a task quickly.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "Who can pause, edit and delete a task? Is there one place that lists them all?",
+        "How fast does a stop take effect on a run in progress?"
+      ],
+      "vendor_evidence": [
+        "Administrative controls over scheduled tasks."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "No standard test. Record what is in place."
+      ]
+    }
+  ]
+}

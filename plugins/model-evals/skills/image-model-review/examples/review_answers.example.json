@@ -1,0 +1,36 @@
+{
+  "_comment": "Invented example. ExampleVendor and example-image-1 do not exist; the URLs are placeholders. Replace every value with what you found.",
+  "subject": {
+    "vendor": "ExampleVendor",
+    "model": "example-image-1",
+    "version": "2026-10",
+    "surfaces": ["api"],
+    "accepts_image_input": true,
+    "generates_video": false
+  },
+  "reviewer": "security-review@your-org.example",
+  "date": "2026-11-14",
+  "context": {
+    "surface": "vendor API called from an internal marketing tool",
+    "harness": "internal web app",
+    "safeguards": "vendor default safety setting; no filter of our own",
+    "data_sensitivity": "staff may upload product photos; no customer data intended",
+    "autonomy": "a person writes each prompt and downloads each image"
+  },
+  "harvest": [
+    {"item": "H-01", "status": "found", "claim": "The vendor publishes a model card for example-image-1 dated 2026-10.", "source": "https://vendor.example/model-cards/example-image-1", "kind": "model_card"},
+    {"item": "H-02", "status": "found", "claim": "The card reports one aggregate rate over adversarial prompts across all policy categories with the full safety stack on; no per-category rates and no stack-off baseline.", "source": "https://vendor.example/model-cards/example-image-1"},
+    {"item": "H-03", "status": "absent", "source": "https://vendor.example/model-cards/example-image-1", "note": "No evaluation of fraud documents, brand impersonation, QR codes or hidden payloads is mentioned."},
+    {"item": "H-05", "status": "found", "claim": "The card states that outputs carry C2PA metadata and an invisible watermark, and that the detector is internal to the vendor.", "source": "https://vendor.example/model-cards/example-image-1"},
+    {"item": "H-06", "status": "found", "claim": "The usage policy prohibits impersonation and content intended to defraud.", "source": "https://vendor.example/usage-policy"},
+    {"item": "H-10", "status": "found", "claim": "API prompts and uploaded images are retained 30 days for abuse monitoring and are not used for training by default.", "source": "https://vendor.example/data-handling"},
+    {"item": "H-11", "status": "absent", "source": "https://vendor.example/docs", "note": "No customer-side audit log of generations is documented."},
+    {"item": "H-13", "status": "not_checked"}
+  ],
+  "reviewed": [
+    {"threat_ids": ["img-11"], "claim": "Our marketing tool logs the prompt, the user and the output hash for every generation.", "source": "reviewed", "note": "Read from the tool's configuration with its owner on 2026-11-13."}
+  ],
+  "not_applicable": {
+    "img-13": "The product under review does not generate video."
+  }
+}

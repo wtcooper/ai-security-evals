@@ -1,0 +1,232 @@
+{
+  "schema": "agent-feature-review/template/1",
+  "feature": "computer-use",
+  "title": "Computer use and browser control",
+  "prefix": "cu",
+  "trust_boundary": [
+    "Before: the model returns text and a person or your code decides what happens next. After: the model reads a screen it does not control (screenshots, page structure, accessibility tree) and issues clicks, keystrokes and navigation itself.",
+    "Everything rendered is input: web pages, emails, adverts, documents, pop-ups, other people's content. None of it is authenticated as coming from the user.",
+    "The agent acts as whoever the browser profile or desktop session is logged in as: cookies, single sign-on, saved passwords, local files, the clipboard.",
+    "Actions are real, and many cannot be undone: send, buy, delete, submit, grant access."
+  ],
+  "context_questions": [
+    "Where does it run: a vendor-hosted browser or VM, an isolated profile of yours, or the user's own desktop and browser?",
+    "Which sites and applications can it reach, and which accounts are signed in there?",
+    "Does a person watch each session, approve some steps, or neither?"
+  ],
+  "threats": [
+    {
+      "id": "cu-01",
+      "title": "Instructions on screen take over the task",
+      "description": "Text or images on a page, in an email or in a document tell the agent to do something else, and it complies. The attacker needs only to put content where the agent will look.",
+      "owasp_llm": [
+        "LLM01:2025"
+      ],
+      "owasp_agentic": [
+        "ASI01"
+      ],
+      "atlas": [
+        "AML.T0051.001",
+        "AML.T0100",
+        "AML.T0129"
+      ],
+      "questions": [
+        "Which of the places the agent looks can an outsider write to: the open web, an inbox, shared documents, adverts, comments?",
+        "What does the vendor do with instructions found on screen, and how was that tested: a fixed attack set, or attacks adapted to the defence?",
+        "What happens when on-screen text asks for an action outside the user's task?"
+      ],
+      "vendor_evidence": [
+        "Injection results for computer use specifically: which benchmark or attack set, static or adaptive, safeguards on or off, and the attack success rate that remains.",
+        "A description of the safeguards: injection classifiers, confirmation prompts, blocked site categories.",
+        "The vendor's own statement of residual risk for this feature."
+      ],
+      "benchmarks": [
+        "os_harm",
+        "redteamcua",
+        "wasp",
+        "vpi_bench",
+        "cyse3_vpi",
+        "agentdojo"
+      ],
+      "own_tests": [
+        {
+          "skill": "app-redteam",
+          "how": "only if the feature sits behind an endpoint of yours that the skill can drive; it attacks through the prompt, not through the screen."
+        }
+      ],
+      "no_standard_test": [
+        "Your own sites, your own signed-in session and your own page content.",
+        "Attacks adapted to the vendor's specific defence. Public suites are mostly static."
+      ]
+    },
+    {
+      "id": "cu-02",
+      "title": "The agent acts with the session's signed-in privileges",
+      "description": "Whatever the profile can reach, the agent can reach: internal applications, single sign-on, a password manager, payment methods.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0112.000"
+      ],
+      "questions": [
+        "Is the session a clean, isolated profile or the user's everyday one? What is signed in?",
+        "Can the agent enter credentials, approve a sign-in prompt, or grant an application access on the user's behalf?",
+        "Which steps hand control back to the person, and can the agent click through them?"
+      ],
+      "vendor_evidence": [
+        "Documentation of the execution environment and its isolation.",
+        "What the agent is prevented from doing: credential entry, payments, consent screens.",
+        "How take-over and confirmation modes work, and whether they can be turned off."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Privilege reach in your environment. This is a design review of your profile, accounts and network, not a benchmark."
+      ]
+    },
+    {
+      "id": "cu-03",
+      "title": "Irreversible actions taken by mistake or under manipulation",
+      "description": "The agent sends, buys, deletes, posts or submits something the user did not intend, through an ordinary interface used in an unintended way.",
+      "owasp_llm": [
+        "LLM06:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0053"
+      ],
+      "questions": [
+        "Which actions in reach cannot be undone, and which of them need a person's confirmation?",
+        "Does the confirmation show what will actually happen, or the agent's description of it?",
+        "How often does the vendor report unintended actions on benign tasks?"
+      ],
+      "vendor_evidence": [
+        "Results on model misbehaviour or unintended actions for this feature, with benign-task completion beside them.",
+        "The list of action types that always need confirmation."
+      ],
+      "benchmarks": [
+        "os_harm"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "The applications your users will actually point it at."
+      ]
+    },
+    {
+      "id": "cu-04",
+      "title": "Data leaves through the agent's own actions",
+      "description": "The agent types, pastes, uploads or navigates in a way that carries private data to a place an attacker can read.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0086"
+      ],
+      "questions": [
+        "What sensitive data is visible to the session: open tabs, files, clipboard, earlier pages?",
+        "Can the agent reach arbitrary external sites while that data is in view?",
+        "Is outbound navigation or form submission restricted or logged?"
+      ],
+      "vendor_evidence": [
+        "Exfiltration scenarios in the vendor's testing and their results.",
+        "Network or site restrictions available to a deploying organisation."
+      ],
+      "benchmarks": [
+        "os_harm",
+        "redteamcua"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "Exfiltration paths specific to your data and your network."
+      ]
+    },
+    {
+      "id": "cu-05",
+      "title": "The feature is used deliberately for harm",
+      "description": "A user points the agent at harassment, fraud, bulk account creation or bypassing checks meant for people.",
+      "owasp_llm": [],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "What does the usage policy prohibit for this feature, and what is enforced technically?",
+        "Does the vendor report refusal on harmful computer-use tasks next to completion of legitimate ones?"
+      ],
+      "vendor_evidence": [
+        "Misuse evaluations for this feature with both figures.",
+        "Abuse monitoring and enforcement that applies to your accounts."
+      ],
+      "benchmarks": [
+        "os_harm",
+        "agentharm"
+      ],
+      "own_tests": [
+        {
+          "skill": "agent-misuse-benchmark",
+          "how": "measures a model inside an agent harness on malicious and matched benign scenarios; check whether it supports a computer-use harness before planning on it."
+        }
+      ],
+      "no_standard_test": [
+        "Misuse specific to your systems."
+      ]
+    },
+    {
+      "id": "cu-06",
+      "title": "Oversight that does not work as a check",
+      "description": "Nobody can reconstruct what the agent did, approvals are too frequent to read, or the agent's account of its actions differs from the actions.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI09"
+      ],
+      "atlas": [],
+      "questions": [
+        "What is recorded: screenshots, an action log, the pages visited? Where, for how long, and who can read it?",
+        "Can a reviewer replay a session after the fact?",
+        "How many approvals does a typical task ask for, and what do they show?"
+      ],
+      "vendor_evidence": [
+        "Logging and audit features for this feature.",
+        "Any study by the vendor of approval fatigue or of agent summaries against actual actions."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "No public test measures whether approvals are read or logs are sufficient. Record what is in place."
+      ]
+    },
+    {
+      "id": "cu-07",
+      "title": "Downloads, installs and code run from the agent's session",
+      "description": "The agent downloads and opens a file, installs an extension or runs a command, and the machine it runs on is compromised.",
+      "owasp_llm": [],
+      "owasp_agentic": [
+        "ASI05"
+      ],
+      "atlas": [
+        "AML.T0112.000",
+        "AML.T0011.003"
+      ],
+      "questions": [
+        "Can the agent download, open or execute files, install extensions, or open a terminal?",
+        "What separates the agent's environment from the user's machine and from your network?"
+      ],
+      "vendor_evidence": [
+        "The isolation of the hosted environment and what persists between sessions.",
+        "Restrictions on downloads and execution."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Isolation of your own desktop or VM image. Design review."
+      ]
+    }
+  ]
+}

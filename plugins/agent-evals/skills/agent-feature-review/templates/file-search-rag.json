@@ -1,0 +1,216 @@
+{
+  "schema": "agent-feature-review/template/1",
+  "feature": "file-search-rag",
+  "title": "File search and retrieval (RAG)",
+  "prefix": "rag",
+  "trust_boundary": [
+    "Before: the model answers from training and the prompt. After: passages retrieved from a document store are placed in the prompt and treated as knowledge. Whoever can add or edit a document can put text in the model's context.",
+    "Retrieval runs as some identity. If the index was built with wider access than the asking user has, an answer can cross a permission boundary.",
+    "Documents, chunks and embeddings are copied into a store with its own access control, retention and location, often the vendor's.",
+    "Answers carry citations, and people trust citations."
+  ],
+  "context_questions": [
+    "Which repositories are indexed, and who can write to them?",
+    "Whose permissions apply at query time: the asking user's, or the indexer's?",
+    "Where does the index live, and who operates it?"
+  ],
+  "threats": [
+    {
+      "id": "rag-01",
+      "title": "Planted documents steer answers or carry instructions",
+      "description": "A document written to be retrieved changes what the model says or does for other users.",
+      "owasp_llm": [
+        "LLM01:2025",
+        "LLM08:2025"
+      ],
+      "owasp_agentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0070",
+        "AML.T0071",
+        "AML.T0066",
+        "AML.T0051.001"
+      ],
+      "questions": [
+        "Who can add or edit indexed content: all staff, customers, the public?",
+        "Is retrieved text marked as data? Can it trigger tool calls?",
+        "Is there review or provenance for content entering the index?"
+      ],
+      "vendor_evidence": [
+        "Injection testing through retrieved content.",
+        "Any filtering at ingestion or retrieval."
+      ],
+      "benchmarks": [
+        "saferag"
+      ],
+      "own_tests": [
+        {
+          "skill": "app-redteam",
+          "how": "against your own endpoint with documents you plant in a test index."
+        },
+        {
+          "skill": "app-benchmark",
+          "how": "a fixed prompt set against the same endpoint."
+        }
+      ],
+      "no_standard_test": [
+        "Your corpus and your ingestion path."
+      ]
+    },
+    {
+      "id": "rag-02",
+      "title": "Retrieval returns what the asking user may not see",
+      "description": "The index was built by an account with wide access, or access rules are not applied at query time, or they are stale.",
+      "owasp_llm": [
+        "LLM08:2025",
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0085.000"
+      ],
+      "questions": [
+        "Are source-system permissions enforced per query, per user?",
+        "How quickly does a permission change in the source reach the index?"
+      ],
+      "vendor_evidence": [
+        "The permission model of the retrieval feature.",
+        "Sync behaviour for access changes."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Needs your access rules: a test with two accounts of different rights. No public benchmark."
+      ]
+    },
+    {
+      "id": "rag-03",
+      "title": "Secrets and personal data become searchable",
+      "description": "Credentials or personal data sitting in indexed documents can now be asked for in plain language.",
+      "owasp_llm": [
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0082",
+        "AML.T0085.000"
+      ],
+      "questions": [
+        "Was the corpus checked for secrets and regulated data before indexing?",
+        "Can repositories or file types be excluded?"
+      ],
+      "vendor_evidence": [
+        "Exclusion and classification features."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "A scan of your own corpus. Outside this repo."
+      ]
+    },
+    {
+      "id": "rag-04",
+      "title": "Leakage between tenants or projects in a shared index",
+      "description": "One customer's or project's passages are retrieved for another.",
+      "owasp_llm": [
+        "LLM08:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "Is the index per tenant, per project, or shared with filtering?",
+        "What is the vendor's isolation evidence?"
+      ],
+      "vendor_evidence": [
+        "Isolation architecture and independent audit."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "Vendor evidence only."
+      ]
+    },
+    {
+      "id": "rag-05",
+      "title": "Private content leaves through the rendered answer",
+      "description": "Retrieved text is placed in a link or image address that the user's client fetches, sending it to an attacker.",
+      "owasp_llm": [
+        "LLM05:2025",
+        "LLM02:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [
+        "AML.T0077",
+        "AML.T0136"
+      ],
+      "questions": [
+        "Does the client render links and remote images from model output?",
+        "Is there an allowlist of domains?"
+      ],
+      "vendor_evidence": [
+        "Output-rendering restrictions in the product."
+      ],
+      "benchmarks": [],
+      "own_tests": [
+        {
+          "skill": "app-redteam",
+          "how": "against your endpoint, watching for outbound requests that carry a canary."
+        }
+      ],
+      "no_standard_test": [
+        "Depends on your client. No public benchmark for a given product."
+      ]
+    },
+    {
+      "id": "rag-06",
+      "title": "Wrong answers with trustworthy-looking citations",
+      "description": "Conflicting, promotional or fabricated passages are presented with citations that make them look checked.",
+      "owasp_llm": [
+        "LLM09:2025"
+      ],
+      "owasp_agentic": [
+        "ASI09"
+      ],
+      "atlas": [
+        "AML.T0067.000"
+      ],
+      "questions": [
+        "Do users act on answers without opening the sources?",
+        "Does the product show which passage supports which claim?"
+      ],
+      "vendor_evidence": [
+        "Evaluations of answer faithfulness and citation accuracy."
+      ],
+      "benchmarks": [
+        "saferag"
+      ],
+      "own_tests": [],
+      "no_standard_test": [
+        "Your own corpus and questions."
+      ]
+    },
+    {
+      "id": "rag-07",
+      "title": "The store itself: location, retention, deletion",
+      "description": "Copies of documents and embeddings sit somewhere new, are kept after the source is deleted, or are used for other purposes.",
+      "owasp_llm": [
+        "LLM08:2025"
+      ],
+      "owasp_agentic": [],
+      "atlas": [],
+      "questions": [
+        "Where are chunks and embeddings stored, for how long, and are they used for training?",
+        "Does deleting a source document remove its chunks and embeddings?"
+      ],
+      "vendor_evidence": [
+        "Data-handling terms that name the retrieval store."
+      ],
+      "benchmarks": [],
+      "own_tests": [],
+      "no_standard_test": [
+        "A data-handling review."
+      ]
+    }
+  ]
+}

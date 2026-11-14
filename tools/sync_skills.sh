@@ -48,7 +48,7 @@ vendor security-tool-benchmark evalstats.py sarif_to_findings.py cwe_map.py mani
                                canary_probe.py find_sdlc.sh probelib.py evalkit.py
 
 # --- skills built on the shared helpers only; registered as they land ---
-EVALKIT_SKILLS="decision-model-benchmark"
+EVALKIT_SKILLS="decision-model-benchmark image-model-review agent-feature-review"
 for s in $EVALKIT_SKILLS; do has "$s" && vendor "$s" evalkit.py; done
 
 # --- promptfoo setup script: each promptfoo skill ships its OWN copy ---
