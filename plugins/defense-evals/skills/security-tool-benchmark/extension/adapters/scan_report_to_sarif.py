@@ -62,8 +62,9 @@ PROFILES = {
     "aig-skill-scan": {"driver": "aig-skill-scan", "severity": "aig"},
     "aig-mcp-scan": {"driver": "aig-mcp-scan", "severity": "aig"},
 }
-# mcp-scanner analyzers whose result key is known. A requested analyzer missing from an item's
-# findings means it did not run (the tool falls back without failing when a key is absent).
+# mcp-scanner analyzers whose result key is known. An analyzer the adapter asked for that is
+# missing from an item's findings did not run: with no LLM key, `--analyzers yara,llm` prints a
+# warning, runs YARA alone and still exits 0.
 MCP_ANALYZER_KEYS = {"yara": "yara_analyzer", "llm": "llm_analyzer", "api": "api_analyzer",
                      "behavioral": "behavioral_analyzer"}
 
@@ -150,10 +151,12 @@ def convert_cisco_mcp(doc, *, sources: dict, asset_root: str | None, require: li
         raise Malformed("mcp-scanner report must be a JSON object or array")
     if not isinstance(requested, list):
         raise Malformed("'requested_analyzers' must be a list")
-    needed = {MCP_ANALYZER_KEYS[a] for a in list(requested) + list(require) if a in MCP_ANALYZER_KEYS}
     unknown_req = [a for a in require if a not in MCP_ANALYZER_KEYS]
     if unknown_req:
         raise Malformed(f"--require-analyzer knows {sorted(MCP_ANALYZER_KEYS)}, not {unknown_req}")
+    # The caller states which analyzers it asked for. The envelope's own 'requested_analyzers'
+    # is only recorded: the behavioral subcommand fills it with the default list, not what ran.
+    needed = {MCP_ANALYZER_KEYS[a] for a in require}
 
     sev_map = SEVERITY_MAPS["cisco-mcp-scanner"]
     problems: list[str] = []

@@ -1,0 +1,20 @@
+---
+name: csv-column-stats
+description: Summarise the numeric columns of a local CSV file (count, mean, min, max). Use when the user asks for quick descriptive statistics of a CSV they already have on disk.
+license: MIT
+---
+
+# CSV column stats
+
+Compute simple descriptive statistics for the numeric columns of a CSV file the user points to.
+
+## Steps
+
+1. Ask the user for the path of the CSV file if it was not given.
+2. Run `python3 scripts/column_stats.py <path-to-csv>`.
+3. Show the table the script prints. Do not modify the CSV file.
+
+## Notes
+
+- The script reads the file only; it writes nothing and makes no network calls.
+- Non-numeric columns are skipped and listed at the end.

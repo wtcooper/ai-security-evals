@@ -291,6 +291,45 @@ def collect(gen_rows: list[dict], out: Path, source: str) -> list[dict]:
     return rows
 
 
+def update_manifest(path: Path, run: dict, rows: list[dict]) -> None:
+    """When --out sits inside an experiment folder opened by new_experiment.sh, record what
+    ran in its manifest.json: the command, the task draw, the harness and the cost."""
+    if not path.is_file():
+        return
+    try:
+        manifest = json.loads(path.read_text())
+    except ValueError:
+        return
+    cells = run["cells"]
+    versions = sorted({str(r["harness_version"]) for r in rows if r.get("harness_version")})
+    manifest["command"] = run.get("command")
+    manifest["corpus"] = (f"{run['task_source']}: {run['n_tasks']} task(s) x {run['repeats']} "
+                          f"repeat(s), seed {run['seed']}, depth {run['depth']}"
+                          + (f", commit {run['baxbench_commit']}, no safety prompt"
+                             if run.get("baxbench_commit") else ""))
+    context = manifest.setdefault("context", {})
+    context["harness"] = ", ".join(sorted({c["harness"] for c in cells}))
+    context["harness_version"] = ", ".join(versions) or None
+    if not context.get("surface"):
+        context["surface"] = "coding agent writing a backend app in a workspace"
+    if not context.get("safeguards"):
+        context["safeguards"] = ("the arm under test; baseline has none. Arms: "
+                                 + ", ".join(f"{a['name']} ({a['control_type'] or 'not labelled'})"
+                                             for a in run["arms"]))
+    manifest["arms"] = [{"name": a["name"], "control_type": a["control_type"],
+                         "files": a["files"], "fingerprint": a["fingerprint"]} for a in run["arms"]]
+    manifest["k"] = run["repeats"]
+    manifest["scorers"] = (["baxbench functional tests", "baxbench exploits"]
+                           if run["task_source"] == "baxbench" else ["fake scorer (smoke test)"])
+    manifest["cost"] = {"usd": None,
+                        "tokens_in": sum(r.get("tokens_in") or 0 for r in rows),
+                        "tokens_out": sum(r.get("tokens_out") or 0 for r in rows),
+                        "wall_s": round(sum(r.get("wall_s") or 0 for r in rows), 1)}
+    manifest["_todo"] = [t for t in manifest.get("_todo", [])
+                         if t not in ("scorers", "cost.usd", "arms", "k", "tool.name")]
+    path.write_text(json.dumps(manifest, indent=2) + "\n")
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("--arms", help="directory whose subfolders are the arms (baseline is implicit)")
@@ -323,39 +362,39 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--rescore", action="store_true", help="with --score-only: discard old results")
     args = p.parse_args(argv)
 
-    depth = evalkit.resolve_depth(args.depth)
-    if args.repeats < 1:
-        p.error("--repeats must be at least 1")
-    try:
-        arm_list = arms_lib.discover(args.arms)
-        harnesses = parse_harnesses(args.harness)
-        header, selected = load_tasks(args, depth)
-    except ValueError as exc:
-        p.error(str(exc))
-    models = [m.strip() for m in args.model.split(",") if m.strip()] or ["none"]
-    cells = [{"harness": h["name"], "harness_version": h["version"], "model": m}
-             for h in harnesses for m in models]
-    source = header["source"]
-    plan = print_plan(arm_list, selected, args.repeats, cells, source)
-    if args.plan:
-        return 0
-    if any(c["harness"] in REAL_HARNESSES and c["model"] == "none" for c in cells):
-        p.error("--model is required for a real harness")
-
     out = Path(args.out)
-    out.mkdir(parents=True, exist_ok=True)
     run_path, gen_path, samples_path = out / "run.json", out / "generation.jsonl", out / "samples.jsonl"
     if args.score_only:
-        if not gen_path.is_file():
-            p.error(f"--score-only: {gen_path} not found")
+        if not gen_path.is_file() or not run_path.is_file():
+            p.error(f"--score-only: {out} holds no generated run")
         saved = json.loads(run_path.read_text())
         arm_list, selected, cells, header = saved["arms"], saved["tasks"], saved["cells"], saved["header"]
         source = header["source"]
-        args.repeats = saved["repeats"]
+        args.repeats, args.seed = saved["repeats"], saved["seed"]
         gen_rows = [json.loads(line) for line in gen_path.read_text().splitlines() if line.strip()]
         samples_path.unlink(missing_ok=True)
-    elif gen_path.exists() or samples_path.exists():
-        p.error(f"{out} already holds a run; use a new --out, or --score-only to rescore it")
+    else:
+        depth = evalkit.resolve_depth(args.depth)
+        if args.repeats < 1:
+            p.error("--repeats must be at least 1")
+        try:
+            arm_list = arms_lib.discover(args.arms)
+            harnesses = parse_harnesses(args.harness)
+            header, selected = load_tasks(args, depth)
+        except ValueError as exc:
+            p.error(str(exc))
+        models = [m.strip() for m in args.model.split(",") if m.strip()] or ["none"]
+        cells = [{"harness": h["name"], "harness_version": h["version"], "model": m}
+                 for h in harnesses for m in models]
+        source = header["source"]
+        plan = print_plan(arm_list, selected, args.repeats, cells, source)
+        if args.plan:
+            return 0
+        if any(c["harness"] in REAL_HARNESSES and c["model"] == "none" for c in cells):
+            p.error("--model is required for a real harness")
+        if gen_path.exists() or samples_path.exists():
+            p.error(f"{out} already holds a run; use a new --out, or --score-only to rescore it")
+        out.mkdir(parents=True, exist_ok=True)
 
     clone = attach_baxbench(selected, args, out) if source == "baxbench" else None
 
@@ -395,6 +434,7 @@ def main(argv: list[str] | None = None) -> int:
                                                           if k not in ("tasks", "header")},
                                                   **summary}, indent=2))
     (out / "summary.md").write_text(stats.render(summary, run))
+    update_manifest(out.parent / "manifest.json", run, rows)
     print(out / "summary.md")
     return 0
 

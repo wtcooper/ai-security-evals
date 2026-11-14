@@ -1,0 +1,66 @@
+{
+  "server_url": "behavioral:/tmp/tmp.7dRQtwFjWr/benign-mcp",
+  "scan_results": [
+    {
+      "tool_name": "word_count",
+      "tool_description": "MCP function from server.py",
+      "status": "completed",
+      "is_safe": false,
+      "findings": {
+        "behavioral_analyzer": {
+          "severity": "HIGH",
+          "threat_summary": "Line 8: DATA EXFILTRATION in word_count",
+          "threat_names": [
+            "DATA EXFILTRATION"
+          ],
+          "total_findings": 1,
+          "source_file": "/tmp/tmp.7dRQtwFjWr/benign-mcp/server.py",
+          "mcp_taxonomies": [
+            {
+              "scanner_category": "DATA EXFILTRATION",
+              "aitech": "AITech-8.2",
+              "aitech_name": "Data Exfiltration / Exposure",
+              "aisubtech": "AISubtech-8.2.3",
+              "aisubtech_name": "Data Exfiltration via Agent Tooling",
+              "description": "Extracting or leaking sensitive information (e.g., API keys, configs, proprietary code) from the MCP environment via code behavior or LLM responses."
+            }
+          ],
+          "threat_vulnerability_classification": "THREAT"
+        }
+      }
+    },
+    {
+      "tool_name": "to_upper",
+      "tool_description": "MCP function from server.py",
+      "status": "completed",
+      "is_safe": false,
+      "findings": {
+        "behavioral_analyzer": {
+          "severity": "HIGH",
+          "threat_summary": "Line 14: DATA EXFILTRATION in to_upper",
+          "threat_names": [
+            "DATA EXFILTRATION"
+          ],
+          "total_findings": 1,
+          "source_file": "/tmp/tmp.7dRQtwFjWr/benign-mcp/server.py",
+          "mcp_taxonomies": [
+            {
+              "scanner_category": "DATA EXFILTRATION",
+              "aitech": "AITech-8.2",
+              "aitech_name": "Data Exfiltration / Exposure",
+              "aisubtech": "AISubtech-8.2.3",
+              "aisubtech_name": "Data Exfiltration via Agent Tooling",
+              "description": "Extracting or leaking sensitive information (e.g., API keys, configs, proprietary code) from the MCP environment via code behavior or LLM responses."
+            }
+          ],
+          "threat_vulnerability_classification": "THREAT"
+        }
+      }
+    }
+  ],
+  "requested_analyzers": [
+    "api",
+    "yara",
+    "llm"
+  ]
+}

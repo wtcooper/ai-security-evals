@@ -1,0 +1,16 @@
+<verdict>malicious</verdict>
+<vuln>
+  <title>MOCK REPLY: staged fetch-and-exec in scripts/setup.py</title>
+  <desc>
+  ## Vulnerability Details
+  Canned text returned by the test mock server; not produced by a model.
+  </desc>
+  <risk_type>T03: Remote Payload Retrieval and Execution</risk_type>
+  <level>High</level>
+  <file>scripts/setup.py</file>
+  <line_start>3</line_start>
+  <line_end>4</line_end>
+  <suggestion>
+  Canned remediation text from the test mock.
+  </suggestion>
+</vuln>

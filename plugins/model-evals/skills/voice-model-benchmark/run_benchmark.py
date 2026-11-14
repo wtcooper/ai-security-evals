@@ -213,7 +213,10 @@ def update_manifest(out: Path, run: dict, summary: dict, command: str) -> None:
     doc["corpus"] = (f"{run['corpus']['path']} sha256 {run['corpus']['sha256'][:12]}; seeded "
                      f"selection seed={run['seed']} depth={run['depth']}: "
                      f"{run['plan']['cases_by_type']}")
-    doc["context"] = {**(doc.get("context") or {}), **run["context"]}
+    # What the manifest already holds (from a review profile at scaffold time) wins over
+    # what the runner inferred.
+    recorded = {k: v for k, v in (doc.get("context") or {}).items() if v is not None}
+    doc["context"] = {**(doc.get("context") or {}), **run["context"], **recorded}
     doc.setdefault("tool", {}).update({"name": "voice-model-benchmark", "version": "1"})
     doc.setdefault("model", {})["id"] = run["model"]
     doc["arms"] = [{"name": a, "condition": run["perturbations"].get(a, a)} for a in run["arms"]]
@@ -289,9 +292,17 @@ def main(argv: list[str] | None = None) -> int:
     clips_dir = Path(args.clips) if args.clips else out / "results" / "clips"
     is_mock = args.target == "mock"
 
+    # Clips are reused when the caller supplies them, or when a run is being resumed and the
+    # clips it made are all still there. Otherwise they are made again (same seed, same clips).
     existing = None
-    if args.clips and (clips_dir / "manifest.json").is_file():
-        existing = load_clips(clips_dir, selected, arms)
+    if (args.clips or args.resume) and (clips_dir / "manifest.json").is_file():
+        try:
+            existing = load_clips(clips_dir, selected, arms)
+        except ValueError as exc:
+            if args.clips:
+                p.error(str(exc))
+    elif args.clips:
+        p.error(f"no manifest.json in {clips_dir}")
     plan = print_plan(selected, arms, args.tts, existing, args.max_output_tokens)
     if args.plan:
         return 0
@@ -371,7 +382,10 @@ def main(argv: list[str] | None = None) -> int:
             p.error(f"{samples_path} exists; pass --resume to continue it or choose a new --out")
         done = {(r["arm"], r["sample"]) for r in report.load_samples(samples_path)
                 if not r.get("target_error")}
-    keep = len(selected) if args.save_audio == "all" else int(args.save_audio)
+    try:
+        keep = len(selected) if args.save_audio == "all" else int(args.save_audio)
+    except ValueError:
+        p.error("--save-audio takes a number or 'all'")
     keep_ids = set()
     for case_type in caselib.TYPES:
         keep_ids |= {c["id"] for c in [c for c in selected if c["type"] == case_type][:keep]}

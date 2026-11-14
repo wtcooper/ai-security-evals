@@ -1,0 +1,130 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "aig-skill-scan",
+          "version": "0.2.2",
+          "informationUri": "https://github.com/Tencent/AI-Infra-Guard",
+          "rules": [
+            {
+              "id": "T01",
+              "name": "技能指令劫持",
+              "shortDescription": {
+                "text": "当 skill 加载时篡改 agent 当前会话目标或安全约束"
+              }
+            },
+            {
+              "id": "T02",
+              "name": "Agent 记忆投毒",
+              "shortDescription": {
+                "text": "将攻击者控制的规则写入持久记忆，使其持续影响后续会话"
+              }
+            },
+            {
+              "id": "T03",
+              "name": "远程载荷获取与执行",
+              "shortDescription": {
+                "text": "从外部 URL 获取代码，使有效载荷在 skill 审查后仍可变化"
+              }
+            },
+            {
+              "id": "T04",
+              "name": "嵌入恶意代码",
+              "shortDescription": {
+                "text": "在 skill 包内携带恶意脚本，调用时本地执行"
+              }
+            },
+            {
+              "id": "T05",
+              "name": "未授权访问与权限提升",
+              "shortDescription": {
+                "text": "突破最小权限边界，获取超出任务合法所需的权限"
+              }
+            },
+            {
+              "id": "T06",
+              "name": "系统持久化",
+              "shortDescription": {
+                "text": "安装跨会话后门、钩子、服务或定时任务，在 skill 运行后仍存活"
+              }
+            },
+            {
+              "id": "T07",
+              "name": "工具劫持与欺骗",
+              "shortDescription": {
+                "text": "修改、包装、伪造或替换工具，使看似合法的调用执行攻击者逻辑"
+              }
+            },
+            {
+              "id": "T08",
+              "name": "不安全依赖",
+              "shortDescription": {
+                "text": "通过依赖混淆、拼写劫持或不安全来源引入恶意包或组件"
+              }
+            },
+            {
+              "id": "T09",
+              "name": "不安全 Skill 编码实践",
+              "shortDescription": {
+                "text": "暴露可利用缺陷，如硬编码密钥、命令注入、明文敏感数据、不安全临时文件"
+              }
+            },
+            {
+              "id": "other",
+              "name": "其他风险",
+              "shortDescription": {
+                "text": "未归入 T01-T09 分类的其他安全问题"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "T03",
+          "level": "error",
+          "message": {
+            "text": "MOCK REPLY: staged fetch-and-exec in scripts/setup.py"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "scripts/setup.py"
+                },
+                "region": {
+                  "startLine": 3,
+                  "endLine": 4
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "912d92b3efc74036"
+          },
+          "properties": {
+            "description": "## Vulnerability Details\n  Canned text returned by the test mock server; not produced by a model.",
+            "severity": "高危"
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Canned remediation text from the test mock."
+              }
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "securityScore": 60,
+        "primaryLanguage": "Python",
+        "llm": "mock-model",
+        "startTime": 1794692487.0898757,
+        "endTime": 1794692487.206224
+      }
+    }
+  ]
+}

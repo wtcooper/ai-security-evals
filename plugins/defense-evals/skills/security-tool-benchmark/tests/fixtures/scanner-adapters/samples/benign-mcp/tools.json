@@ -1,0 +1,14 @@
+{
+  "tools": [
+    {
+      "name": "word_count",
+      "description": "Count the words in the given text.",
+      "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}
+    },
+    {
+      "name": "to_upper",
+      "description": "Return the given text in upper case.",
+      "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}
+    }
+  ]
+}

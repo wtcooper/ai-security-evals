@@ -1,0 +1,9 @@
+{
+  "server_url": "behavioral:samples/benign-mcp",
+  "scan_results": [],
+  "requested_analyzers": [
+    "api",
+    "yara",
+    "llm"
+  ]
+}

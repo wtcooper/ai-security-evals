@@ -1,0 +1,124 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "aig-mcp-scan",
+          "version": "0.2.0",
+          "informationUri": "https://github.com/Tencent/AI-Infra-Guard",
+          "rules": [
+            {
+              "id": "MCP01",
+              "name": "Token Mismanagement & Secret Exposure",
+              "shortDescription": {
+                "text": "Credential theft and secret leakage, e.g. hardcoded keys, env var leaks, mcp.json credential theft"
+              }
+            },
+            {
+              "id": "MCP02",
+              "name": "Privilege Escalation via Scope Creep",
+              "shortDescription": {
+                "text": "Overly broad tool permissions granting agents unnecessary system control or data access"
+              }
+            },
+            {
+              "id": "MCP03",
+              "name": "Tool Poisoning",
+              "shortDescription": {
+                "text": "Legitimate MCP tools tampered or injected with malicious logic, returning false/biased results to manipulate the model"
+              }
+            },
+            {
+              "id": "MCP04",
+              "name": "Software Supply Chain Attacks",
+              "shortDescription": {
+                "text": "Dependency tampering, malicious third-party MCP servers, or backdoors in build scripts"
+              }
+            },
+            {
+              "id": "MCP05",
+              "name": "Command Injection & Execution",
+              "shortDescription": {
+                "text": "Agent constructs and executes system commands, shell scripts, or API calls from untrusted input"
+              }
+            },
+            {
+              "id": "MCP06",
+              "name": "Prompt Injection via Contextual Payloads",
+              "shortDescription": {
+                "text": "Malicious instructions injected via context (OCR, web content) to hijack model control flow"
+              }
+            },
+            {
+              "id": "MCP07",
+              "name": "Insufficient Auth & Authz",
+              "shortDescription": {
+                "text": "MCP server or tools fail to validate identity, enabling cross-agent/cross-user unauthorized operations"
+              }
+            },
+            {
+              "id": "MCP08",
+              "name": "Lack of Audit and Telemetry",
+              "shortDescription": {
+                "text": "No tamper-proof logging of tool calls and context changes, hindering security traceability"
+              }
+            },
+            {
+              "id": "MCP09",
+              "name": "Shadow MCP Servers",
+              "shortDescription": {
+                "text": "Unauthorized MCP instances with default configurations or lacking security compliance"
+              }
+            },
+            {
+              "id": "MCP10",
+              "name": "Context Injection & Over-Sharing",
+              "shortDescription": {
+                "text": "Sensitive context shared across sessions or agents, causing information leakage or logic interference"
+              }
+            },
+            {
+              "id": "Name Confusion",
+              "name": "Name Confusion Attack",
+              "shortDescription": {
+                "text": "Malicious tool registered with a name similar to a common tool, tricking agents into wrong calls"
+              }
+            },
+            {
+              "id": "Rug Pull Attack",
+              "name": "Rug Pull Attack",
+              "shortDescription": {
+                "text": "Malicious MCP service terminates or changes behavior after gaining trust, causing DoS or data loss"
+              }
+            },
+            {
+              "id": "Tool Shadowing Attack",
+              "name": "Tool Shadowing Attack",
+              "shortDescription": {
+                "text": "Overriding legitimate tool behavior by redefining a same-named tool"
+              }
+            },
+            {
+              "id": "other",
+              "name": "Other Risk",
+              "shortDescription": {
+                "text": "Security issues not covered by the MCP01-MCP10 classification"
+              }
+            }
+          ]
+        }
+      },
+      "results": [],
+      "properties": {
+        "securityScore": 100,
+        "primaryLanguage": "Python",
+        "llm": "mock-model",
+        "startTime": 1794692385.5291886,
+        "endTime": 1794692386.5962474,
+        "scanNote": "complete"
+      }
+    }
+  ]
+}

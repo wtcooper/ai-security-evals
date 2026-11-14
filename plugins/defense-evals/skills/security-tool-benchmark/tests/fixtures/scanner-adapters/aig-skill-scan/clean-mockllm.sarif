@@ -1,0 +1,95 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "aig-skill-scan",
+          "version": "0.2.2",
+          "informationUri": "https://github.com/Tencent/AI-Infra-Guard",
+          "rules": [
+            {
+              "id": "T01",
+              "name": "Skill Instruction Hijacking",
+              "shortDescription": {
+                "text": "Alters the agent's current session goals or safety constraints when the skill is loaded"
+              }
+            },
+            {
+              "id": "T02",
+              "name": "Agent Memory Poisoning",
+              "shortDescription": {
+                "text": "Writes attacker-controlled rules into persistent memory so they continue to affect future sessions"
+              }
+            },
+            {
+              "id": "T03",
+              "name": "Remote Payload Retrieval and Execution",
+              "shortDescription": {
+                "text": "Fetches code from an external URL, allowing the effective payload to change after skill review"
+              }
+            },
+            {
+              "id": "T04",
+              "name": "Embedded Malicious Code",
+              "shortDescription": {
+                "text": "Ships malicious scripts inside the skill package and executes them locally when invoked"
+              }
+            },
+            {
+              "id": "T05",
+              "name": "Unauthorized Access and Privilege Escalation",
+              "shortDescription": {
+                "text": "Breaks least-privilege boundaries by obtaining permissions beyond the task's legitimate needs"
+              }
+            },
+            {
+              "id": "T06",
+              "name": "System Persistence",
+              "shortDescription": {
+                "text": "Installs cross-session backdoors, hooks, services, or scheduled tasks that survive the skill run"
+              }
+            },
+            {
+              "id": "T07",
+              "name": "Tool Hijacking and Spoofing",
+              "shortDescription": {
+                "text": "Modifies, wraps, spoofs, or replaces tools so legitimate-looking calls execute attacker logic"
+              }
+            },
+            {
+              "id": "T08",
+              "name": "Insecure Dependencies",
+              "shortDescription": {
+                "text": "Introduces malicious packages or components through dependency confusion, typosquatting, or unsafe sources"
+              }
+            },
+            {
+              "id": "T09",
+              "name": "Insecure Skill Coding Practices",
+              "shortDescription": {
+                "text": "Exposes exploitable flaws such as hardcoded secrets, command injection, plaintext sensitive data, or unsafe temp files"
+              }
+            },
+            {
+              "id": "other",
+              "name": "Other Risk",
+              "shortDescription": {
+                "text": "Security issues not covered by the T01-T09 classification"
+              }
+            }
+          ]
+        }
+      },
+      "results": [],
+      "properties": {
+        "securityScore": 100,
+        "primaryLanguage": "Markdown",
+        "llm": "mock-model",
+        "startTime": 1794692383.4600523,
+        "endTime": 1794692383.599475
+      }
+    }
+  ]
+}

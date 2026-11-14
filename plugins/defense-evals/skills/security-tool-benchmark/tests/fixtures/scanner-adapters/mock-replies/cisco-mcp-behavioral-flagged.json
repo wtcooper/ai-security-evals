@@ -1,0 +1,1 @@
+{"mismatch_detected": true, "threat_name": "DATA EXFILTRATION", "summary": "MOCK REPLY: canned text from the test mock server; not produced by a model.", "confidence": "HIGH", "classification": "THREAT", "reasoning": "MOCK REPLY: canned text.", "key_indicators": ["mock"]}
