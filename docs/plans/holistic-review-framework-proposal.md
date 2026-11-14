@@ -1,10 +1,12 @@
 # Proposal — refocus `ai-security-evals` as a holistic AI security review toolkit
 
-_Status: revision 3, for review before any build · 2026-11-14 · nothing here is implemented_
+_Status: revision 4, for review before any build · 2026-11-14 · nothing here is implemented_
 
-Changes in revision 3: a single naming rule for every skill, and merges that take the
-existing nine skills down to six (§3.2, §5.1). Revision 2 added Agent Plugins manifests, the
-no-thresholds rule, the guided review stages and the skill audit.
+Changes in revision 4: this repo evaluates controls and never implements them (§2, §3.5);
+the code-generation skill becomes a plain A/B test of any guidance placed in front of an
+agent, scored on BaxBench (§5.3); `agent-extension-scan` is dropped. Revision 3 added the
+naming rule and merges; revision 2 added Agent Plugins manifests, the no-thresholds rule,
+the guided review stages and the skill audit.
 
 ## 1. The problem this repo should solve
 
@@ -27,6 +29,7 @@ taxonomy stays. Three things are missing:
 | Principle | What it means in the repo |
 |---|---|
 | **This repo measures; the organisation decides** | No acceptance threshold, pass mark or gate ships here, in code, config, templates or docs. The review plugin walks an organisation through writing its own criteria. |
+| **Evaluations only** | The repo measures how well a control works. It ships no control: no rule files, guidance skills, hooks, guardrails or scanners of its own. Controls under test are supplied by the user (§3.5). |
 | A review is a pipeline | Scope → evidence → threat model → test → criteria → report. Benchmarks are one stage. |
 | Names say what a skill is for | `<subject>-<method>`, from a fixed vocabulary (§3.2). |
 | Results are "subject in context" | Every measurement carries the surface, harness, system prompt, tools and safeguards it ran under. |
@@ -82,7 +85,7 @@ name; the method is one of four words:
 | `review` | A guided assessment where no standard test exists |
 
 Where one subject has two benchmarks, a qualifier sits in the middle
-(`agent-misuse-benchmark`, `agent-secure-code-benchmark`).
+(`decision-model-benchmark`, `voice-model-benchmark`).
 
 ```
 ai-security-evals/
@@ -93,17 +96,17 @@ ai-security-evals/
 │   │                   review-criteria · review-report                           (new)
 │   ├── model-evals/    model-benchmark · decision-model-benchmark (new) ·
 │   │                   voice-model-benchmark (new) · image-model-review (new)
-│   ├── agent-evals/    agent-misuse-benchmark (new) · agent-secure-code-benchmark ·
-│   │                   agent-feature-review (new) · agent-extension-scan (new)
+│   ├── agent-evals/    agent-misuse-benchmark (new) · agent-feature-review (new)
 │   ├── app-evals/      app-benchmark · app-redteam
-│   └── defense-evals/  guardrail-benchmark · security-tool-benchmark
+│   └── defense-evals/  guardrail-benchmark · coding-guidance-benchmark ·
+│                       security-tool-benchmark
 │       each plugin:  plugin.json · README.md · skills/<skill>/{SKILL.md, scripts, references, lib (vendored)}
 ├── shared/             # source of truth vendored into skills (today's maintainer `lib`)
 ├── catalog/            # benchmark catalogue + threat coverage map                 (new)
 ├── targets/  evaluations/  e2e/  docs/  scripts/
 ```
 
-Five plugins, sixteen skills: five review stages and eleven measurement skills, of which six
+Five plugins, fifteen skills: five review stages and ten measurement skills, of which six
 are the existing nine after merging.
 
 ### 3.3 Shared contracts
@@ -128,6 +131,38 @@ needs, licence, threats covered, execution tier (**T0** pure API · **T1** in-me
 no-egress container · **T2** supervised sandbox, off by default). `model-benchmark`'s `suite.py` is
 the seed. `review-threat-model` reads it to sort each threat into: covered by a standard
 benchmark, needs a custom probe, design review only, or uncovered.
+
+### 3.5 Control types the repo understands, and what stays out
+
+Each skill knows which kind of control it measures and reports efficacy in that control's
+terms. The control itself always comes from the user.
+
+| Control type | Evaluated by | Efficacy measure |
+|---|---|---|
+| Guardrail or content filter (API or model) | `guardrail-benchmark` | Catch rate against false-block rate; risk removed inside a benchmark |
+| Guidance in front of a coding agent (skill, rule, hook, MCP server, any mix) | `coding-guidance-benchmark` | Change in correct-and-secure rate against no guidance |
+| Model, provider and harness safeguards | `model-benchmark`, `agent-misuse-benchmark` (safeguards on/off arm) | Refusal on malicious tasks beside completion on legitimate ones |
+| App-level defences (system prompt, filters) | `app-benchmark`, `app-redteam` (two-arm runs) | Change in attack success rate |
+| Decision model used as a gate | `decision-model-benchmark` | Fail-open and fail-closed rates; flip rate under attack |
+| Security tools (code scanners, extension scanners, pentest tools) | `security-tool-benchmark` | Recall and precision against known answers |
+
+What this rules out or moves:
+
+- **Removed from the code-generation skill:** the script that installs CodeGuard, the script
+  that authors a Secure Build Plan, and the hand-written rule files. All three produce or
+  ship a control.
+- **Withdrawn from the last revision:** a reference CodeGuard arm and a nudge-rule template.
+- **Dropped:** `agent-extension-scan`. Scanning a submitted skill or MCP server is operating
+  a scanner, which `ai-security-governance` and `ai-security-sdlc` already do. Its results
+  enter a review as evidence; how far to trust the scanner is `security-tool-benchmark`.
+- **Moved:** `weights_scan.py` reads scan verdicts Hugging Face already publishes. That is
+  evidence harvesting, so it moves from `model-benchmark` to `review-evidence`.
+- **Relabelled:** the LiteLLM gateway under `targets/` bundles a mock content filter. It is
+  a test fixture for exercising the skills, not something to deploy.
+- **Review skills** record which controls were in place and which were evaluated. They do
+  not prescribe or generate controls.
+- **Not affected:** credential stripping, the no-egress sandbox and the pre-run egress
+  check. These protect the evaluation run itself.
 
 ## 4. The `ai-review` plugin — the guided review
 
@@ -162,8 +197,8 @@ How `review-criteria` works without setting anything itself:
 | `app-redteam` | Runs multi-turn attacks against your app that adapt to its replies | `app-redteam` (unchanged) |
 | `control-isolate` | Sends labelled harmful and benign prompts **straight to a guardrail API**, no model involved, and scores catch rate against false-block rate | `guardrail-benchmark`, *direct* mode |
 | `control-bench` | Runs a standard model benchmark twice, guardrail off and on, and reports how much risk the guardrail removed and what it cost in over-blocking | `guardrail-benchmark`, *in-line* mode |
-| `model-bench` | Runs a fixed security benchmark suite against one or more models | `model-benchmark` (gains a vision-input profile; keeps the weights scan) |
-| `control-codegen` | Has a coding agent build an app from a spec, with and without security rule files, then scans and attacks the result to see whether the rules made the code safer | `agent-secure-code-benchmark` |
+| `model-bench` | Runs a fixed security benchmark suite against one or more models | `model-benchmark` (gains a vision-input profile; the weights scan moves to `review-evidence`) |
+| `control-codegen` | Has a coding agent build an app from a spec, with and without security rule files, then scans and attacks the result to see whether the rules made the code safer | `coding-guidance-benchmark` |
 | `tool-codescan` | Compares **code scanners** (CodeQL, Semgrep, an LLM reviewer) on source code with known vulnerabilities | `security-tool-benchmark`, *code* kind |
 | `tool-assetscan` | Compares **scanners of AI components** (skills, MCP servers, model files) on labelled malicious and benign samples | `security-tool-benchmark`, *extension* kind |
 | `tool-pentest` | Compares **pentest tools** (an AI pentest agent, Nuclei, ZAP) against running vulnerable apps, counting only exploits an oracle confirms | `security-tool-benchmark`, *pentest* kind |
@@ -198,23 +233,30 @@ Fix: `guardrail-benchmark`'s in-line mode becomes the injection shim plus the sh
 with a `--arms` axis. One runner then serves both skills: `model-benchmark` varies the
 model, `guardrail-benchmark` varies the guardrail. The runbook also lists a `runners/` directory that does not exist.
 
-### 5.3 Refactoring today's `control-codegen`
+### 5.3 `coding-guidance-benchmark` — today's `control-codegen`, simplified
 
-- **Overstated coverage.** The description says it bundles five scored specs. Six specs
-  exist; only spec-01 has probes and acceptance tests. Either finish them or describe what
-  is there.
-- **Standard benchmark first.** BaxBench (392 scenarios with functional tests and exploits)
-  already has an adapter in the skill. Make it the primary path and the custom specs
-  secondary.
-- **Coupled to `ai-security-sdlc`.** Two of its four arms and one scorer call sdlc skills.
-  Make an arm "any pre-build diff" with CodeGuard and the Secure Build Plan as optional
-  adapters.
-- **One harness, public GitHub repos, real cost.** It drives Claude Code only, needs
-  ephemeral public repos for CodeQL, and budgets $15 per build at k=10 per arm. Moving it
-  onto the `agent-misuse-benchmark` engine (§6.1) gives it Codex, Gemini CLI and opencode, a
-  no-egress sandbox, and a local CodeQL path. Do this with `agent-misuse-benchmark`, not before.
-- Its baseline arm alone answers "how secure is the code this agent writes", which is a
-  model × harness measurement. The two agent skills share one engine and differ only in scenario family.
+A plain A/B test: does anything placed in front of a coding agent change the security of
+the code it writes?
+
+- **An arm is an opaque folder** copied into the agent's workspace or configuration before
+  it starts. It may hold a skill, a rules file, a hook, an MCP server configuration, or any
+  mix. The benchmark does not inspect or interpret it. A one-line label states the control
+  type so the report can name it.
+- **Baseline arm:** nothing in place. **Placebo arm** (the only arm the repo ships): a
+  folder of irrelevant content, used for the keyless smoke test and to show the noise floor.
+- **Tasks and scoring come from BaxBench:** 392 backend-building tasks with functional tests
+  and expert exploits. The metric is "correct and secure", with no judge model. Every arm
+  builds the same seeded subset of tasks, and the cost is shown before a run.
+- **Reported:** correct-and-secure rate per arm with intervals, the paired difference from
+  baseline, and the extra tokens and time the guidance cost.
+- **Optional diagnostic:** whether the agent touched the arm at all (read a file from the
+  folder, loaded a skill, called an MCP tool), read generically from the transcript. This
+  separates "the guidance did not help" from "the guidance was never used".
+- **Removed:** the six custom specs and their probes, the GitHub ephemeral-repo and CodeQL
+  path, the three-run LLM review, and everything listed in §3.5. This deletes existing work.
+- **Engine:** shared with `agent-misuse-benchmark`, which adds Codex, Gemini CLI and
+  opencode. Builds need package registries, so this skill allows those hosts only or uses
+  pre-built images.
 
 ### 5.4 Standard every skill must meet, and where each stands
 
@@ -285,7 +327,7 @@ consistency; DecisionRobust and JevBench. Detail in
 - No benchmark exists for background-speech injection in your call flow, tool abuse by
   voice, the transcript-versus-audio guardrail gap, barge-in, SIP spoofing or cost caps.
 
-### 6.4 Vision profile, `image-model-review`, `agent-feature-review`, `agent-extension-scan`
+### 6.4 Vision profile, `image-model-review`, `agent-feature-review`
 
 - **Vision input (a `model-benchmark` profile):** `cyse3_visual_prompt_injection` and
   promptfoo's `vlguard` / `vlsu` run today; computer-use injection suites need VMs (T2).
@@ -293,9 +335,6 @@ consistency; DecisionRobust and JevBench. Detail in
   image generation; a review with provenance checks and a small hand-built probe set.
 - **`agent-feature-review`:** one threat-and-test template per feature (computer use,
   memory, connectors/MCP, code execution, multi-agent, background agents).
-- **`agent-extension-scan`:** scan a submitted skill, plugin or MCP server before it is
-  installed. The *extension* kind of `security-tool-benchmark` tells you how far to trust
-  the scanners it uses.
 
 ## 7. Phasing
 
@@ -305,19 +344,22 @@ consistency; DecisionRobust and JevBench. Detail in
 | 1 | Merge and standardise the existing skills (§5.1, §5.4): the two guardrail skills into `guardrail-benchmark`, the three tool skills into `security-tool-benchmark`, shared Inspect runner, shared contract with context block, depth names, intervals, remove gating wording. |
 | 2 | `ai-review` plugin and the benchmark catalogue. |
 | 3 | `voice-model-benchmark` and `decision-model-benchmark` (both have reviews pending). |
-| 4 | `agent-misuse-benchmark`, then `agent-secure-code-benchmark` rebuilt on its engine. |
-| 5 | Vision profile, `image-model-review`, `agent-feature-review`, `agent-extension-scan`. |
+| 4 | `agent-misuse-benchmark` with a new public scenario set, then `coding-guidance-benchmark` rebuilt on its engine. |
+| 5 | Vision profile, `image-model-review`, `agent-feature-review`. |
 
 The GPT Realtime 2.1 review can be run by hand from §6.3 before Phase 3 lands.
 
-## 8. Open points for your review
+## 8. Settled, and still open
 
-1. **Validity flags (§2):** keep them as labelled, configurable flags, or remove default
-   cut-offs entirely?
-2. **`agent-secure-code-benchmark`:** finish the five unscored specs, or cut to spec-01 plus
-   BaxBench (recommended)?
-3. **Internal harness suite:** can it be released as the `agent-misuse-benchmark` scenario
-   pack?
+Settled: plugin standard and generated manifests; no thresholds; naming and merges; a new
+public scenario set for `agent-misuse-benchmark`; BaxBench for `coding-guidance-benchmark`.
+
+Open:
+
+1. **Validity flags (§2):** proceeding with labelled, configurable flags that never hide
+   the number, unless you say otherwise.
+2. **§3.5 removals:** dropping `agent-extension-scan`, moving the weights scan to
+   `review-evidence`, and deleting the custom code-generation specs.
 
 ## 9. Evidence caveats
 
