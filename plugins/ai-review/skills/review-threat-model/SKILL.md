@@ -177,7 +177,7 @@ no tools, so `agent-goal-hijack` is listed as not applicable.
   `test-plan.json` if the time budget needs it; `at_depth` holds the cost at each depth.
 - **Not verified**
   - The templates were not reviewed by practitioners for each subject type; they were
-    written from the framework proposal, the decision-model research note and the three
+    written from the design notes, the decision-model research note and the three
     frameworks.
   - The full text of the OWASP Top 10 for Agentic Applications (the PDF sits behind a
     download form); ids and short titles were read on the publisher's own pages.

@@ -1,0 +1,8 @@
+[
+  {"name": "model-a/harness-x", "model": "model-a", "harness": "harness-x", "safeguards": "on",
+   "mock": {"decline_restricted": 0.85, "complete_permitted": 0.85}},
+  {"name": "model-a/harness-y", "model": "model-a", "harness": "harness-y", "safeguards": "on",
+   "mock": {"decline_restricted": 0.45, "complete_permitted": 0.9}},
+  {"name": "model-b/harness-x", "model": "model-b", "harness": "harness-x", "safeguards": "on",
+   "mock": {"decline_restricted": 0.95, "complete_permitted": 0.2, "unscored": 0.1}}
+]

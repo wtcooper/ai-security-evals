@@ -1,6 +1,6 @@
 # Implementation plan — building out the sdlc plugin evaluation design
 
-_Status: v1 · 2026-08-16 · companion to [sdlc-plugin-evaluation-plan.md](sdlc-plugin-evaluation-plan.md) (the design doc). Section refs (§) point there._
+_Status: archived. Companion to the archived design doc; the layout it describes no longer exists._
 
 ## Context
 
@@ -15,7 +15,7 @@ _Status: v1 · 2026-08-16 · companion to [sdlc-plugin-evaluation-plan.md](sdlc-
 - `skills/control-codegen/` = `SKILL.md`, `build-prompt.md`, `new_experiment.sh` (a fork of `tools/new_experiment.sh` with a different CLI + manifest), `specs/spec-01..05`. **No `lib/`, no scripts, no tests, not in `sync_skills.sh`.** Scoring is prose + an inline Semgrep-only SARIF heredoc.
 - `tools/` = source of truth vendored into skills by `tools/sync_skills.sh`; CI (`.github/workflows/ci.yml`) runs `pytest tools/tests`, sync-and-`git diff --exit-code`, and `scripts/check_independence.sh` (no skill may reference `../..`, sibling skills, `tools/`, `targets/`, absolute paths).
 - **Nothing exists** for: stats (no scipy/statsmodels; numpy+pandas+openai are transitively in `.venv`), SARIF→findings normalization, `gh`/CodeQL, contamination probes, `testbed/`, `tool-*` skills. `.evals/` is gitignored.
-- Sibling repo `~/Code/GitWCoop/ai-security-sdlc` (system under test): `plugins/secure-plan/skills/{security-profile,secure-build-plan}` (with `scripts/find-codeguard.sh`, pins CodeGuard `v1.4.0`), `plugins/code-scan/skills/{scan-code (scripts/run_scan.py, to_sarif.py; env AISEC_GATEWAY_BASE_URL/AISEC_GATEWAY_API_KEY/AISEC_MODEL), codeql-ci (templates/codeql.yml, codeql-config.yml — triggers on `main` only), codeql-report}`, plus `pentest`, `asset-scan`, `remediate`, `ai-evals`, `ai-redteam`, `testbed/`.
+- Sibling repo `../ai-security-sdlc` (system under test): `plugins/secure-plan/skills/{security-profile,secure-build-plan}` (with `scripts/find-codeguard.sh`, pins CodeGuard `v1.4.0`), `plugins/code-scan/skills/{scan-code (scripts/run_scan.py, to_sarif.py; env AISEC_GATEWAY_BASE_URL/AISEC_GATEWAY_API_KEY/AISEC_MODEL), codeql-ci (templates/codeql.yml, codeql-config.yml — triggers on `main` only), codeql-report}`, plus `pentest`, `asset-scan`, `remediate`, `ai-evals`, `ai-redteam`, `testbed/`.
 
 ### Deviations from / clarifications to the design doc (flagged for the user)
 1. **Public not private repos** (design §2.1 says `--private`) — CodeQL cost. Nothing sensitive is pushed; AutoBaxBench private scenarios (§3.2.3) would need a private repo + local CodeQL CLI; handle in P6.

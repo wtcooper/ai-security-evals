@@ -37,15 +37,15 @@ Skill names are `<subject>-<method>`: `benchmark` (a fixed labelled test set), `
 | | `decision-model-benchmark` | Decision / classification endpoints: fail-open and fail-closed rates, decision flips under attack against the re-run noise floor |
 | | `voice-model-benchmark` | The same prompts as text and as synthesised speech, with audio perturbations, against a realtime model |
 | | `image-model-review` | Guided review of an image-generation model, with a provenance (C2PA) check |
-| [`agent-evals`](plugins/agent-evals/) | `agent-feature-review` | Guided review of an agent feature: computer use, memory, connectors/MCP, code execution, file search, multi-agent, background agents |
+| [`agent-evals`](plugins/agent-evals/) | `agent-misuse-benchmark` | **Scaffold.** Does a model inside an agent harness carry out tasks your policy says it must decline? Ships the scenario format, arm sweep, statistics and report; you supply the scenarios, harness module and outcome scorer |
+| | `agent-feature-review` | Guided review of an agent feature: computer use, memory, connectors/MCP, code execution, file search, multi-agent, background agents |
 | [`app-evals`](plugins/app-evals/) | `app-benchmark` | A bundled labelled corpus against your app's endpoint: recall, false-block rate, by technique |
 | | `app-redteam` | Adaptive multi-turn attacks against your app, with repeats |
 | [`defense-evals`](plugins/defense-evals/) | `guardrail-benchmark` | How good is this guardrail: direct (its own verdict on a labelled corpus) and in-line (risk removed vs over-blocking inside benchmarks) |
 | | `coding-guidance-benchmark` | A/B test of anything placed in front of a coding agent (skill, rule, hook, MCP server), scored on BaxBench |
 | | `security-tool-benchmark` | Compare security tools on targets with known answers: code scanners, scanners of skills / MCP servers / model files, pentest tools |
 
-`agent-misuse-benchmark` (will a model inside a coding harness carry out offensive work) is
-planned but not built; see [the proposal](docs/plans/holistic-review-framework-proposal.md).
+The design rationale is in [`docs/design.md`](docs/design.md).
 
 ### Which skill for which question
 
@@ -56,6 +56,7 @@ planned but not built; see [the proposal](docs/plans/holistic-review-framework-p
 | "Can we use this decision API as a gate?" | `decision-model-benchmark` |
 | "Can we enable this image model?" | `image-model-review` |
 | "Can we turn on computer use / memory / this connector?" | `agent-feature-review` |
+| "Will this model do things we do not want inside this coding agent?" | `agent-misuse-benchmark` (a scaffold: bring your own scenarios) |
 | "Is our chatbot safe to ship?" | `app-benchmark`, then `app-redteam` |
 | "Does this guardrail work, and what does it cost us?" | `guardrail-benchmark` |
 | "Do our secure-coding skills or rules change what the agent writes?" | `coding-guidance-benchmark` |
@@ -141,8 +142,10 @@ bash e2e/run_e2e.sh all       # real-model end-to-end for four of the skills (ne
 
 ## What has and has not been verified
 
-Every skill's unit tests and keyless smoke test pass. No skill was run against a real model,
-vendor API or guardrail in the environment where the current versions were built, and each
+Every skill's unit tests and keyless smoke test pass. `agent-misuse-benchmark` is a scaffold
+and measures nothing until its scenarios, harness module and scorer are supplied. No skill
+was run against a real model, vendor API or guardrail in the environment where the current
+versions were built, and each
 `SKILL.md` ends with a `Not verified` list saying exactly what was not exercised. Treat a
 first real run of any skill as part of its verification.
 

@@ -22,7 +22,7 @@
 # Folder name is  <label>_<date>  (deduped with -N for same-day reruns). Prints the
 # absolute path as the last line (EXP=<path>); the RUN/ANALYZE steps write the
 # engine's results, findings.jsonl / samples.jsonl, summary.md and transcripts into <EXP>.
-# manifest.json is schema v2 (see docs/plans/sdlc-eval-implementation-plan.md P0.3);
+# manifest.json is schema v2 (the shared contract in docs/design.md);
 # keys still to fill are listed in "_todo" — set them with lib/manifest.py.
 set -euo pipefail
 

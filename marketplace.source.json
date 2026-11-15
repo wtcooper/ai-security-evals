@@ -1,7 +1,7 @@
 {
   "name": "ai-security-evals",
   "owner": {
-    "name": "Wade Cooper"
+    "name": "ai-security-evals contributors"
   },
   "description": "Security evaluations for AI models, agents, applications and the defences around them.",
   "plugins": [

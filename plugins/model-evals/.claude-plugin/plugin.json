@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Evaluate a model through whatever API it has: security benchmarks for chat, vision, decision and voice models, and a guided review for image generation.",
   "author": {
-    "name": "Wade Cooper"
+    "name": "ai-security-evals contributors"
   },
   "homepage": "https://github.com/wtcooper/ai-security-evals",
   "repository": "https://github.com/wtcooper/ai-security-evals",

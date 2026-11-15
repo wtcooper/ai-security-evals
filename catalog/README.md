@@ -29,7 +29,7 @@ script do it once the copy is registered there).
 | `id` | string | Unique id. For `model-benchmark` it is the check id in its suite file. |
 | `name` | string | Human-readable name. |
 | `skill` | string | The skill that runs it, or would. |
-| `status` | `available` / `planned` / `candidate` | `available`: a skill in this repo runs it today. `planned`: named in the framework proposal for a skill, or for a mode of a skill, that does not run it yet. `candidate`: named in research as usable; nothing is committed. Only `available` entries count as coverage in a test plan. |
+| `status` | `available` / `planned` / `candidate` | `available`: a skill in this repo runs it today. `planned`: named in the design notes for a skill, or for a mode of a skill, that does not run it yet. `candidate`: named in research as usable; nothing is committed. Only `available` entries count as coverage in a test plan. |
 | `subjects` | list | Review subject types it applies to: `model`, `agent`, `app`, `decision-model`, `voice-model`, `image-model`, `feature`. |
 | `engine` | `inspect` / `promptfoo` / `pyrit` / `custom` | What executes it. |
 | `measures` | `subject` / `control` | `subject`: it measures the AI capability under review. `control`: it measures a control the user supplies (a guardrail). A test plan never counts a `control` entry as coverage of a threat; it lists it for the reviewer to add. |
@@ -62,7 +62,7 @@ when the benchmark is planned for that subject type).
    the installed package's own metadata, the corpus files bundled in a skill), named in
    `verified_from`.
 
-`verified: false` means at least one stated fact comes from the framework proposal, the
+`verified: false` means at least one stated fact comes from the design notes, the
 research note or prior knowledge, and nobody confirmed it. Treat every value in such an
 entry as a lead to check, not as a fact.
 

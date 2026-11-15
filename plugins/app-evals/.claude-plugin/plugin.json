@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Evaluate an LLM application's endpoint: a fixed adversarial benchmark and adaptive multi-turn red teaming.",
   "author": {
-    "name": "Wade Cooper"
+    "name": "ai-security-evals contributors"
   },
   "homepage": "https://github.com/wtcooper/ai-security-evals",
   "repository": "https://github.com/wtcooper/ai-security-evals",

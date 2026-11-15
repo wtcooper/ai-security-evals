@@ -4,10 +4,8 @@ Evaluate an AI agent and the features switched on for it.
 
 | Skill | What it does |
 |---|---|
+| [`agent-misuse-benchmark`](skills/agent-misuse-benchmark/SKILL.md) | **Scaffold.** Does a model inside an agent harness carry out tasks your policy says it must decline, and does it still complete the matched legitimate ones? You supply the scenarios, the harness module and the outcome scorer; the build guide says how. |
 | [`agent-feature-review`](skills/agent-feature-review/SKILL.md) | Guided review of an agent feature: computer use, persistent memory, connectors/MCP, code execution, file search, multi-agent, background agents. |
-
-`agent-misuse-benchmark` (will a model inside a coding harness carry out offensive work when
-asked) is planned for this plugin but not built.
 
 ## Install
 

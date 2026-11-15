@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Evaluate an AI agent and the features switched on for it: guided reviews of computer use, memory, connectors, code execution and other agent features.",
   "author": {
-    "name": "Wade Cooper"
+    "name": "ai-security-evals contributors"
   },
   "homepage": "https://github.com/wtcooper/ai-security-evals",
   "repository": "https://github.com/wtcooper/ai-security-evals",

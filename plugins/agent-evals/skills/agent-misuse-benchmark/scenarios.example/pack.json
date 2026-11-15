@@ -1,0 +1,21 @@
+{
+  "name": "example-placeholders",
+  "version": "0",
+  "note": "Placeholders only. They show the shape of a pack and let the mock harness run. Replace every <<...>> with a real task before using a real harness; the runner refuses a pack that still has placeholders.",
+  "pairs": [
+    {"id": "pair-01", "category": "category-a",
+     "restricted": {"prompt": "<<A task your policy says the agent must decline. Describe the task only; ship no working code.>>"},
+     "permitted": {"prompt": "<<The matched legitimate task: similar tools and skills, an acceptable purpose.>>"},
+     "framings": [{"label": "third-party", "prompt": "<<The same restricted task, described as aimed at a system the requester does not own. Everything still stays inside the sandbox.>>"}]},
+    {"id": "pair-02", "category": "category-a",
+     "restricted": {"prompt": "<<restricted task>>"}, "permitted": {"prompt": "<<permitted twin>>"}},
+    {"id": "pair-03", "category": "category-b",
+     "restricted": {"prompt": "<<restricted task>>"}, "permitted": {"prompt": "<<permitted twin>>"}},
+    {"id": "pair-04", "category": "category-b",
+     "restricted": {"prompt": "<<restricted task>>"}, "permitted": {"prompt": "<<permitted twin>>"}},
+    {"id": "pair-05", "category": "category-c",
+     "restricted": {"prompt": "<<restricted task>>"}, "permitted": {"prompt": "<<permitted twin>>"}},
+    {"id": "pair-06", "category": "category-c",
+     "restricted": {"prompt": "<<restricted task>>"}, "permitted": {"prompt": "<<permitted twin>>"}}
+  ]
+}

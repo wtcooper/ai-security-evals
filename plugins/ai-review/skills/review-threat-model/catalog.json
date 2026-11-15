@@ -605,7 +605,7 @@
     },
     {
       "id": "agent_misuse_scenarios",
-      "name": "agent-misuse-benchmark scenario set",
+      "name": "agent-misuse-benchmark (bring your own scenario pack)",
       "skill": "agent-misuse-benchmark",
       "status": "planned",
       "subjects": [
@@ -626,7 +626,7 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "A new public scenario set named in the framework proposal section 6.1: a malicious set and a matched benign or dual-use set, swept over model x harness x safeguards. Does not exist yet; no size or licence to state.",
+      "note": "No scenario set ships. agent-misuse-benchmark is a scaffold: the scenario format, the arm sweep (model x harness x safeguards), the statistics and the report exist; the scenario pack (restricted tasks with matched permitted twins), the harness module and the outcome scorer are supplied by the team completing it. Engine and tier describe the design its build guide outlines.",
       "measures": "subject"
     },
     {
@@ -808,7 +808,7 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Named in the framework proposal section 6.3. Nothing about it was checked.",
+      "note": "Named during design as a candidate. Nothing about it was checked.",
       "measures": "subject"
     },
     {
@@ -832,7 +832,7 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Named in the framework proposal section 6.4 as runnable through promptfoo. Which skill hosts it is not settled; nothing about it was checked.",
+      "note": "Named during design as a candidate and runnable through promptfoo. Which skill hosts it is not settled; nothing about it was checked.",
       "measures": "subject"
     },
     {
@@ -856,7 +856,7 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Named in the framework proposal section 6.4. Nothing about it was checked.",
+      "note": "Named during design as a candidate. Nothing about it was checked.",
       "measures": "subject"
     },
     {
@@ -881,7 +881,7 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2606.02644",
-      "note": "Cited in the framework proposal section 6.1 as evidence that refusal depends on target framing. The paper was not read here.",
+      "note": "Cited during design as evidence that refusal depends on target framing. The paper was not read here.",
       "measures": "subject"
     },
     {
@@ -905,7 +905,7 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Cited in the framework proposal section 6.1 as counter-evidence. No source was given and none was looked up.",
+      "note": "Cited during design as counter-evidence. No source was given and none was looked up.",
       "measures": "subject"
     },
     {

@@ -1,6 +1,6 @@
 # Evaluating the ai-security-sdlc plugins — experiment plan
 
-_Status: draft v1 · 2026-08-16 · owner: Wade_
+_Status: archived. This plan describes an earlier evaluation project; the skills it designed have since been merged into `coding-guidance-benchmark` and `security-tool-benchmark`. Kept for the experiment-design reasoning._
 
 This plan turns `ai-security-evals` into the place where we **measure** whether the plugins in
 [`ai-security-sdlc`](https://github.com/wtcooper/ai-security-sdlc) actually work: does a rule set make
@@ -121,7 +121,7 @@ intervention working, not leakage — the leakage boundary is oracles/tests, not
 3. **AutoBaxBench / AutoBaxBuilder-generated scenarios (40 × 14 = 560; or generate fresh ones)** — for
    contamination-free replication once the effect is seen on 1–2. Generate a private batch and never publish
    the scenarios we score on.
-4. **Modern-stack spec (new, ours):** one spec in Wade's default stack (Next.js 16 App Router + server actions
+4. **Modern-stack spec (new, ours):** one spec in a modern default stack (Next.js 16 App Router + server actions
    + Drizzle/Neon + Clerk) — the stack the plugins are actually used with; RSC/server-action authz, IDOR,
    SSRF-in-fetch, unsafe redirects, secrets in client bundles. Needs a hand-written probe set (see 3.4).
 
