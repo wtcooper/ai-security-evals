@@ -24,29 +24,6 @@ bash scripts/run_tests.sh
 
 If you add a runtime dep, update `pyproject.toml` and run `uv sync` so `uv.lock` is updated and committed.
 
-## Sign-off (DCO)
-
-We use the [Developer Certificate of Origin](https://developercertificate.org/) for all contributions. Add a `Signed-off-by` trailer to every commit:
-
-```bash
-git commit -s -m "your message"
-# expands to: Signed-off-by: Your Name <your.email@example.com>
-```
-
-By signing off you're asserting that you wrote the patch (or have the right to submit it under the project's MIT license). This is enforced by a CI check; PRs without sign-off won't merge.
-
-Set your git identity once if you haven't:
-```bash
-git config --global user.name "Your Name"
-git config --global user.email "your.email@example.com"
-```
-
-To retroactively sign off a series of unsigned commits:
-```bash
-git rebase --signoff HEAD~N      # where N = number of commits to fix
-git push --force-with-lease
-```
-
 ## Branching model
 
 We use a light gitflow setup:
@@ -82,8 +59,4 @@ We use a light gitflow setup:
 
 ## Security issues
 
-**Don't open a public issue for security vulnerabilities.** See [`SECURITY.md`](SECURITY.md) for the private reporting flow.
-
-## Code of conduct
-
-By participating you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+Report a security problem privately through the repository's **Security** tab ("Report a vulnerability") rather than in a public issue.
