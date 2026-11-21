@@ -90,9 +90,12 @@ are never counted as coverage. The plan lists them under "Benchmarks for a contr
 deployment relies on"; add one to the runs only if `context.safeguards` in `review.json`
 includes that control.
 
-For `image-model` and `feature` subjects the plan also names the guided review skill for
-that subject type (`image-model-review`, `agent-feature-review`), which covers threats no
-benchmark measures.
+For `decision-model`, `voice-model` and `image-model` subjects the plan names the core
+benchmark for that subject type (`decision-model-benchmark`, `voice-model-benchmark`,
+`image-generation-benchmark`): run it first, since its own threat model and two-lane
+scorecard are the main evidence. For `feature` subjects it names the guided review skill
+(`agent-feature-review`), which covers threats no benchmark measures. For image input to a
+chat model, `vision-model-benchmark` is the core benchmark.
 
 A threat the scope rules out stays in the plan with `applies: false` and the reason (for
 example a tool threat when `context.tools` is `[]`). Where `review.json` does not settle

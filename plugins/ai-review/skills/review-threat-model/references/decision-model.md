@@ -13,6 +13,8 @@ Which threats a catalogued benchmark covers depends on the catalogue at the time
 - Is a confidence threshold used, and what happens below it?
 - Which wire format: one undifferentiated state, or separate roles?
 
+Core benchmark for this subject type: `decision-model-benchmark`. Run it first. Its references/threat-model.md says where the risks come from for this subject type and lists the core threats it measures in two lanes (published benchmarks and its own core set); its scorecard compares models threat by threat. The threats below are the wider review list, including those no benchmark measures.
+
 ## Threats
 
 | Threat id | Threat | Why it matters here | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS | With no benchmark available |

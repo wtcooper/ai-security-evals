@@ -273,6 +273,10 @@
     "decision-model": {
       "title": "Decision model",
       "applies_to": "A model that takes a state and typed questions with a closed answer set and returns answers with probabilities, used to route, gate, grade or screen.",
+      "core_benchmark": {
+        "skill": "decision-model-benchmark",
+        "note": "Run it first. Its references/threat-model.md says where the risks come from for this subject type and lists the core threats it measures in two lanes (published benchmarks and its own core set); its scorecard compares models threat by threat. The threats below are the wider review list, including those no benchmark measures."
+      },
       "ask": [
         "What does the decision gate, and what happens on each answer?",
         "Who writes the question instructions and option criteria, and is any of that text built from data?",
@@ -351,6 +355,10 @@
     "voice-model": {
       "title": "Voice or realtime speech model",
       "applies_to": "A speech-to-speech or realtime audio model, on a phone line, in an app or in a device.",
+      "core_benchmark": {
+        "skill": "voice-model-benchmark",
+        "note": "Run it first. Its references/threat-model.md says where the risks come from for this subject type and lists the core threats it measures in two lanes (published benchmarks and its own core set); its scorecard compares models threat by threat. The threats below are the wider review list, including those no benchmark measures."
+      },
       "ask": [
         "Where does audio come from: a phone line, a browser, a device in a room?",
         "Who else can be heard on the channel?",
@@ -428,10 +436,10 @@
     },
     "image-model": {
       "title": "Image generation or editing model",
-      "applies_to": "A model that produces or edits images from text or from other images. For image input to a chat model, use the model template.",
-      "guided_review": {
-        "skill": "image-model-review",
-        "note": "A guided review skill for image-generation models. It covers the probe-set and provenance threats below that no benchmark measures, and writes evidence rows."
+      "applies_to": "A model that produces or edits images from text or from other images. For image input to a chat model, use the model template and vision-model-benchmark.",
+      "core_benchmark": {
+        "skill": "image-generation-benchmark",
+        "note": "Run it first. Its references/threat-model.md says where the risks come from for this subject type and lists the core threats it measures in two lanes (published benchmarks and its own core set); its scorecard compares models threat by threat. The threats below are the wider review list, including those no benchmark measures."
       },
       "ask": [
         "Who can prompt it, and where do the outputs go?",

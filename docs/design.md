@@ -175,5 +175,6 @@ they were verified against the primary source.
 - Only one marketplace manifest format is generated.
 - No fairness benchmark, policy-extraction test or encoding-specific study was found for
   decision models; `decision-model-benchmark` says what it does not measure.
-- Image generation and several voice threats have no standardized benchmark; the guided
-  reviews record them as not assessed unless the reviewer probes them.
+- Image generation has no published security benchmark; `image-generation-benchmark` relies on
+  its own core set and the C2PA reference verifier, and says so. Several voice threats are
+  likewise measured only by that skill's core set.

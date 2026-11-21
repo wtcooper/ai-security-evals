@@ -198,6 +198,7 @@ def build_plan(review: dict, catalog: dict, threats: dict, templates: dict,
         "scope_gaps": gaps,
         "ask": template.get("ask", []),
         "guided_review": template.get("guided_review"),
+        "core_benchmark": template.get("core_benchmark"),
         "threats": items,
         # Benchmarks that measure a control the user supplies (a guardrail), not the subject.
         # Never counted as coverage of a threat: the reviewer adds them if the deployment
@@ -288,6 +289,9 @@ def render_markdown(plan: dict) -> str:
     if plan.get("guided_review"):
         g = plan["guided_review"]
         lines += ["", f"Guided review for this subject type: `{g['skill']}`. {g['note']}"]
+    if plan.get("core_benchmark"):
+        g = plan["core_benchmark"]
+        lines += ["", f"Core benchmark for this subject type: `{g['skill']}`. {g['note']}"]
 
     active = [i for i in plan["threats"] if i["applies"] is not False]
     lines += ["", "## Threat model", "",

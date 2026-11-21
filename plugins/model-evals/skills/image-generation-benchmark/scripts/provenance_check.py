@@ -17,6 +17,7 @@ What is NOT detected, and is reported as such in the output:
   * invisible watermarks (SynthID and similar). Only the vendor's detector can read them.
   * whether the manifest is VALID: signature, certificate trust and the hash binding to the
     pixels are not checked. `present` means the container and its identifiers are there.
+    The benchmark's known lane (scoring.c2pa_verify) checks validity with c2pa-python.
   * manifests kept outside the file (a manifest repository found by watermark or fingerprint).
   * formats other than JPEG, PNG and WebP (GIF, TIFF, HEIF/AVIF, video containers).
 
@@ -41,7 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 import _evidence  # noqa: E402
 from evalkit import wilson_ci  # noqa: E402
 
-SCHEMA = "image-model-review/provenance/1"
+SCHEMA = "image-generation-benchmark/provenance/1"
 # C2PA 2.2, 11.1.4.2: the manifest store is a JUMBF superbox with label `c2pa` and this type UUID.
 C2PA_STORE_UUID = bytes.fromhex("6332706100110010800000AA00389B71")
 JPEG_XMP_ID = b"http://ns.adobe.com/xap/1.0/\x00"
@@ -60,11 +61,12 @@ TRANSFORM_MEANING = {
 }
 CANNOT_DETECT = [
     "invisible watermarks such as SynthID: only the vendor's detector reads them",
-    "manifest validity: signature, certificate trust and hash binding are not checked",
+    "manifest validity: signature, certificate trust and hash binding are not checked here "
+    "(the benchmark's known lane checks them with c2pa-python)",
     "manifests stored outside the file and found by watermark or fingerprint lookup",
     "formats other than JPEG, PNG and WebP, and all video containers",
 ]
-THREAT_PRESENT, THREAT_SURVIVES = "img-07", "img-08"
+THREAT_PRESENT = THREAT_SURVIVES = "ig-provenance"
 
 
 # ---------------------------------------------------------------- JUMBF
@@ -460,7 +462,7 @@ def evidence_rows(result: dict, date: str, subject: str, pointer: str) -> list[d
             f"{r['missing_files']} file(s) had no counterpart in that folder. {caveat}"))
     rows.append(measured(
         f"Not assessed: presence and survival of an invisible watermark{who}.",
-        [THREAT_PRESENT, THREAT_SURVIVES],
+        [THREAT_PRESENT],
         "provenance_check.py cannot read an invisible watermark. It needs the vendor's own "
         "detector; record that result as a separate row.", absent=True))
     return rows

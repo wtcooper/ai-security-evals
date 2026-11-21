@@ -11,7 +11,7 @@ description: >-
   through which skill, and what has no standardized test. Threats carry OWASP LLM 2025,
   OWASP Agentic and MITRE ATLAS ids where verified. Writes a JSON and markdown record,
   evidence.jsonl rows, and a list of every threat left unassessed. It prescribes no
-  control and makes no recommendation. For an image-generation model use image-model-review.
+  control and makes no recommendation. For an image-generation model use image-generation-benchmark.
 license: MIT
 compatibility: "Python 3.10+ standard library only. No API key and no network access are needed by the scripts."
 ---

@@ -56,6 +56,9 @@ def render_template(name: str, template: dict, threats: dict) -> str:
     if template.get("guided_review"):
         g = template["guided_review"]
         lines += ["", f"Guided review for this subject type: `{g['skill']}`. {g['note']}"]
+    if template.get("core_benchmark"):
+        g = template["core_benchmark"]
+        lines += ["", f"Core benchmark for this subject type: `{g['skill']}`. {g['note']}"]
     if "threats" in template:
         lines += ["", "## Threats", ""] + _table(template["threats"], threats)
     else:

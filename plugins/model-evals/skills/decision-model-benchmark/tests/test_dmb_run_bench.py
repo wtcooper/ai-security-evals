@@ -1,4 +1,7 @@
-"""The runner and report end to end against the mock server: plan, rows, refusals, errors."""
+"""The runner and report end to end against the mock server: plan, rows, refusals, errors.
+
+No test touches the network: the known lane runs on the bundled fixtures (--known-source
+fixture) or is switched off (--lanes custom)."""
 from __future__ import annotations
 
 import json
@@ -28,7 +31,7 @@ def run(server, out, *extra, arms=None, depth="smoke"):
     arms = arms or (arm_arg(server, "mock-a", "systemone", "mock-decision-a", auth="none")
                     + arm_arg(server, "mock-b", "openai", "mock-decision-b", auth="none"))
     return run_bench.main([*arms, "--depth", depth, "--out", str(out), "--backoff", "0",
-                           *extra])
+                           "--known-source", "fixture", *extra])
 
 
 # ---- plan and depth --------------------------------------------------------------------------
@@ -36,14 +39,18 @@ def run(server, out, *extra, arms=None, depth="smoke"):
 def test_plan_prints_requests_and_tokens_and_sends_nothing(server, capsys, tmp_path):
     out = tmp_path / "never"
     code = run_bench.main([*arm_arg(server, "a", "systemone", "mock-decision-a", auth="none"),
-                           "--depth", "smoke", "--plan", "--out", str(out)])
+                           "--depth", "smoke", "--plan", "--out", str(out),
+                           "--known-source", "fixture"])
     err = capsys.readouterr().err
     assert code == 0 and server.requests == [] and not out.exists()
-    assert "plan: 10 cases x 1 arm(s)" in err and "input tokens" in err
-    for axis in ("clean", "injection", "padding", "option_order", "paraphrase", "encoding",
-                 "structure"):
+    assert "plan: custom lane 10 cases, known lane 12 cases x 1 arm(s)" in err
+    assert "input tokens" in err
+    for axis in ("clean", "injection", "injection_twin", "padding", "option_order",
+                 "option_rename_twin", "paraphrase", "encoding", "structure",
+                 "known:deepset-prompt-injections:fixture", "known:jevbench-original:fixture",
+                 "scorecard cases per arm: dm-fail-open custom 10, dm-fail-open known 6"):
         assert axis in err
-    assert run_bench.main(["--depth", "full", "--plan"]) == 0        # no arm needed to plan
+    assert run_bench.main(["--depth", "full", "--plan", "--lanes", "custom"]) == 0  # no arm needed
 
 
 def test_depth_names_are_the_shared_three_and_set_cases_and_techniques():
@@ -83,17 +90,19 @@ def test_every_arm_gets_the_same_requests_and_the_report_is_written(server, tmp_
     assert len(rows) == plan["requests"] * 2
 
     def keys(arm):
-        return sorted((r["case"], r["variant"], r["repeat"]) for r in rows if r["arm"] == arm)
+        return sorted((r["benchmark"], r["case"], r["variant"], r["repeat"])
+                      for r in rows if r["arm"] == arm)
     assert keys("mock-a") == keys("mock-b") and len(set(keys("mock-a"))) == plan["requests"]
     for r in rows:                                        # the samples.jsonl contract
-        assert {"arm", "target", "sample", "case", "variant", "axis", "repeat", "outcome",
-                "truth", "error_class", "changed"} <= set(r)
-        assert r["sample"] == f"{r['case']}/{r['variant']}#r{r['repeat']}"
+        assert {"arm", "target", "sample", "case", "seed_case", "variant", "axis", "repeat",
+                "outcome", "truth", "error_class", "changed",
+                "threat", "lane", "benchmark", "good"} <= set(r)
+        assert r["sample"] == f"{r['seed_case']}/{r['variant']}#r{r['repeat']}"
     assert {r["model_echo"] for r in rows if r["arm"] == "mock-a"} == {"mock-decision-a"}
 
     # variants.jsonl holds exactly what was sent, once per (case, variant).
     sent = [json.loads(l) for l in (out / "results" / "variants.jsonl").read_text().splitlines()]
-    assert len(sent) == len({(r["case"], r["variant"]) for r in rows})
+    assert len(sent) == len({(r["benchmark"], r["seed_case"], r["variant"]) for r in rows})
     assert all(v["parent"] == v["case"] and v["changed"] in ("none", "state", "options")
                for v in sent)
 
@@ -121,6 +130,9 @@ def test_every_arm_gets_the_same_requests_and_the_report_is_written(server, tmp_
     assert b["outcomes"]["all"]["error"]["k"] == 0
     assert summary["baseline"] == "mock-a" and "mock-b" in summary["comparisons"]
     assert summary["comparisons"]["mock-b"]["clean"]["pairs"] == plan["cases"]
+    assert set(summary["known"]["mock-a"]) == {"deepset-prompt-injections:fixture",
+                                               "jevbench-original:fixture"}
+    assert "Known lane" in text
     # smoke is 10 cases: the flag says the flip rates rest on few cases, and the rates are there.
     assert "few_clean_correct_cases" in {f["flag"] for f in a["validity_flags"]}
 
@@ -207,7 +219,7 @@ def test_jitter_shows_up_as_a_nonzero_noise_floor(make_server, tmp_path):
     out = tmp_path / "exp"
     arms = arm_arg(srv, "noisy", "systemone", "mock-decision-b", auth="none")
     run(srv, out, "--repeats", "6", "--axes", "structure", "--concurrency", "1",
-        arms=arms, depth="standard")
+        "--lanes", "custom", arms=arms, depth="standard")
     summary = metrics.summarise(read_rows(out))
     noise = summary["arms"]["noisy"]["flips"]["noise_floor"]["flip"]
     assert noise["n"] > 0 and noise["k"] > 0
@@ -219,7 +231,8 @@ def test_openai_placement_is_one_axis_between_two_arms_of_the_same_model(server,
     arms = (arm_arg(server, "user", "openai", "mock-decision-a", auth="none")
             + arm_arg(server, "tool", "openai", "mock-decision-a", auth="none",
                       placement="tool_output"))
-    assert run(server, out, "--axes", "injection", depth="standard", arms=arms) == 0
+    assert run(server, out, "--axes", "injection", "--lanes", "custom", depth="standard",
+               arms=arms) == 0
     s = metrics.summarise(read_rows(out))
     user = s["arms"]["user"]["flips"]["axes"]["injection"]["targeted_success"]
     tool = s["arms"]["tool"]["flips"]["axes"]["injection"]["targeted_success"]
@@ -319,9 +332,12 @@ def test_own_corpus_is_loaded_and_a_bad_one_is_refused(server, tmp_path):
     out = tmp_path / "exp"
     one = arm_arg(server, "a", "systemone", "mock-decision-a", auth="none")
     assert run(server, out, "--cases", str(mine), "--depth", "full", "--axes", "padding",
-               arms=one) == 0
-    assert {r["case"] for r in read_rows(out)} == {c["id"] for c in cases[:4]}
-    assert json.loads((out / "results" / "run.json").read_text())["corpus"]["bundled"] is False
+               "--lanes", "custom", arms=one) == 0
+    rows = read_rows(out)
+    assert {r["seed_case"] for r in rows} == {c["id"] for c in cases[:4]}
+    corpus = json.loads((out / "results" / "run.json").read_text())["corpus"]
+    assert corpus["bundled"] is False
+    assert {r["benchmark"] for r in rows} == {corpus["benchmark"]} != {"dmb-seed"}
     bad = dict(cases[0], truth="escalate")
     mine.write_text(json.dumps(bad) + "\n")
     with pytest.raises(variants.CorpusError):

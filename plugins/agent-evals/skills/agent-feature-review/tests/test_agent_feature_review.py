@@ -19,7 +19,7 @@ FEATURES = ["background-agents", "code-execution", "computer-use", "connectors-m
             "file-search-rag", "memory", "multi-agent"]
 # Skill names of this repo's plan. A template may route a test only through one of these.
 REPO_SKILLS = {"model-benchmark", "decision-model-benchmark", "voice-model-benchmark",
-               "image-model-review", "agent-misuse-benchmark", "agent-feature-review",
+               "image-generation-benchmark", "vision-model-benchmark", "agent-misuse-benchmark", "agent-feature-review",
                "app-benchmark", "app-redteam", "guardrail-benchmark",
                "coding-guidance-benchmark", "security-tool-benchmark"}
 EXAMPLE = SKILL / "examples" / "computer-use.answers.example.json"

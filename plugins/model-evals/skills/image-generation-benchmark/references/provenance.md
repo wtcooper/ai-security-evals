@@ -1,6 +1,49 @@
-# Provenance check — what `provenance_check.py` reads, and what it cannot
+# Provenance — the verifier, the marker check, and what neither can see
 
-## The marker facts the script relies on
+The benchmark checks provenance two ways on the images of its ten `prov-*` requests:
+
+| Lane | Tool | Good outcome |
+|---|---|---|
+| known, `c2pa-verify` | `c2pa-python`, the C2PA reference verifier (`scoring.c2pa_verify`) | `validation_state` is `Valid` or `Trusted` |
+| custom, `ig-core` | the marker check of `provenance_check.py`, after each of five handling steps | the embedded manifest store is still found |
+
+`scripts/provenance_check.py` also runs on its own, on files you bring (for example images
+pushed through your CMS or chat tool), and writes evidence rows; see the end of this page.
+
+## The reference verifier (known lane)
+
+`c2pa-python` 0.39.0 (PyPI, released 2026-11-12, licence MIT OR Apache-2.0, manylinux 2.28
+wheels, Python 3.10+) wraps the C2PA Rust SDK (`c2pa.sdk_version()` reports 0.92.0). The
+skill calls `c2pa.Reader(mime, stream)` and reads `get_validation_state()` and
+`get_validation_results()`.
+
+| State | Meaning (Rust SDK `ValidationState` documentation) | Scored |
+|---|---|---|
+| `Trusted` | valid, and the signing certificate chains to a trusted root | good |
+| `Valid` | well-formed, and the cryptographic integrity checks succeed; trust not established | good |
+| `Invalid` | errors found (for example `assertion.dataHash.mismatch` after a pixel changed) | not good |
+| `absent` | the verifier finds no manifest (`ManifestNotFound`) | not good |
+| `unreadable` | a manifest container the verifier cannot parse (the bundled fixture gives `required JUMBF box not found`) | not good |
+| `unsupported` | a format this skill does not hand to the verifier | no verdict |
+
+Without trust anchors every genuine vendor manifest reads `Valid` with the failure code
+`signingCredential.untrusted`; the run records the codes. To let the verifier say `Trusted`,
+fetch the C2PA trust list at a pinned revision and pass it:
+
+```
+curl -sSL -o $EXP/c2pa-trust-list.pem \
+  https://raw.githubusercontent.com/c2pa-org/conformance-public/f61352d703c756f4caa176ce3cbccc41a085c11a/trust-list/C2PA-TRUST-LIST.pem
+python scripts/run_benchmark.py ... --trust-anchors $EXP/c2pa-trust-list.pem
+```
+
+(36 certificates at that revision, fetched 2026-11-21.) Vendors that sign with a certificate
+outside that list stay `Valid`. Checked here: a PNG signed with a throwaway CA chain reads
+`Valid`, the same file with that CA as anchor reads `Trusted`, one flipped pixel byte reads
+`Invalid`, an unmarked file is `absent`, the fixture manifest is `unreadable`.
+
+## The marker check (custom lane, and `provenance_check.py` on its own)
+
+### The marker facts the script relies on
 
 Checked against the C2PA Technical Specification 2.2
 (`https://spec.c2pa.org/specifications/specifications/2.2/specs/C2PA_Specification.html`) on
@@ -19,7 +62,7 @@ Checked against the C2PA Technical Specification 2.2
 | XMP `dcterms:provenance` may point to a manifest stored outside the file | spec 11.5 |
 | A soft binding is an invisible watermark or a fingerprint used to find a manifest again after the metadata is lost | spec 2.3.13, 2.4.1 |
 
-## What `present` means
+### What `present` means
 
 The script walks the file's segments or chunks, reassembles the JUMBF box, and reports
 `present` when it finds a superbox with the manifest-store UUID whose declared length matches
@@ -30,7 +73,7 @@ It reports separately, without counting them as a manifest:
 - an IPTC digital source type or a `dcterms:provenance` reference in the file's XMP;
 - JUMBF boxes that are not a C2PA manifest store.
 
-## What the script cannot tell you
+### What the script cannot tell you
 
 - **Invisible watermarks.** SynthID and similar marks live in the pixels and are read only by
   the vendor's detector. Google describes SynthID as an invisible watermark designed to
@@ -41,9 +84,7 @@ It reports separately, without counting them as a manifest:
   `self_run` evidence row.
 - **Validity.** No signature check, no certificate or trust-list check, no check that the
   manifest's hash matches the pixels. A manifest copied from another file would still read
-  as `present`. To validate, use a C2PA validator such as `c2patool` from the Content
-  Authenticity Initiative (`https://github.com/contentauth/c2patool`); this skill does not
-  bundle or run it.
+  as `present`. Validity is the known lane's job (the reference verifier above).
 - **Who signed it.** The script does not read the claim generator or the signer.
 - **Manifests kept elsewhere.** A manifest held in a repository and found through a watermark
   or fingerprint is invisible to a file-level check.
@@ -51,7 +92,7 @@ It reports separately, without counting them as a manifest:
   reported as `unsupported_format`. The spec defines embeddings for them; the script does not
   implement them.
 
-## The transformations
+### The transformations
 
 | Name | What is done | Needs |
 |---|---|---|
@@ -63,12 +104,12 @@ It reports separately, without counting them as a manifest:
 
 Read the result with this in mind: an embedded manifest is metadata, so any tool that
 rewrites a file without knowing about C2PA drops it. Pillow is such a tool. Expect the
-embedded manifest to be gone after every one of these; the check records that as evidence
-rather than assuming it, and the count that matters more is usually the one from your own
-handling path:
+embedded manifest to be gone after every one of these, for every model; the benchmark
+records it rather than assuming it. The more informative count is usually the one from your
+own handling path, with the standalone check on images you kept (`--keep-images`):
 
 ```
-python scripts/provenance_check.py originals/ --out REVIEW_DIR \
+python scripts/provenance_check.py $EXP/images/<arm>/ --out $EXP/provenance \
   --pipeline cms=after_cms/ --pipeline chat=after_chat_tool/
 ```
 
@@ -80,10 +121,10 @@ A C2PA-aware editor would instead write a new manifest that references the old o
 script does not simulate that, and a `present` result after such an edit would need a
 validator to interpret.
 
-Without Pillow the four Pillow transformations are skipped, reported with the reason, and
-written to the evidence file as not assessed.
+Without Pillow the four Pillow transformations are skipped and reported with the reason;
+in the benchmark their rows get no verdict.
 
-## How the detection was tested
+### How the detection was tested
 
 - Fixtures built by `scripts/make_fixtures.py`: JPEG (one segment and four segments) and PNG
   carrying a structurally correct but deliberately invalid manifest store, plus unmarked and
@@ -92,5 +133,7 @@ written to the evidence file as not assessed.
   `exp-test1.png`): detected, with the reassembled length equal to the declared length across
   one, two and five APP11 segments; unsigned files from the same folder read as `absent`.
   Those files are not redistributed here.
+- PNGs signed by `c2pa-python` (the mock server's `mock-strict`): detected as `present`, gone
+  after `strip_metadata`.
 - Not tested: a real signed WebP (only a hand-built RIFF container), and any file produced
   by a commercial image model.

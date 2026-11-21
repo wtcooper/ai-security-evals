@@ -90,3 +90,9 @@ def test_wilson_and_mcnemar():
     lo, hi = sc.wilson_ci(9, 10)
     assert lo == pytest.approx(0.596, abs=1e-3) and hi == pytest.approx(0.982, abs=1e-3)
     assert sc.mcnemar_exact(0, 6) == pytest.approx(0.03125)
+
+
+def test_a_tie_for_first_is_not_a_lane_disagreement():
+    data = (rows("a", "t-injection", "known", [True, False]) + rows("b", "t-injection", "known", [True, False])
+            + rows("a", "t-injection", "custom", [False] * 4) + rows("b", "t-injection", "custom", [True] * 4))
+    assert sc.build(data, THREATS)["lane_disagreements"] == []

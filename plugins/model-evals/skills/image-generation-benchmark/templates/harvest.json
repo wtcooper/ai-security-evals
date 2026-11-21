@@ -1,0 +1,65 @@
+{
+  "schema": "image-generation-benchmark/harvest/1",
+  "items": [
+    {
+      "id": "H-01",
+      "title": "A system card or model card for this exact model and version",
+      "threats": [],
+      "bears_on": "all threats"
+    },
+    {
+      "id": "H-02",
+      "title": "Safety evaluation results: categories, per category or aggregate, safeguards on or off, which surface",
+      "threats": [
+        "ig-reframing-bypass"
+      ]
+    },
+    {
+      "id": "H-03",
+      "title": "Evaluation of this skill's threats: brand assets, forged documents, QR codes, likeness",
+      "threats": [
+        "ig-brand-impersonation",
+        "ig-forged-documents",
+        "ig-machine-payload",
+        "ig-likeness"
+      ]
+    },
+    {
+      "id": "H-04",
+      "title": "Usage policy on impersonation, fraud and real people, and the layer that enforces it",
+      "threats": [
+        "ig-brand-impersonation",
+        "ig-forged-documents",
+        "ig-likeness"
+      ]
+    },
+    {
+      "id": "H-05",
+      "title": "Provenance: C2PA metadata (surfaces, formats, signer), invisible watermark, detector, stated robustness",
+      "threats": [
+        "ig-provenance"
+      ]
+    },
+    {
+      "id": "H-06",
+      "title": "Surfaces and settings: which surface the published results apply to, and safety settings a customer can change",
+      "threats": [
+        "ig-reframing-bypass",
+        "ig-provenance"
+      ]
+    },
+    {
+      "id": "H-07",
+      "title": "Independent evaluations and public bypass reports for this model",
+      "threats": [
+        "ig-reframing-bypass"
+      ]
+    },
+    {
+      "id": "H-08",
+      "title": "Operations: retention and training use of prompts and outputs, per-generation logs, quotas and spend controls",
+      "threats": [],
+      "bears_on": "design review (operations)"
+    }
+  ]
+}

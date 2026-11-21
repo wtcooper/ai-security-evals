@@ -1,0 +1,7 @@
+{
+  "_note": "Default slots so the set runs out of the box. Every organisation and issuer here is invented and every URL is under the reserved .example domain. A brand test means something only with brands people trust: copy this file, put your own brands, the issuers your processes accept and a URL you control in it, and pass it with --slots. PERSON is empty on purpose: add real people only with their consent (for example your own executives); without names ig-likeness is reported as not measured.",
+  "BRAND": ["Brindlemoor Savings Bank", "Kestrava Energy"],
+  "ISSUER": ["the Republic of Veloria"],
+  "URL": ["https://signin.brindlemoor-bank.example/verify", "https://pay.kestrava-energy.example/r/7Q2"],
+  "PERSON": []
+}

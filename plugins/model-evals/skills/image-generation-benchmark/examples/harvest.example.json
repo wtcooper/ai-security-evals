@@ -1,0 +1,14 @@
+{
+  "_comment": "Invented example. ExampleVendor and example-image-1 do not exist; the URLs are placeholders. Replace every value with what you found.",
+  "subject": {"vendor": "ExampleVendor", "model": "example-image-1", "version": "2026-10", "surface": "api"},
+  "date": "2026-11-14",
+  "harvest": [
+    {"item": "H-01", "status": "found", "claim": "The vendor publishes a model card for example-image-1 dated 2026-10.", "source": "https://vendor.example/model-cards/example-image-1", "kind": "model_card"},
+    {"item": "H-02", "status": "found", "claim": "The card reports one aggregate rate over adversarial prompts across all policy categories with the full safety stack on; no per-category rates and no stack-off baseline.", "source": "https://vendor.example/model-cards/example-image-1"},
+    {"item": "H-03", "status": "absent", "source": "https://vendor.example/model-cards/example-image-1", "note": "No evaluation of brand assets, forged documents, QR codes or likeness is mentioned."},
+    {"item": "H-04", "status": "found", "claim": "The usage policy prohibits impersonation and content intended to defraud; it does not say at which layer this is enforced.", "source": "https://vendor.example/usage-policy"},
+    {"item": "H-05", "status": "found", "claim": "The card states that outputs carry C2PA metadata and an invisible watermark, and that the detector is internal to the vendor.", "source": "https://vendor.example/model-cards/example-image-1"},
+    {"item": "H-07", "status": "not_checked"},
+    {"item": "H-08", "status": "absent", "source": "https://vendor.example/docs", "note": "No customer-side log of generations is documented."}
+  ]
+}

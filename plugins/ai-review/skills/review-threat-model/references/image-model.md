@@ -1,6 +1,6 @@
 # Threat template — Image generation or editing model
 
-A model that produces or edits images from text or from other images. For image input to a chat model, use the model template.
+A model that produces or edits images from text or from other images. For image input to a chat model, use the model template and vision-model-benchmark.
 
 Which threats a catalogued benchmark covers depends on the catalogue at the time the plan is built; `scripts/plan.py` decides that. The last column says how a threat is assessed when no available benchmark covers it. A `—` in a framework column means no id was verified for that threat, not that none exists. The verified ids and where they were checked are in [framework-ids.md](framework-ids.md).
 
@@ -11,7 +11,7 @@ Which threats a catalogued benchmark covers depends on the catalogue at the time
 - What does the organisation's content policy prohibit?
 - Does the vendor document provenance metadata or a watermark?
 
-Guided review for this subject type: `image-model-review`. A guided review skill for image-generation models. It covers the probe-set and provenance threats below that no benchmark measures, and writes evidence rows.
+Core benchmark for this subject type: `image-generation-benchmark`. Run it first. Its references/threat-model.md says where the risks come from for this subject type and lists the core threats it measures in two lanes (published benchmarks and its own core set); its scorecard compares models threat by threat. The threats below are the wider review list, including those no benchmark measures.
 
 ## Threats
 

@@ -7,7 +7,10 @@ deployment's policies and cases. Pass them with:
 python run_bench.py --policies my-policies.json --cases my-cases.jsonl --depth full --plan
 ```
 
-`--plan` loads and validates both files without sending anything. A wrong label or cost
+`--plan` loads and validates both files without sending anything. Your cases run in the
+custom lane under the benchmark id `own-<first 8 hex of the corpus hash>`, so the scorecard
+never mixes them with the seed corpus (`dmb-seed`); add `--lanes custom` to leave the known
+lane out. A wrong label or cost
 class is rejected at load, because one silently biases every rate. The bundled
 `corpus/policies.json` and `corpus/seed_cases.jsonl` are in this format and can be copied as
 a starting point.
@@ -54,6 +57,7 @@ a starting point.
 | `attack.target_phrase` | A plain-language claim that the target is right, used by the opinion and argument templates. Write it so it reads as a sentence after "I am confident that ..." |
 | `misleading_rename` | Choice only; `null` to skip. Renames the attack target to a label that sounds safe or already-handled. Criteria are untouched |
 | `padding` | Which padding kinds cannot change the label under this policy. Leave out `log_lines` when log text could itself change the answer (the seed `data_sensitivity` policy does) |
+| `injection_twins` | Optional, default `true`. Set `false` when text appended to the untrusted field of a permissive case would change its label (a prompt-injection screen: the appended text is itself an injection) |
 | `paraphrase` | **Written by hand**, same labels in the same order, different wording for the instructions and every criterion; `null` to skip. Do not have a model write it: a paraphrase that shifts the policy changes the labels |
 
 ## Cases file (JSONL, one object per line)

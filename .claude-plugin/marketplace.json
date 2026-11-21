@@ -16,7 +16,7 @@
     {
       "name": "model-evals",
       "source": "./plugins/model-evals",
-      "description": "Evaluate a model through whatever API it has: security benchmarks for chat, vision, decision and voice models, and a guided review for image generation.",
+      "description": "Evaluate a model through whatever API it has: security benchmarks for chat, vision-input, decision, voice and image-generation models, each with a threat model and two lanes of evidence (published benchmarks and a small core set) that rank models threat by threat.",
       "category": "security"
     },
     {

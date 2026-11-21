@@ -36,7 +36,7 @@ Skill names are `<subject>-<method>`: `benchmark` (a fixed labelled test set), `
 | [`model-evals`](plugins/model-evals/) | `model-benchmark` | A fixed suite of Inspect benchmarks, one per risk dimension, on the same seeded samples for every model; vision profile |
 | | `decision-model-benchmark` | Decision / classification endpoints: fail-open and fail-closed rates, decision flips under attack against the re-run noise floor |
 | | `voice-model-benchmark` | The same prompts as text and as synthesised speech, with audio perturbations, against a realtime model |
-| | `image-model-review` | Guided review of an image-generation model, with a provenance (C2PA) check |
+| | `image-generation-benchmark` | Image generation: phishing assets, forged documents, working QR payloads, likeness, justification bypass and provenance, on a small core set plus the C2PA reference verifier |
 | [`agent-evals`](plugins/agent-evals/) | `agent-misuse-benchmark` | **Scaffold.** Does a model inside an agent harness carry out tasks your policy says it must decline? Ships the scenario format, arm sweep, statistics and report; you supply the scenarios, harness module and outcome scorer |
 | | `agent-feature-review` | Guided review of an agent feature: computer use, memory, connectors/MCP, code execution, file search, multi-agent, background agents |
 | [`app-evals`](plugins/app-evals/) | `app-benchmark` | A bundled labelled corpus against your app's endpoint: recall, false-block rate, by technique |
@@ -54,7 +54,7 @@ The design rationale is in [`docs/design.md`](docs/design.md).
 | "Can we enable this new model?" | `review-scope` → `model-benchmark` (+ `review-evidence` for open weights) |
 | "Can we enable this voice / realtime model?" | `voice-model-benchmark` |
 | "Can we use this decision API as a gate?" | `decision-model-benchmark` |
-| "Can we enable this image model?" | `image-model-review` |
+| "Can we enable this image-generation model?" | `image-generation-benchmark` |
 | "Can we turn on computer use / memory / this connector?" | `agent-feature-review` |
 | "Will this model do things we do not want inside this coding agent?" | `agent-misuse-benchmark` (a scaffold: bring your own scenarios) |
 | "Is our chatbot safe to ship?" | `app-benchmark`, then `app-redteam` |

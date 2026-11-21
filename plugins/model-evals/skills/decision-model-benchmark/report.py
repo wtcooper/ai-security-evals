@@ -8,6 +8,10 @@ to compare arms run at different times; the summary says so when they did not us
 seed, depth and corpus, because then the arms did not see the same requests.
 
 The summary reports numbers with intervals. It sets no threshold and gives no verdict.
+It is this skill's own detail: the custom lane in full (fail-open and fail-closed, flips per
+attack axis against the noise floor, consistency, calibration, refusals, cost, a paired
+comparison) and one table for the known lane. The threat-by-threat comparison of models
+across both lanes is lib/scorecard.py.
 """
 from __future__ import annotations
 
@@ -45,15 +49,25 @@ def num(x, digits: int = 2) -> str:
 def render(summary: dict, runs: list[dict]) -> str:
     arms = summary["arms"]
     names = list(arms)
-    lines = ["# decision-model-benchmark summary", ""]
+    lines = ["# decision-model-benchmark summary", "",
+             "The per-threat comparison of models across both lanes is `scorecard.md` "
+             "(`python lib/scorecard.py --threats threats.json --samples <EXP>/samples.jsonl "
+             "--out <EXP>`). This file is the detail behind it.", ""]
     settings = {(r.get("seed"), r.get("depth"), r.get("repeats"),
-                 (r.get("corpus") or {}).get("sha256")) for r in runs}
+                 (r.get("corpus") or {}).get("sha256"), tuple(r.get("lanes") or ()),
+                 json.dumps({k: (v.get("revision"), v.get("id")) for k, v in
+                             ((r.get("known") or {}).get("benchmarks") or {}).items()},
+                            sort_keys=True)) for r in runs}
     if len(settings) > 1:
-        lines += ["> **Not comparable:** the inputs differ in seed, depth, repeats or corpus, so "
-                  "the arms did not receive the same requests. Re-run with the same settings "
-                  "before comparing arms.", ""]
+        lines += ["> **Not comparable:** the inputs differ in seed, depth, repeats, corpus, "
+                  "lanes or known-lane source, so the arms did not receive the same requests. "
+                  "Re-run with the same settings before comparing arms (the scorecard still "
+                  "compares them on the cases they share).", ""]
     run = runs[0] if runs else {}
     corpus = run.get("corpus") or {}
+    if summary.get("main_lane") == "known":
+        lines += ["> The tables down to \"By policy family\" describe the known lane: this run "
+                  "has no custom-lane rows.", ""]
     lines += [f"depth `{run.get('depth')}` · seed `{run.get('seed')}` · clean requests sent "
               f"`{run.get('repeats')}` times · corpus `{corpus.get('cases_file')}` "
               f"({corpus.get('cases_run')} of {corpus.get('cases_total')} cases, sha256 "
@@ -211,9 +225,34 @@ def render(summary: dict, runs: list[dict]) -> str:
             lines.append(f"| {n} | {policy} | {fr(b['accuracy'])} | {fr(b['fail_open'])} | "
                          f"{fr(b['fail_closed'])} | {fr(b['flip_all_attacks'])} |")
 
+    known = summary.get("known") or {}
+    if known:
+        lines += ["", "## Known lane (published benchmarks, run as published)", "",
+                  "No variants are applied. `deepset-prompt-injections` is recast as one yes/no "
+                  "screen: fail-open is an injection answered `no`, fail-closed a benign message "
+                  "answered `yes`. `jevbench-original` holds paraphrase pairs: `both right` "
+                  "counts pairs decided correctly in both phrasings, `consistent` pairs with the "
+                  "same decision in both. Re-run agreement is over identical re-sends. A "
+                  "`:fixture` benchmark is the bundled synthetic stand-in, not the benchmark.", "",
+                  "| Arm | Benchmark | Cases | Accuracy | Fail-open | Fail-closed | Pairs both "
+                  "right | Pairs consistent | Re-run agreement | Unanswered |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
+        for n, by in known.items():
+            for bench, b in by.items():
+                lines.append(
+                    f"| {n} | {bench} | {b['cases']} | {fr(b['accuracy'])} | "
+                    f"{fr(b['fail_open']) if 'fail_open' in b else '—'} | "
+                    f"{fr(b['fail_closed']) if 'fail_closed' in b else '—'} | "
+                    f"{fr(b['pair_both_correct']) if 'pairs' in b else '—'} | "
+                    f"{fr(b['pair_consistent']) if 'pairs' in b else '—'} | "
+                    f"{fr(b['rerun_agreement'])} | {b['unanswered']} |")
+
     lines += ["", "## What these numbers do not say", "",
               "- The seed corpus is small and synthetic. Rates describe these cases under these "
               "policies, not the failure rate of a deployment.",
+              "- The known lane's JevBench pairs are general decisions, not security ones; they "
+              "measure brittleness under rewording only. The deepset labels follow no published "
+              "rule, and the recast question is this skill's reading of them.",
               "- Variants come from fixed templates. A low flip rate is a floor on what an "
               "attacker who adapts to the model can do, not evidence of robustness.",
               "- The interval treats each request as independent; several requests share a case.",
@@ -245,10 +284,14 @@ def main(argv: list[str] | None = None) -> int:
     arms = [a for run in runs for a in run.get("arms", [])]
     limits = {"max_unanswered": args.max_unanswered, "min_clean_correct": args.min_clean_correct,
               "max_prob_sum_off": args.max_prob_sum_off}
+    custom = [r for r in rows if r.get("lane", "custom") == "custom"]
+    known = [r for r in rows if r.get("lane") == "known"]
     try:
-        summary = metrics.summarise(rows, arms, args.baseline, limits, args.bins)
+        summary = metrics.summarise(custom or known, arms, args.baseline, limits, args.bins)
     except ValueError as exc:
         raise SystemExit(str(exc)) from None
+    summary["main_lane"] = "custom" if custom else "known"
+    summary["known"] = metrics.known_summary(known)
     summary["runs"] = [{k: run.get(k) for k in ("seed", "depth", "repeats", "repeat_scope",
                                                 "techniques_per_axis", "axes", "corpus",
                                                 "started", "finished", "context",

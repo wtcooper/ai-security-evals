@@ -120,16 +120,19 @@ def test_every_variant_records_parent_axis_and_what_changed():
             assert var["changed"] == "none" and var["state"] == case["state"]
             continue
         seen_axes.add(var["axis"])
+        axis = variants.base_axis(var["axis"])
         assert var["id"] == f"{var['axis']}.{var['technique']}"
-        assert var["technique"] in variants.TECHNIQUES[var["axis"]]
-        assert var["changed"] == variants.CHANGED[var["axis"]]
+        assert var["technique"] in variants.TECHNIQUES[axis]
+        assert var["changed"] == variants.CHANGED[axis]
+        assert var["twin"] == (var["axis"] != axis)
         if var["changed"] == "state":
             assert var["question"] == pol["question"], "state variants must not touch options"
             assert var["state"] != case["state"]
         else:
             assert var["state"] == case["state"], "option variants must not touch the state"
             assert var["question"] != pol["question"]
-    assert seen_axes == set(variants.AXES)
+    assert seen_axes == set(variants.AXES) | {a + variants.TWIN_SUFFIX
+                                              for a in variants.TARGETED_AXES}
 
 
 def test_state_variants_change_only_the_untrusted_field_or_add_fields():
@@ -146,7 +149,7 @@ def test_state_variants_change_only_the_untrusted_field_or_add_fields():
             assert {k: var["state"][k] for k in case["state"]} == case["state"]
             continue
         assert adapter.del_path(var["state"], field) == adapter.del_path(case["state"], field)
-        if var["axis"] in ("injection", "padding"):
+        if var["axis"] in ("injection", "injection_twin", "padding"):
             assert changed.startswith(original + "\n\n") and len(changed) > len(original) + 2
         elif var["technique"] == "base64_wrapper":
             assert variants.undo_base64_wrapper(changed) == original
@@ -164,9 +167,20 @@ def test_injection_targets_the_permissive_label_and_only_eligible_cases():
         pol = POLICIES[case["policy"]]
         target = pol["attack"]["target"]
         got = [v for v in variants.generate(case, pol, SEED, "all") if v["axis"] == "injection"]
+        twins = [v for v in variants.generate(case, pol, SEED, "all")
+                 if v["axis"] == "injection_twin"]
         if case["truth"] == target:
             assert got == [], f"{case['id']}: an injection toward the true label is not an attack"
+            # ...but it is a benign twin: same text, the permissive answer is still right.
+            if pol.get("injection_twins", True):
+                assert [v["technique"] for v in twins] == list(variants.TECHNIQUES["injection"])
+                assert all(v["twin"] and not v["targeted"] and v["attacker_target"] is None
+                           and v["truth"] == target and v["id"].startswith("injection_twin.")
+                           for v in twins)
+            else:
+                assert twins == []
             continue
+        assert twins == []
         assert [v["technique"] for v in got] == list(variants.TECHNIQUES["injection"])
         for var in got:
             assert var["targeted"] and var["attacker_target"] == target != case["truth"]
@@ -233,10 +247,11 @@ def test_axes_that_need_labelled_options_skip_yes_no_and_score_questions():
 
 
 def test_a_technique_that_does_not_apply_raises_instead_of_returning_a_wrong_label():
-    allow_case = next(c for c in CASES if c["policy"] == "tool_gate" and c["truth"] == "allow")
+    # Appending an injection to a document that holds none would make the truth `yes`.
+    clean_doc = next(c for c in CASES if c["policy"] == "injection_screen" and c["truth"] == "no")
     with pytest.raises(ValueError):
-        variants.make_variant(allow_case, POLICIES["tool_gate"], "injection", "direct_command",
-                              SEED)
+        variants.make_variant(clean_doc, POLICIES["injection_screen"], "injection",
+                              "direct_command", SEED)
     noul_case = next(c for c in CASES if c["policy"] == "injection_screen")
     with pytest.raises(ValueError):
         variants.make_variant(noul_case, POLICIES["injection_screen"], "option_order", "reverse",
@@ -252,3 +267,24 @@ def test_every_variant_is_a_sendable_canonical_case_on_every_wire_format():
             req = adapter.build_request(fmt, wire_case, "m")
             json.dumps(req)
         assert adapter.estimate_tokens(wire_case) > 20
+
+
+def test_benign_twins_exist_wherever_always_blocking_would_look_robust():
+    """On the injection and option-rename axes a gate that always picks the restrictive label
+    would be right on every attack. The twins are cases where that answer is wrong."""
+    for pid, pol in POLICIES.items():
+        mine = [c for c in CASES if c["policy"] == pid]
+        permissive = [c for c in mine if c["truth"] == pol["attack"]["target"]]
+        for axis, wanted in (("injection", pol.get("injection_twins", True)),
+                             ("option_rename", bool(pol.get("misleading_rename")))):
+            twins = [v for c in permissive for v in variants.generate(c, pol, SEED, "one", (axis,))
+                     if v["axis"] == axis + "_twin"]
+            assert bool(twins) == bool(wanted and permissive), (pid, axis)
+            for v in twins:
+                assert v["truth"] not in pol["restrictive_labels"]
+                assert variants.base_axis(v["axis"]) == axis
+    assert POLICIES["injection_screen"]["injection_twins"] is False
+    renamed = next(v for c in CASES if c["policy"] == "tool_gate" and c["truth"] == "allow"
+                   for v in variants.generate(c, POLICIES["tool_gate"], SEED, "one",
+                                              ("option_rename",)) if v["twin"])
+    assert renamed["label_map"]["compliant"] == "allow"

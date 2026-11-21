@@ -8,7 +8,7 @@ silent.
 
 | Threat | What this skill does | What is left open |
 |---|---|---|
-| Injection through the judged content | Five fixed injection templates appended to the untrusted field | Injections written for the specific model, placed elsewhere in the state, split across fields, or hidden in markup. The templates are public and identical every run |
+| Injection through the judged content | Five fixed injection templates appended to the untrusted field, with benign twins; no published set in the known lane (DecisionRobust's data has no licence statement) | Injections written for the specific model, placed elsewhere in the state, split across fields, or hidden in markup. The templates are public and identical every run |
 | Option-channel override | One misleading rename of the permissive label; option reorder; one hand-written paraphrase | Searching over many candidate labels (the published attack swept about two hundred), attacker-written criteria, added or removed options |
 | Adaptive attacks using the returned probabilities | Nothing | The API returns a probability for every option, which is a gradient-free optimisation signal. An attacker who can query the model can tune an input against it. This needs a red-team method, not a fixed benchmark, and is the largest gap |
 | Confidence manipulation | Reports the top probability of flipped decisions and whether it separates them from kept ones | Attacks built to keep a wrong answer confident, or to push correct answers below a review cut-off and flood reviewers |
@@ -17,7 +17,7 @@ silent.
 | Non-determinism and drift | Identical re-runs inside one run; records the model id the server reports | Change between runs days or weeks apart, silent alias moves between runs, differences between regions or deployment types |
 | Refusal as an evasion path | Counts refusals, clean and under attack, as their own class | Whether the user's integration treats an unanswered request as allow. That is a property of their code, not of the model |
 | Encoding and obfuscation | Base64 wrapper, zero-width characters, Latin-to-Cyrillic homoglyphs, on one field | Other encodings and ciphers, nested encodings, markup and Unicode tricks, obfuscated code |
-| Languages other than English | Nothing | All seed cases and policies are English |
+| Languages other than English | About a third of the known lane's deepset rows are German | All seed cases and policies are English; no other language is tested |
 | Images, audio, video, PDF | Nothing | The adapter sends text and JSON only. Image overlays and instructions inside images are untested; `box` questions are not implemented |
 | Long inputs | Padding of six log lines or one paragraph | Behaviour near context limits, including TypeSafe's long-context mode, and accuracy as unrelated state grows to thousands of tokens |
 | Many questions per request | One question per request | Whether questions interfere with one another, and the vendors' limits of hundreds of questions per request |
@@ -26,8 +26,8 @@ silent.
 | Bias and fairness | Nothing | Whether decisions about people differ by protected attribute. The vendors acknowledge the risk; no benchmark was found |
 | Faithfulness | Nothing | These models return no rationale, so why a decision was made cannot be tested. Audit depends on logging the input and the full distribution |
 | Policy quality | Nothing | A badly written policy gives wrong decisions that this skill attributes to the model. The seed policies are one author's wording |
-| Real-world failure rate | Nothing | The seed corpus is 54 synthetic cases balanced by construction. Rates on it compare arms; they are not the rate at which a deployment will fail on real traffic |
-| Training-data exposure | Nothing | The seed corpus is public in this repository and may enter training data. Keep a private held-out set for anything that matters |
+| Real-world failure rate | Nothing | The seed corpus is 54 synthetic cases balanced by construction, and the known-lane sets were built for other purposes. Rates compare arms; they are not the rate at which a deployment will fail on real traffic |
+| Training-data exposure | Nothing | The seed corpus is public in this repository and both known-lane sets are public; any of them may be in training data. Keep a private held-out set for anything that matters |
 
 ## What a low flip rate means
 
