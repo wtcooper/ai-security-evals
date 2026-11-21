@@ -61,14 +61,11 @@ transcripts. Any member of the public can call or open the app.
 - *Browser or app only* (WebRTC): no caller ID, but the user controls the client end of the
   session, so client-side control of the session is the main channel risk.
 - *Outbound calling*: consent and disclosure rules for synthetic voices apply directly [27].
-- *Staff-facing assistant*: callers are known employees; tool reach and data sensitivity decide the
-  ratings.
-- *No tools*: tool abuse disappears; harmful speech, leakage and data handling remain.
+- *Staff-facing, or no tools*: known callers or no actions lower threats 3 and 4; the rest remain.
 - *Custom output voices*: impersonation by the agent becomes a live risk [12].
 
-**Out of scope here:** the systems behind the tools (their own authorisation is assumed to exist or
-not, as stated per threat), the telephony carrier's network, and the model's text-only behaviour
-(covered by the General-purpose models threat model).
+**Out of scope:** the carrier's network, the systems behind the tools, and text-only model
+behaviour (see the General-purpose models threat model).
 
 ## System model and threat actors
 
@@ -104,7 +101,8 @@ flowchart LR
   BE -->|transfer, DTMF| SIP
 ```
 
-The trust boundaries that matter: the microphone (all audio is untrusted, and not all of it is the
+Browsers and apps connect over WebRTC, servers over WebSocket, phone calls over SIP [1][4]. The
+trust boundaries that matter: the microphone (all audio is untrusted, and not all of it is the
 caller); the telephony signalling (caller ID and headers are caller-controlled metadata [4][28]);
 the client end of a WebRTC session (whoever holds the session token can send client events [5][7]);
 the function-call boundary (the application decides whether to execute what the model asked for
@@ -122,7 +120,11 @@ the function-call boundary (the application decides whether to execute what the 
 ## Core threats
 
 Ratings are Likelihood / Impact → inherent risk for the reference deployment. Ids in backticks are
-the ones `voice-model-benchmark` uses where it measures the threat.
+the ones `voice-model-benchmark` uses where it measures the threat. In framework terms, threats 2
+and 5 involve indirect injection and triggers in modalities that defences do not inspect (ATLAS
+AML.T0051.001, AML.T0129), threat 3 excessive agency (OWASP LLM06:2025), threats 4 and 9
+impersonation and deepfakes (ATLAS AML.T0073, AML.T0088), threat 6 system prompt leakage (OWASP
+LLM07:2025) and threat 10 unbounded consumption (OWASP LLM10:2025) [30][31].
 
 **1. Harmful requests get through when spoken** (`vm-spoken-harm`, `vm-audio-evasion`, and the
 cost side `vm-over-refusal`). Safety training and filters were built mostly on text; the same
@@ -135,8 +137,7 @@ requests, including under poor audio, is the other failure.
   lower propensity to block coaching, role-playing, or advising in certain inappropriate scenarios",
   with the same considerations for gpt-realtime-2.1, and that realtime models may be "less robust in
   noisy environments" [15]. OpenAI's GPT-Live card describes voice-native safety evaluations and
-  checks that can interrupt or end a call [14]. JALMBench offers 245,355 audio samples across eight
-  attack methods for comparison [17].
+  checks that can interrupt or end a call [14].
 - *Rating*: Medium / Medium → **Medium**. Higher for open consumer lines and for categories where
   one harmful answer is costly; lower for staff-only lines.
 
@@ -151,8 +152,9 @@ the caller's authority.
   position matters and system prompts were a mixed defence across five audio models [20]. Older work
   showed inaudible ultrasonic commands to voice assistants [23] and laser-injected commands at up to
   110 m [24].
-- *Rating*: Medium / High → **High**. Lower on narrowband phone audio, which filters high
-  frequencies; higher for devices in a room and for app microphones.
+- *Rating*: Medium / High → **High**. Audible and reverberation-borne injection applies on every
+  channel; near-ultrasonic attacks need a microphone in the room, so devices and app microphones
+  are more exposed than a phone line.
 
 **3. Spoken social engineering triggers a privileged tool call** (`vm-tool-abuse`). Function calls
 turn words into actions. A voice is not authentication, and when rules live only in the
@@ -188,8 +190,9 @@ confirmation can leave the conversation record out of step with what the caller 
 
 **6. Secrets in the session instructions** (`vm-secret-leak`). Operators put rules and internal
 values in the instructions; callers can ask for them in any wording, and a spoken answer can spell
-a value out in forms a plain string filter misses. On the browser channel the instructions are not
-secret at all: the session events that report the effective configuration go to the client [5][3].
+a value out in forms a plain string filter misses. On the browser channel the instructions may not
+be secret at all: session events, which report the effective configuration, are delivered to the
+client [3][5].
 - *Rating*: Medium / Medium → **Medium**; **High** if codes, credentials or other customers' data
   are in the instructions.
 
@@ -241,7 +244,8 @@ threat areas in two lanes:
 | Secret leak (6) | — | 8 pairs: a canary code in the instructions, scored on the reply and normalised for spelled-out and phonetic forms |
 
 Every custom attack has a benign twin the agent should carry out, so a model that declines
-everything cannot score well. `--custom-dir` runs the same format with a deployment's real
+everything cannot score well. Published audio (JALMBench [17]) can replace the synthetic AdvBench
+speech. `--custom-dir` runs the same format with a deployment's real
 instructions and tool schemas; `--input-transcription` and `--save-audio` let a reviewer compare
 what the provider transcribed with the audio, which is partial evidence for threat 5; reported
 token usage is kept for threat 10.
@@ -253,7 +257,7 @@ detection off, no phone codec, no imperceptible audio, tools never executed and 
 returned, and only an OpenAI Realtime adapter (no GPT-Live adapter). Caller identity (4), barge-in
 and the transcript gap (5), the browser and SIP channels (7), recording and consent (8),
 impersonation (9) and cost (10) depend on the deployment's own call flow and contracts; the skill's
-`references/unbenchmarked-voice-threats.md` gives probes and questions for them, and "no
+reference on unbenchmarked voice threats gives probes and questions for them, and "no
 standardised benchmark exists" is the state to report. Results compare models; they say nothing
 about human callers or real rooms, and the skill sets no threshold.
 
@@ -263,8 +267,8 @@ about human callers or real rooms, and the skill sets no threshold.
   against the authenticated caller, whatever the model asks for?
 - What establishes who is speaking? Is caller ID, a SIP header or the sound of a voice used to look
   up, personalise or authorise anything? Is any header value placed in the instructions?
-- Does anything separate the caller from other audio? Was input noise reduction on during testing
-  as in production? Can a spoken "yes" from someone else confirm an action?
+- Does anything separate the caller from other audio? Can someone else's spoken "yes" confirm an
+  action?
 - Does each guardrail read the input transcript, the output transcript, or audio? How much audio
   has played before it acts, and what happens to the call then?
 - With turn detection on, what state is the conversation in after an interrupted refusal,
@@ -272,14 +276,12 @@ about human callers or real rooms, and the skill sets no threshold.
 - For the app channel: who mints client secrets, behind what authentication and rate limits? Does
   the backend own instructions and tools through a server connection, or can the client change
   them?
-- Is the call webhook signature-checked and deduplicated? Can the model choose a transfer target or
-  send keypad tones?
-- Is anything in the instructions that would matter if a caller heard it or an app user read it?
-- What is recorded and transcribed, where, for how long, who can read it, and which vendor terms
-  were signed? Are callers told they are speaking with an AI system?
-- Which output voices are enabled, and where are consent records for custom voices?
-- What bounds a session (duration, idle time, output tokens) and a caller (concurrent sessions,
-  calls per hour)? What happens to live calls when a spend cap is hit?
+- Is the call webhook signature-checked and deduplicated? Can the model choose a transfer target?
+- Would anything in the instructions matter if a caller heard it or an app user read it?
+- What is recorded, where, for how long, who reads it, under which signed vendor terms? Are callers
+  told they are speaking with an AI system? Which voices are enabled, with what consent records?
+- What bounds a session (duration, idle time, output tokens) and a caller (sessions, calls per
+  hour)?
 
 ## References
 
