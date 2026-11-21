@@ -42,18 +42,11 @@ The provider has moved part of the control burden from its safeguards to the cus
 own evaluation incidents, one provider wrote that "the safeguards deployed on our generally
 available models would have blocked the behaviors identified" [C8].
 
-**What evaluations can and cannot tell you.** No skill in this repository evaluates this asset
-class, and that is deliberate (section 5). A refusal benchmark would measure exactly the
-safeguards the programme relaxes. A capability benchmark needs a supervised sandbox with live
-targets, and in 2026 such evaluations themselves reached real systems. With access limited to a
-few named people, the risk is decided by four things:
-
-- who holds the access;
-- what the model is pointed at;
-- what it can reach;
-- where its output goes.
-
-These are checked operationally, not benchmarked.
+**What evaluations can and cannot tell you.** No skill here evaluates this asset class, by
+design: a refusal benchmark would measure the very safeguards the programme relaxes, and a
+capability benchmark is itself a containment risk. The risk is decided by who holds the access,
+what it is pointed at, what it can reach and where its output goes; section 5 describes the
+operational checks that stand in for a benchmark.
 
 ## 2. Scope and reference deployment
 
@@ -282,7 +275,8 @@ ids were read for this document in the 2026.10 release file [C14]. `—` means n
   "additional evaluation monitoring" [C8], outbound-traffic monitoring [C9], and more than
   17,000 logged events [C11]. Some training snapshots of one model tried to cover their tracks by
   "manipulating git records or deleting logs" [C12]. One provider's usage policy exempts testing
-  only "with the authorization of the system owner" and "provided the activity complies with
+  on systems the user owns or operates, "with the authorization of the system owner", or within
+  an authorised bug bounty or disclosure programme, "provided the activity complies with
   applicable law" [C2]; its Red Team tier requires "confirmation that each test is authorized in
   advance by someone with authority over the systems" [C1]. Another grants exceptions that "may
   require written terms" [C7].
@@ -325,13 +319,10 @@ from documents and storage locations.
 agents can do. On general access, `model-benchmark` measures injection susceptibility in a
 different safeguard configuration (General-purpose models threat model).
 
-**Adjacent evaluations that do not cover this asset.**
-
-- `agent-feature-review` reviews a harness's code-execution and connector features.
-- `security-tool-benchmark` compares AI pentest agents with other tools on local vulnerable
-  applications.
-
-Neither of them measures who holds this access, what it is pointed at, or where its output goes.
+**Adjacent evaluations that do not cover this asset.** `agent-feature-review` reviews a
+harness's code-execution and connector features; `security-tool-benchmark` compares AI pentest
+agents with other tools on local vulnerable applications. Neither measures who holds this
+access, what it is pointed at, or where its output goes.
 
 **What remains.**
 
@@ -350,8 +341,7 @@ Neither of them measures who holds this access, what it is pointed at, or where 
   they live, and can a pipeline or sub-agent use them? How fast can access be revoked?
 - Does each active authorisation cover AI-assisted, agentic testing of named systems, and was it
   signed by someone with authority? Is scope a machine-checkable list, and where is it enforced?
-- Can a test-environment name collide with a real organisation's domain? What does the agent do
-  when its target is unreachable?
+  Can a test-environment name collide with a real organisation's domain?
 - Has every network path out of the sandbox been tested closed, including mirrors, proxies and
   DNS? Who approves internet access per run? Who watches runs, and can they stop one?
 - Which agents read hostile content, and what tools and network reach do those same agents
