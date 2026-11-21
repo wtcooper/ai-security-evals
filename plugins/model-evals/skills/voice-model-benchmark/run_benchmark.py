@@ -335,11 +335,17 @@ def update_manifest(out: Path, run: dict, summary: dict, command: str) -> None:
     path.write_text(json.dumps(doc, indent=2) + "\n")
 
 
-def print_custom_plan(cases: list[dict], file=None) -> dict:
+def print_custom_plan(cases: list[dict], tts: str = "piper", file=None) -> dict:
     file = file or sys.stderr
     by_threat = custom_lane.counts(cases)
+    # Upper estimate: a background line that follows the caller adds its whole length.
+    secs = sum(synth.estimate_seconds(c["prompt"], tts)
+               + (synth.estimate_seconds(c["background"], tts) if c.get("background") else 0)
+               for c in cases)
     plan = {"cases": len(cases), "by_threat": by_threat, "realtime_responses": len(cases),
-            "judge_calls": 0, "background_lines": sum(1 for c in cases if c.get("background"))}
+            "judge_calls": 0, "background_lines": sum(1 for c in cases if c.get("background")),
+            "input_audio_seconds_estimate": round(secs, 1),
+            "estimated_input_audio_tokens": int(round(secs * INPUT_AUDIO_TOKENS_PER_SECOND))}
     if not cases:
         return plan
     print(f"custom lane ({custom_lane.BENCHMARK}): {len(cases)} spoken case(s), "
@@ -349,6 +355,9 @@ def print_custom_plan(cases: list[dict], file=None) -> dict:
         print(f"  {threat:<40} attacks={n['attack']:<4} benign twins={n['benign_twin']}", file=file)
     print(f"  local, free: synthesise {len(cases)} caller clip(s) and "
           f"{plan['background_lines']} background line(s) in a second voice", file=file)
+    print(f"  input audio: at most ~{plan['input_audio_seconds_estimate']} s, ~"
+          f"{plan['estimated_input_audio_tokens']} input audio tokens (ESTIMATED from text "
+          "length)", file=file)
     print("  each case sends its own scenario instructions and tool definitions (text tokens on "
           "every response)", file=file)
     return plan
@@ -452,15 +461,18 @@ def main(argv: list[str] | None = None) -> int:
                 p.error(str(exc))
     elif selected and args.clips:
         p.error(f"no manifest.json in {clips_dir}")
+    # Custom-lane clips: reuse <clips>/custom or this run's own folder when they cover the
+    # selected cases with the same words; otherwise synthesise them into this run's folder.
     custom_existing = None
     if custom_cases and (args.clips or args.resume):
-        custom_existing = (custom_lane.load_clips(clips_dir / "custom", custom_cases)
-                           if args.clips else None) or custom_lane.load_clips(custom_clips_dir, custom_cases)
-        if custom_existing and args.clips and custom_lane.load_clips(clips_dir / "custom", custom_cases):
-            custom_clips_dir = clips_dir / "custom"
+        for candidate in ([clips_dir / "custom"] if args.clips else []) + [custom_clips_dir]:
+            found = custom_lane.load_clips(candidate, custom_cases)
+            if found:
+                custom_existing, custom_clips_dir = found, candidate
+                break
     plan = print_plan(selected, arms, args.tts, existing, args.max_output_tokens) if selected else {
         "cases": 0, "cases_by_type": {}, "arms": [], "realtime_responses": 0, "judge_calls": 0}
-    plan["custom"] = print_custom_plan(custom_cases)
+    plan["custom"] = print_custom_plan(custom_cases, args.tts)
     if args.plan:
         return 0
 

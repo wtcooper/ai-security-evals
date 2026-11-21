@@ -268,8 +268,9 @@ Unit tests: `python -m pytest tests -q` (standard library and pytest only).
     `response.done` parsing have run only against the mock server, written from OpenAI's
     documentation (read 2026-11-14) by the same author as the adapter.
   - Whether real models hear the second voice in the custom mixes. A small local recogniser
-    (faster-whisper base.en) recovered the injected line in 7 of the 8 attack clips; use
-    `--input-transcription` on a real run.
+    (faster-whisper base.en, not part of this skill) heard the injected line in all 8 Piper
+    attack clips and misheard the canary word in 2 ("Mary Gold", "Angeline"); use
+    `--input-transcription` on a real run to see what the model was given.
   - Sending audio faster than real time with turn detection off, and the `item` audio mode.
   - The judge client against a real chat endpoint (tested against a local stub only).
   - Whether Piper output is byte-identical across machines or library versions.
