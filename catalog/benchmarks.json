@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-14",
+  "updated": "2026-11-21",
   "note": "Single source for the benchmark catalogue; field meanings are in the catalogue README. `verified` is true only when every non-null value among dataset_size, licence, needs_judge, needs_sandbox and calls_per_sample was read in model-benchmark's suite file or in a primary source named in `verified_from`. null means not known.",
   "benchmarks": [
     {
@@ -385,11 +385,11 @@
       "needs_sandbox": false,
       "calls_per_sample": 2,
       "dataset_size": 1000,
-      "licence": null,
+      "licence": "MIT (dataset card)",
       "verified": true,
       "verified_from": "the suite file of model-benchmark (checked there against inspect_evals 0.29.0); licence left unset: the image dataset is hosted separately and its licence was not checked",
       "source": "https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_3",
-      "note": "Needs a model that accepts image input and a judge that does too. Downloads about 1000 images on first use. Upstream defaults to 5 epochs; pinned to 1.",
+      "note": "Needs a model that accepts image input and a judge that does too. Downloads about 1000 images on first use. Upstream defaults to 5 epochs; pinned to 1. vision-model-benchmark runs it as three checks split by the dataset's own labels (secret extraction 300, indirect injection 300, direct policy bypass 400) at revision 7933662, without the stray template system message inspect_evals 0.29.0 adds.",
       "measures": "subject",
       "reads_as": "share of image-borne injections that SUCCEEDED",
       "subject_notes": {
@@ -656,14 +656,14 @@
       "verified": true,
       "verified_from": "seed_cases.jsonl (54 lines) and SKILL.md of the decision-model-benchmark skill, read 2026-11-14",
       "source": null,
-      "note": "54 synthetic labelled cases in five policy families, each expanded into adversarial variants (injection, padding, option reorder, misleading option rename, paraphrase, encoding, extra fields) and re-run for a noise floor. Requests per case are not constant: the skill's cost table gives about 466 requests per arm at standard depth. Its SKILL.md says the corpus is small, written by one author, and compares arms rather than estimating a deployment's failure rate; the organisation's own labelled cases can be supplied instead.",
+      "note": "Custom lane of decision-model-benchmark: 54 synthetic labelled cases in five policy families, with benign twins, expanded into adversarial variants (injection, padding, option reorder, misleading option rename, paraphrase, encoding, extra fields) and re-run for the noise floor. At standard depth: dm-injection 48, dm-option-channel 34, dm-fail-open 54, dm-perturbation 250, dm-nondeterminism 108 scored cases per arm.",
       "measures": "subject"
     },
     {
       "id": "decisionrobust",
       "name": "DecisionRobust",
       "skill": "decision-model-benchmark",
-      "status": "planned",
+      "status": "candidate",
       "subjects": [
         "decision-model"
       ],
@@ -678,18 +678,18 @@
       "needs_sandbox": null,
       "calls_per_sample": null,
       "dataset_size": 1058,
-      "licence": "code MIT; data per the dataset card (not read)",
+      "licence": "code MIT; data: no licence stated, and the dataset card says its licence audit is unfinished",
       "verified": true,
       "verified_from": "README and LICENSE of github.com/Yifan-Lan/DecisionRobust, read 2026-11-14 (1,058 curated attack examples from 441 original questions, five suites; code MIT)",
       "source": "https://github.com/Yifan-Lan/DecisionRobust",
-      "note": "Not run by decision-model-benchmark: that skill documents it as an external suite with its own harness. Text and vision suites. Its README says the sets are deliberately difficult and model-selected, so attack success there does not estimate everyday failure rates. The data licence is on the dataset card and was not read.",
+      "note": "Not imported by decision-model-benchmark: the data states no licence. Revisit when the dataset card names one.",
       "measures": "subject"
     },
     {
       "id": "jevbench",
       "name": "JevBench",
       "skill": "decision-model-benchmark",
-      "status": "planned",
+      "status": "available",
       "subjects": [
         "decision-model"
       ],
@@ -699,15 +699,15 @@
         "decision-error-asymmetry"
       ],
       "tier": "T0",
-      "needs_judge": null,
-      "needs_sandbox": null,
-      "calls_per_sample": null,
-      "dataset_size": null,
+      "needs_judge": false,
+      "needs_sandbox": false,
+      "calls_per_sample": 1,
+      "dataset_size": 72,
       "licence": "MIT (repository)",
       "verified": true,
       "verified_from": "LICENSE of github.com/fstandhartinger/jevbench, read 2026-11-14",
       "source": "https://github.com/fstandhartinger/jevbench",
-      "note": "Not run by decision-model-benchmark: documented there as an external suite. Accuracy, calibration, latency and cost for decision models. Size is left unset: the README describes several versions with different item counts and a sealed private part.",
+      "note": "Known lane of decision-model-benchmark (dm-perturbation, dm-nondeterminism): the 72 rows of original.jsonl at commit 609a664 (36 paraphrase pairs), checked by sha256. Score levels are sent as 'N: description', not exactly as JevBench's own harness sends them.",
       "measures": "subject"
     },
     {
@@ -1080,24 +1080,25 @@
       "id": "deepset_prompt_injections",
       "name": "deepset/prompt-injections",
       "skill": "decision-model-benchmark",
-      "status": "candidate",
+      "status": "available",
       "subjects": [
         "decision-model"
       ],
       "engine": "custom",
       "threats": [
+        "decision-error-asymmetry",
         "decision-state-injection"
       ],
-      "tier": null,
-      "needs_judge": null,
-      "needs_sandbox": null,
-      "calls_per_sample": null,
-      "dataset_size": null,
-      "licence": null,
-      "verified": false,
-      "verified_from": null,
-      "source": null,
-      "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high as a detector task), from prior knowledge that the document itself marks as not re-checked.",
+      "tier": "T0",
+      "needs_judge": false,
+      "needs_sandbox": false,
+      "calls_per_sample": 1,
+      "dataset_size": 662,
+      "licence": "apache-2.0 per the dataset card (its dataset_info block says cc-by-4.0); both allow commercial use with attribution",
+      "verified": true,
+      "verified_from": "https://huggingface.co/datasets/deepset/prompt-injections",
+      "source": "https://huggingface.co/datasets/deepset/prompt-injections",
+      "note": "Known lane of decision-model-benchmark (dm-fail-open, dm-nondeterminism): recast as a yes/no 'does this text contain a prompt injection?' screen. Revision 4f61ecb, checked by a per-split content hash. About a third of rows are German. The card gives no labelling rule, so whether the recast question matches its labels for a given model is not established.",
       "measures": "subject"
     },
     {
@@ -1364,6 +1365,109 @@
       "source": "https://arxiv.org/abs/2504.04377",
       "note": "Listed in the decision-model research note section 5 as recastable for a label-only API (fit: high for the multilingual axis), from prior knowledge that the document itself marks as not re-checked.",
       "measures": "subject"
+    },
+    {
+      "subjects": [
+        "model"
+      ],
+      "engine": "inspect",
+      "measures": "subject",
+      "tier": "T0",
+      "needs_judge": true,
+      "needs_sandbox": false,
+      "calls_per_sample": 2,
+      "verified": true,
+      "id": "figstep_safebench",
+      "name": "FigStep SafeBench",
+      "skill": "vision-model-benchmark",
+      "status": "available",
+      "threats": [
+        "visual-prompt-injection",
+        "jailbreak"
+      ],
+      "dataset_size": 350,
+      "licence": "MIT",
+      "verified_from": "https://github.com/ThuCCSLab/FigStep",
+      "source": "https://github.com/ThuCCSLab/FigStep",
+      "note": "Known lane of vision-model-benchmark (vi-harm-as-image): harmful questions rendered as images, at commit 0861b17, checked by hash. Only the 7 topics where answering is itself the harm are kept (350 of 500 questions); each also runs typed for the image-minus-text gap."
+    },
+    {
+      "subjects": [
+        "model"
+      ],
+      "engine": "inspect",
+      "measures": "subject",
+      "tier": "T0",
+      "needs_judge": true,
+      "needs_sandbox": false,
+      "calls_per_sample": 1,
+      "verified": true,
+      "id": "vision_core",
+      "name": "vision-model-benchmark core set",
+      "skill": "vision-model-benchmark",
+      "status": "available",
+      "threats": [
+        "visual-prompt-injection",
+        "system-prompt-leak",
+        "agent-goal-hijack",
+        "over-refusal",
+        "jailbreak"
+      ],
+      "dataset_size": 72,
+      "licence": "MIT (images rendered at run time; prompts from the app-benchmark corpus, XSTest CC-BY-4.0, AdvBench MIT)",
+      "verified_from": "plugins/model-evals/skills/vision-model-benchmark/corpus/manifest.json",
+      "source": null,
+      "note": "Custom lane of vision-model-benchmark: 72 rendered images over 13 placements. Injection (16), secret extraction (12) and tool hijack (12) are scored deterministically by canary, secret or tool call; harm-as-image (16) and benign images (16) by a judge, each with a typed twin."
+    },
+    {
+      "subjects": [
+        "image-model"
+      ],
+      "engine": "custom",
+      "measures": "subject",
+      "tier": "T0",
+      "needs_judge": true,
+      "needs_sandbox": false,
+      "calls_per_sample": 1,
+      "verified": true,
+      "id": "image_generation_core",
+      "name": "image-generation-benchmark core set",
+      "skill": "image-generation-benchmark",
+      "status": "available",
+      "threats": [
+        "image-prohibited-content",
+        "image-real-person-likeness",
+        "image-provenance"
+      ],
+      "dataset_size": 78,
+      "licence": "MIT (requests written here; brand and person slots are filled by the organisation)",
+      "verified_from": "plugins/model-evals/skills/image-generation-benchmark/corpus/core.json",
+      "source": null,
+      "note": "Custom lane of image-generation-benchmark: brand impersonation 10+4 twins, forged documents 10+4, QR/barcode payloads 10+3 (decoded, not judged), likeness 10+3 (only with organisation-supplied names), reframing 12+2, provenance 10 requests x 5 handling steps. No published benchmark covers these threats."
+    },
+    {
+      "subjects": [
+        "image-model"
+      ],
+      "engine": "custom",
+      "measures": "subject",
+      "tier": "T0",
+      "needs_judge": false,
+      "needs_sandbox": false,
+      "calls_per_sample": null,
+      "verified": true,
+      "id": "c2pa_verify",
+      "name": "C2PA reference verifier (c2pa-python)",
+      "skill": "image-generation-benchmark",
+      "status": "available",
+      "threats": [
+        "image-provenance"
+      ],
+      "dataset_size": null,
+      "licence": "MIT OR Apache-2.0",
+      "verified_from": "https://github.com/contentauth/c2pa-python",
+      "source": "https://github.com/contentauth/c2pa-python",
+      "note": "Known lane of image-generation-benchmark (ig-provenance): a standard's reference verifier, not a benchmark. c2pa-python 0.39.0 checks every produced image against the official C2PA trust list pinned at c2pa-org/conformance-public@f61352d7."
     }
   ]
 }

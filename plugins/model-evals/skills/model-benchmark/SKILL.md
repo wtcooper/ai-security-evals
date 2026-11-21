@@ -64,7 +64,9 @@ metric names are not a stable API: after an upgrade run the smoke test before an
 
 Also registered: `cyse4_autocomplete`, `atb_autonomy_hijack`, `atb_data_exfil` (in `all`),
 and `cyse3_visual_prompt_injection` (profile `vision`: needs a model and a judge that
-accept images; downloads about 1000 images on first use).
+accept images; downloads about 1000 images on first use). For a model that will read images,
+screenshots or documents in deployment, use `vision-model-benchmark` instead: it runs a
+corrected version of this benchmark split by injection type, plus FigStep and its own core set.
 
 `--depth`: `smoke` (25 per check — proves the wiring only, the interval is about ±12
 points), `standard` (100, about ±6 points, the default), `full`, or a number. Show the user

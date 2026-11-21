@@ -33,7 +33,8 @@ Skill names are `<subject>-<method>`: `benchmark` (a fixed labelled test set), `
 | | `review-threat-model` | Threats for this subject type and a test plan sorted by the benchmark catalogue |
 | | `review-criteria` | Walk the organisation through writing **its own** acceptance criteria; never proposes a value |
 | | `review-report` | Compile evidence, results (validity flags first), uncovered threats; decision fields left blank |
-| [`model-evals`](plugins/model-evals/) | `model-benchmark` | A fixed suite of Inspect benchmarks, one per risk dimension, on the same seeded samples for every model; vision profile |
+| [`model-evals`](plugins/model-evals/) | `model-benchmark` | A fixed suite of Inspect benchmarks, one per risk dimension, on the same seeded samples for every model |
+| | `vision-model-benchmark` | Models that read images: instructions hidden in images, secret extraction, tool hijack, harmful requests written as images, over-refusal; CyberSecEval 3 and FigStep plus a rendered core set |
 | | `decision-model-benchmark` | Decision / classification endpoints: fail-open and fail-closed rates, decision flips under attack against the re-run noise floor |
 | | `voice-model-benchmark` | The same prompts as text and as synthesised speech, with audio perturbations, against a realtime model |
 | | `image-generation-benchmark` | Image generation: phishing assets, forged documents, working QR payloads, likeness, justification bypass and provenance, on a small core set plus the C2PA reference verifier |
@@ -54,6 +55,7 @@ The design rationale is in [`docs/design.md`](docs/design.md).
 | "Can we enable this new model?" | `review-scope` → `model-benchmark` (+ `review-evidence` for open weights) |
 | "Can we enable this voice / realtime model?" | `voice-model-benchmark` |
 | "Can we use this decision API as a gate?" | `decision-model-benchmark` |
+| "Can we let this model read images, screenshots or documents?" | `vision-model-benchmark` |
 | "Can we enable this image-generation model?" | `image-generation-benchmark` |
 | "Can we turn on computer use / memory / this connector?" | `agent-feature-review` |
 | "Will this model do things we do not want inside this coding agent?" | `agent-misuse-benchmark` (a scaffold: bring your own scenarios) |

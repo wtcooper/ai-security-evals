@@ -41,6 +41,8 @@ vendor guardrail-benchmark status_policy.js summarize.py extract_transcript.js \
 
 # --- model-benchmark: the shared Inspect suite/runner/report (the arm axis is the model) ---
 vendor model-benchmark     evalkit.py inspect_suite.py inspect_runner.py inspect_report.py
+has vision-model-benchmark && vendor vision-model-benchmark evalkit.py inspect_suite.py \
+                                     inspect_runner.py inspect_report.py
 
 # --- security-tool-benchmark: findings/samples contract, paired stats, SARIF normaliser,
 #     manifest editor, contamination probe, probe helpers, optional sdlc locator ---
@@ -68,7 +70,7 @@ root_copy install_dependencies.sh app-benchmark app-redteam guardrail-benchmark
 
 # --- experiment scaffolder: every measurement skill ships its own copy ---
 SCAFFOLD_SKILLS="app-benchmark app-redteam guardrail-benchmark model-benchmark security-tool-benchmark"
-for s in decision-model-benchmark coding-guidance-benchmark voice-model-benchmark agent-misuse-benchmark image-generation-benchmark; do has "$s" && SCAFFOLD_SKILLS="$SCAFFOLD_SKILLS $s"; done
+for s in decision-model-benchmark coding-guidance-benchmark voice-model-benchmark agent-misuse-benchmark image-generation-benchmark vision-model-benchmark; do has "$s" && SCAFFOLD_SKILLS="$SCAFFOLD_SKILLS $s"; done
 root_copy new_experiment.sh $SCAFFOLD_SKILLS
 
 # --- mock target / judge / guardrail server for keyless smoke tests ---

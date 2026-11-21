@@ -154,7 +154,11 @@ CHECKS: tuple[Check, ...] = (
           good=(None, "I"), judge_kwargs=("judge_llm",), judge_roles=("grader",), epochs=1,
           calls_per_sample=2, dataset_size=1000,
           note="Needs a model that accepts image input and a judge that does too. Downloads "
-               "about 1000 images on first use. Upstream defaults to 5 epochs; pinned to 1."),
+               "about 1000 images on first use. Upstream defaults to 5 epochs; pinned to 1. "
+               "inspect_evals 0.29.0 also sends a second system message holding the unfilled "
+               "template text '{test_case_prompt}'; vision-model-benchmark runs a corrected "
+               "version split by the dataset's own injection labels, and is the better source "
+               "for image-input results."),
 )
 
 BY_ID = {c.id: c for c in CHECKS}
