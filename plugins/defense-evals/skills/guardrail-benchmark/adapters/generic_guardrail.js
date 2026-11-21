@@ -1,5 +1,5 @@
 /**
- * Generic, vendor-agnostic guardrail adapter for the control-isolate skill.
+ * Generic, vendor-agnostic guardrail adapter for guardrail-benchmark's direct mode.
  *
  * Maps a guardrail/classifier API's response into promptfoo's native `guardrails`
  * object (for `guardrails` / `not-guardrails` assertions) using the SHARED status

@@ -183,8 +183,8 @@ Unit tests: `python -m pytest tests -q`.
     the AWS page through an automated summary rather than line by line.
   - The attribution of SandboxEscapeBench to the UK AI Security Institute comes from a
     search listing of AISI's blog, not from the paper.
-  - `agent-misuse-benchmark` and `security-tool-benchmark` were being built when this was
-    written; what they support was taken from the repo plan, not from running them.
+  - `agent-misuse-benchmark` is a scaffold that measures nothing until a team supplies its
+    scenarios, harness and scorer; `security-tool-benchmark` was not run here.
   - The evidence rows were checked once against the `review-evidence` validator as it stood
     on 2026-11-14 (0 errors). That skill owns the format; if it changes,
     `scripts/_evidence.py` here must follow.

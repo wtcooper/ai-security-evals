@@ -7,7 +7,7 @@ description: >-
   optional cross-domain cyber pack). Runs fully locally via generate-once →
   redteam eval. Use to actively find vulnerabilities or stress-test multi-turn
   robustness. For a fast reproducible benchmark use app-benchmark; for a guardrail in
-  isolation use control-isolate.
+  isolation use guardrail-benchmark.
 license: MIT
 compatibility: "Requires node>=18 and python>=3.11 (for the summary)."
 ---

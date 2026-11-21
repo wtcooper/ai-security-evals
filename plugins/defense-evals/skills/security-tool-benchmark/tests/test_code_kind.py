@@ -1,4 +1,4 @@
-"""tool-codescan: match.py ground-truth matching + mutate.py rename map round-trip."""
+"""security-tool-benchmark, code kind: match.py ground-truth matching + mutate.py rename map round-trip."""
 import json
 import pathlib
 import subprocess

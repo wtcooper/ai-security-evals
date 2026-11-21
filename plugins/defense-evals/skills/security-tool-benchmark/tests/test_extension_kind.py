@@ -1,4 +1,4 @@
-"""tool-assetscan: score_assets classification + mutate_pickle carriers (scan-only)."""
+"""security-tool-benchmark, extension kind: score_assets classification + mutate_pickle carriers (scan-only)."""
 import json
 import pathlib
 import pickle

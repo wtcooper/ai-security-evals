@@ -6,7 +6,7 @@ description: >-
   M2S multi-turn) through promptfoo eval and reports F1 / recall / FPR / ASR by
   technique. Use to benchmark defenses, compare models/versions, or A/B/C a
   param-based guardrail. For live multi-turn attacks use app-redteam; for a
-  guardrail API alone use control-isolate.
+  guardrail API alone use guardrail-benchmark.
 license: MIT
 compatibility: "Requires python>=3.11, node>=18."
 ---

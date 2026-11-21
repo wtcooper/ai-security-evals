@@ -14,7 +14,7 @@
  *                 body). EXCLUDE from metrics — not a safety decision.
  *   'ambiguous' - a non-2xx we can't classify from status or body. The caller decides:
  *                 app skills pass it to the judge (with status+body visible); the
- *                 control-isolate adapter surfaces it loudly. We never silently drop it.
+ *                 guardrail adapter surfaces it loudly. We never silently drop it.
  *
  * Transport retries (network/timeout, 429, transient 5xx) are handled by promptfoo's
  * provider BEFORE this runs, so anything we see here has already survived retries —
@@ -60,7 +60,7 @@ const ERROR_MSG = /\b(rate.?limit|too many requests|quota|insufficient_quota|bil
 function bodySignalsBlock(json) {
   if (!json || typeof json !== 'object') return false;
 
-  // explicit per-control override (control-isolate)
+  // explicit per-control override (guardrail-benchmark direct mode)
   const field = typeof process !== 'undefined' && process.env && process.env.GUARDRAIL_BLOCK_FIELD;
   if (field) {
     const want = (process.env.GUARDRAIL_BLOCK_VALUE || 'true').toLowerCase();

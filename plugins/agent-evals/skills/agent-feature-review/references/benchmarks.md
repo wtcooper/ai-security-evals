@@ -109,7 +109,7 @@ A benchmark result is evidence about a model or an agent in the benchmark's own 
 
 - Reference: inspect_evals `cyse3_visual_prompt_injection`
 - Measures: Whether a model that reads images follows instructions placed in an image. A model-level test with no agent and no actions.
-- Route: An Inspect task. This repo's plan makes it a vision profile of `model-benchmark`; at the time of writing it was not in that skill's suite, so run it by hand in the same environment.
+- Route: An Inspect task. Run it through `vision-model-benchmark`, which runs a corrected version split by injection type, beside its own rendered core set.
 - Limits: Says nothing about what an agent would then do.
 - Verified: Task name present in inspect_evals 0.29.0. Not run here.
 - Named under: cu-01

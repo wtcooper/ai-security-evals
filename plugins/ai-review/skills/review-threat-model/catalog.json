@@ -881,7 +881,7 @@
       "verified": false,
       "verified_from": null,
       "source": "https://arxiv.org/abs/2606.02644",
-      "note": "Cited during design as evidence that refusal depends on target framing. The paper was not read here.",
+      "note": "Candidate for agent-misuse-benchmark scenarios. Its abstract reports near-zero refusal for six of eight models in an agentic cyber scaffold; whether refusal depends on target framing is not established from the abstract. Not run here.",
       "measures": "subject"
     },
     {
@@ -905,7 +905,7 @@
       "verified": false,
       "verified_from": null,
       "source": null,
-      "note": "Cited during design as counter-evidence. No source was given and none was looked up.",
+      "note": "Candidate. Named during design; no primary source was found for it, so nothing about it is verified.",
       "measures": "subject"
     },
     {

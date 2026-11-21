@@ -1,6 +1,6 @@
 """Shared, vendor-agnostic response classifier (Python mirror of status_policy.js).
 
-Used by the control-bench injection shim so it classifies a gateway response the
+Used by the guardrail-benchmark injection shim so it classifies a gateway response the
 same way the app skills do — body-signal first, status as a hint — instead of a
 hard-coded status set. So a guardrail that blocks with a non-400 code (e.g. LiteLLM's
 403 content-filter, recognized by its body) is converted to a refusal with no config.

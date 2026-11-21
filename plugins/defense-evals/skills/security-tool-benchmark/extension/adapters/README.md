@@ -134,9 +134,9 @@ A table of TPR/FPR hides the following. State them next to any result.
    hygiene (undeclared tool scope, undeclared network use) that are not claims of malice. Use the
    same gate for every arm and report which one; reading the table at two gates shows how much of
    a difference is the gate.
-6. **A failed run leaves no row.** `run_scanner.sh` prints `adapter '<name>' failed` and moves on,
-   and in the scoring glue a run with no findings reads as clean. Before scoring, check that no
-   run failed and re-run or exclude the ones that did. With the adapters in this section a failed
+6. **A failed run is logged, not scored as clean.** `run_scanner.sh` records every run in
+   `runs.jsonl` as `ok` or `failed`; pass `--runs` to `score_assets.py` so failed runs are
+   excluded and counted. Without `--runs` a run with no findings reads as clean, so check first. With the adapters in this section a failed
    run has no `findings.sarif`:
    `for d in "$EXP"/results/*/*/run*; do [ -f "$d/findings.sarif" ] || echo "FAILED $d"; done`
 7. **The synthetic mutants leak intent in comments.** `mutate_skill.py --class staged_fetch` writes
