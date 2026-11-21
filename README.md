@@ -69,13 +69,11 @@ The design rationale is in [`docs/design.md`](docs/design.md).
 
 ## Threat models
 
-Every asset class this repository evaluates has a formal threat model in
-[`threat-models/`](threat-models/README.md): an executive summary of the core risks, the
-system model and trust boundaries, each threat in detail, and which skill evaluates it and
-why — or why it is left to design review. Each skill carries a copy of its asset class's
-threat model as `references/threat-model.md`.
+Every asset class this repository evaluates has a short threat model in
+[`threat-models/`](threat-models/README.md): an executive summary of the core risks, where
+they come from, and how the skills here relate to them.
 
-| Asset class | Threat model | Evaluated by |
+| Asset class | Threat model | Related skills |
 |---|---|---|
 | General-purpose models (frontier API and open weights) | [general-purpose-model](threat-models/general-purpose-model.md) | `model-benchmark` |
 | Restricted-access cyber-capable models | [restricted-cyber-model](threat-models/restricted-cyber-model.md) | threat model only |
@@ -149,7 +147,7 @@ ai-security-evals/
 │   ├── plugin.json · README.md
 │   └── skills/<skill>/             #   SKILL.md + scripts, vendored lib/, tests/, references/
 ├── catalog/benchmarks.json         # benchmark catalogue: threats covered, engine, tier, cost
-├── threat-models/                  # formal threat model per asset class (copied into each skill)
+├── threat-models/                  # a threat model per asset class
 ├── targets/                        # things to point skills at: local gateway, vulnerable apps
 ├── tools/                          # MAINTAINER ONLY: shared library, corpus builder, tests
 │   ├── lib/                        #   source of truth for code vendored into skills

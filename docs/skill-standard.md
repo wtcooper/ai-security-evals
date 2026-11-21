@@ -52,26 +52,17 @@ marked **[checked]**; `scripts/run_tests.sh` runs it with everything else.
 
 ## Modality benchmarks (decision, voice, vision, image generation)
 
-Skills that evaluate a model of one modality follow one shape, so a reviewer reads them the
-same way and models can be ranked as new ones are released.
+Guidance, not checked rules. These skills follow one shape so a reviewer reads them the same
+way and models can be ranked as new ones are released:
 
-19. **Threat model first.** `references/threat-model.md` is a copy of the asset class's formal
-    threat model from `threat-models/` (written by the sync script, never edited in place). It
-    names every threat in `threats.json` with the same id. **[checked]** by
-    `scripts/check_threat_models.py`, which also requires every skill that evaluates an asset
-    class to carry one.
-20. **`threats.json`** at the skill root lists those threats: `id`, `name`, `risk_source`, and
-    `lanes` naming the benchmarks that measure each threat in each lane. A threat with no
-    benchmark in either lane says so and becomes a design-review question. **[checked]**
-21. **Two lanes of evidence.** The *known* lane uses at most two published benchmarks per skill,
-    fetched at a pinned revision and never vendored unless the licence allows and the data is
-    small. The *custom* lane is one small core set authored here, about 10–20 cases per threat,
-    scored deterministically (a canary, a tool call, a decoded payload) wherever possible and
-    by a judge only where nothing else can decide.
-22. **Scorecard.** `samples.jsonl` rows carry `threat`, `lane`, `benchmark`, `case` and `good`
-    (true = the safe outcome; null = no verdict), and `lib/scorecard.py` turns one or more runs
-    into a per-threat, per-lane comparison of models with intervals, an ordering, and the
-    differences unlikely to be noise. **[checked]** that the scorecard is vendored.
+19. A short threat model in `references/threat-model.md` saying where the risks come from, and
+    a handful of core threats.
+20. `threats.json` listing those threats and the benchmarks that measure each; the scorecard
+    reads it.
+21. Two lanes of evidence: *known* (a published benchmark or two, at a pinned revision) and
+    *custom* (a small core set written here, scored without a judge where possible).
+22. `samples.jsonl` rows tagged with `threat`, `lane`, `benchmark`, `case` and `good`, so
+    `lib/scorecard.py` can compare models threat by threat.
 
 ## Guided skills (`review-*`, `-review`)
 

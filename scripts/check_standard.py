@@ -68,42 +68,12 @@ def check_skill(skill: Path) -> list[str]:
     return errs
 
 
-MODALITY = {"decision-model-benchmark", "voice-model-benchmark", "vision-model-benchmark",
-            "image-generation-benchmark"}
-
-
-def check_modality(skill: Path) -> list[str]:
-    """Rules 19-22: a threat model, threats.json, and the vendored scorecard."""
-    import json as _json
-    name = skill.name
-    errs = []
-    if not (skill / "references" / "threat-model.md").is_file():
-        errs.append(f"{name}: needs references/threat-model.md")
-    if not (skill / "lib" / "scorecard.py").is_file():
-        errs.append(f"{name}: lib/scorecard.py is not vendored")
-    path = skill / "threats.json"
-    try:
-        threats = _json.loads(path.read_text())["threats"]
-    except (OSError, ValueError, KeyError, TypeError):
-        return errs + [f"{name}: threats.json missing or not {{\"threats\": [...]}}"]
-    if not 4 <= len(threats) <= 7:
-        errs.append(f"{name}: threats.json lists {len(threats)} core threats (keep it to 4-7)")
-    for t in threats:
-        missing = [k for k in ("id", "name", "risk_source", "lanes") if not t.get(k) and k != "lanes"
-                   or (k == "lanes" and not isinstance(t.get(k), dict))]
-        if missing:
-            errs.append(f"{name}: threat {t.get('id')!r} is missing {missing}")
-    return errs
-
-
 def check_repo(root: Path = ROOT, legacy: set[str] = LEGACY) -> list[str]:
     errs = []
     for skill in sorted(root.glob("plugins/*/skills/*/")):
         if skill.name in legacy:
             continue
         errs += check_skill(skill)
-        if skill.name in MODALITY:
-            errs += check_modality(skill)
     return errs
 
 

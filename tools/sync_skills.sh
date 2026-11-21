@@ -65,30 +65,6 @@ done
 # --- benchmark catalogue: the threat-model skill plans tests from its own copy ---
 has review-threat-model && cp "$ROOT/catalog/benchmarks.json" "$(sd review-threat-model)/catalog.json"
 
-# --- formal threat models: each skill carries the threat model of the asset class it
-#     evaluates as references/threat-model.md; review-threat-model carries all of them ---
-$PY - "$ROOT" <<'PYTM'
-import json, shutil, sys
-from pathlib import Path
-root = Path(sys.argv[1]); folder = root / "threat-models"
-def skill(name):
-    found = sorted(root.glob(f"plugins/*/skills/{name}"))
-    return found[0] if found else None
-collector = skill("review-threat-model")
-for m in json.loads((folder / "index.json").read_text())["models"]:
-    doc = folder / m["file"]
-    if not doc.is_file():
-        continue
-    for name in m["skills"]:
-        sd = skill(name)
-        if sd is not None:
-            (sd / "references").mkdir(exist_ok=True)
-            shutil.copyfile(doc, sd / "references" / "threat-model.md")
-    if collector is not None:
-        (collector / "references" / "asset-threat-models").mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(doc, collector / "references" / "asset-threat-models" / m["file"])
-PYTM
-
 # --- promptfoo setup script: each promptfoo skill ships its OWN copy ---
 root_copy install_dependencies.sh app-benchmark app-redteam guardrail-benchmark
 
