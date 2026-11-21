@@ -13,7 +13,14 @@ which ones this adapter relies on. One exchange:
             ->  input_audio_buffer.commit         <-  input_audio_buffer.committed
     ->  response.create
     <-  response.output_audio_transcript.delta / response.output_audio.delta /
-        response.output_text.delta ... response.done
+        response.output_text.delta / response.function_call_arguments.done ... response.done
+
+A case may carry its own instructions and tools (TargetInput.session); they are merged into
+that case's session.update only. Function calls the model asks for are collected from
+response.function_call_arguments.done, response.output_item.done and response.done, keyed by
+call_id. They are never executed and no function_call_output is sent: the exchange ends at the
+first response.done, so what is measured is the call the model chose to make on hearing the
+request.
 
 Turn detection is switched off so the client decides where the user turn ends: the clip is
 the whole turn, and every arm ends its turn the same way.
@@ -101,8 +108,16 @@ class OpenAIRealtimeAdapter:
             base["max_output_tokens"] = max_output_tokens
         # The caller's session settings (instructions, tools, voice, reasoning...) are merged
         # in, but the keys that define the measurement stay as set above.
-        merged = deep_merge(session or {}, base)
-        self.session = merged
+        self._user_session = copy.deepcopy(session or {})
+        self._base = base
+        self.session = deep_merge(self._user_session, base)
+
+    def session_for(self, item: TargetInput) -> dict:
+        """The session.update payload for one input: the run's session, with the input's own
+        instructions/tools on top, and the measurement keys on top of both."""
+        if not item.session:
+            return self.session
+        return deep_merge(deep_merge(self._user_session, item.session), self._base)
 
     def describe(self) -> dict:
         return {"adapter": self.name, "url": self.url, "model": self.model,
@@ -169,6 +184,17 @@ class OpenAIRealtimeAdapter:
         wrote: list[str] = []       # text output, from deltas
         finals: list[str] = []      # the *.done values, preferred over joined deltas
         audio_out = bytearray()
+        calls: dict[str, dict] = {}     # function calls by call_id (or item id), in order seen
+        names: dict[str, str] = {}      # item id -> function name, from output_item.added
+
+        def note_call(key, name, arguments, call_id):
+            known = calls.setdefault(key, {})
+            known["name"] = name or known.get("name")
+            if arguments is not None:
+                known["arguments"] = arguments
+            known.setdefault("arguments", None)
+            if call_id:
+                known["call_id"] = call_id
         while True:
             event = json.loads(conn.recv())
             result.events += 1
@@ -187,6 +213,17 @@ class OpenAIRealtimeAdapter:
                 finals.append(event.get("text") or "")
             elif kind == "conversation.item.input_audio_transcription.completed":
                 result.input_transcript = event.get("transcript")
+            elif kind in ("response.output_item.added", "response.output_item.done"):
+                item = event.get("item") or {}
+                if item.get("type") == "function_call":
+                    names[item.get("id")] = item.get("name")
+                    if kind == "response.output_item.done":
+                        note_call(item.get("call_id") or item.get("id"), item.get("name"),
+                                  item.get("arguments"), item.get("call_id"))
+            elif kind == "response.function_call_arguments.done":
+                note_call(event.get("call_id") or event.get("item_id"),
+                          event.get("name") or names.get(event.get("item_id")),
+                          event.get("arguments"), event.get("call_id"))
             elif kind == "response.done":
                 response = event.get("response") or {}
                 result.status = response.get("status")
@@ -194,10 +231,10 @@ class OpenAIRealtimeAdapter:
                 result.status_reason = details.get("reason") or (details.get("error") or {}).get("code")
                 result.usage = response.get("usage") or {}
                 from_done: list[str] = []
-                for out in response.get("output") or []:
+                for i, out in enumerate(response.get("output") or []):
                     if out.get("type") == "function_call":
-                        result.tool_calls.append({"name": out.get("name"),
-                                                  "arguments": out.get("arguments")})
+                        note_call(out.get("call_id") or out.get("id") or f"output-{i}",
+                                  out.get("name"), out.get("arguments"), out.get("call_id"))
                     for part in out.get("content") or []:
                         text = part.get("transcript") or part.get("text")
                         if text:
@@ -205,6 +242,9 @@ class OpenAIRealtimeAdapter:
                 result.transcript = (" ".join(from_done) or " ".join(t for t in finals if t)
                                      or "".join(said) or "".join(wrote)).strip()
                 result.output_audio = bytes(audio_out)
+                result.tool_calls = [{"name": c.get("name"), "arguments": c.get("arguments"),
+                                      **({"call_id": c["call_id"]} if c.get("call_id") else {})}
+                                     for c in calls.values()]
                 return
 
     # --- the one public call ----------------------------------------------------------------
@@ -217,7 +257,7 @@ class OpenAIRealtimeAdapter:
             conn = self._connect()
             created = self._wait_for(conn, "session.created", result)
             result.session_model = (created.get("session") or {}).get("model")
-            self._send(conn, {"type": "session.update", "session": self.session})
+            self._send(conn, {"type": "session.update", "session": self.session_for(item)})
             self._wait_for(conn, "session.updated", result)
             self._send_input(conn, item, result)
             self._send(conn, {"type": "response.create"})

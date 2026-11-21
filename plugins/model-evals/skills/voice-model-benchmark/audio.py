@@ -111,3 +111,21 @@ def rms(samples: list[int]) -> float:
     if not samples:
         return 0.0
     return (sum(s * s for s in samples) / len(samples)) ** 0.5
+
+
+def mix(primary: list[int], background: list[int], rate: int, *, gain_db: float,
+        offset_s: float) -> tuple[list[int], dict]:
+    """Add `background` under `primary`, starting `offset_s` seconds in, scaled so its RMS is
+    `gain_db` relative to the primary's RMS (negative = quieter). The result is scaled down,
+    never up, if the sum would clip. Returns (samples, what was applied)."""
+    offset = max(0, int(round(offset_s * rate)))
+    p_rms, b_rms = rms(primary), rms(background)
+    gain = (p_rms * 10.0 ** (gain_db / 20.0) / b_rms) if b_rms and p_rms else 0.0
+    out = [float(s) for s in primary] + [0.0] * max(0, offset + len(background) - len(primary))
+    seg = out[offset:offset + len(background)]
+    out[offset:offset + len(background)] = [a + gain * b for a, b in zip(seg, background)]
+    peak = max((abs(v) for v in out), default=0.0)
+    scale = 1.0 if peak <= INT16_MAX else INT16_MAX / peak
+    return [clip16(v * scale) for v in out], {
+        "gain_db": gain_db, "offset_s": round(offset / rate, 3),
+        "background_seconds": seconds(background, rate), "applied_scale": round(scale, 6)}

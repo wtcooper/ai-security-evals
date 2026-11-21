@@ -1,9 +1,17 @@
 # Using a public audio jailbreak set instead of synthesised speech
 
-The default run speaks this skill's own corpus with one local voice. Published audio sets
-add human-recorded or multi-voice clips and attack audio that this skill does not generate.
-They are large, so nothing is vendored: sample a slice, convert it, and run it through
-`import_clips.py`. All facts below were read from the dataset pages and papers on 2026-11-14.
+The default known lane speaks the vendored AdvBench and XSTest text with one local voice.
+Published audio sets add multi-voice clips and attack audio that this skill does not
+generate. They are large, so nothing is vendored: sample a slice at a pinned revision,
+convert it, and run it through `import_clips.py`. Facts below were read from the dataset
+pages and papers on 2026-11-14 and re-checked against the Hugging Face API on 2026-11-21.
+
+**Which one.** The known lane is capped at two published benchmarks. If a review wants
+published audio, use **JALMBench `HarmfulQuery/AHarm.parquet`** in place of AdvBench for the
+`vm-spoken-harm` row (it is one 53 MB file with the words of every clip, so the text arm and
+the judge work), and keep XSTest for `vm-over-refusal`. Its rows get the benchmark id
+`jalmbench-aharm` in `samples.jsonl` and the scorecard shows it on that row. The
+Jailbreak-AudioBench sets are listed for reference only.
 
 ## What the published work found (so the result has context)
 
@@ -26,34 +34,40 @@ measure, not a prediction.
 
 ## The sets
 
-| Set | Hugging Face id | Licence on the dataset page | Size | Columns |
+| Set | Hugging Face id, pinned revision | Licence (dataset card) | Size | Columns |
 |---|---|---|---|---|
-| JALMBench | `AnonymousUser000/JALMBench` | CC-BY-4.0 | about 138 GB in total; the plain harmful audio is one 53 MB file, `HarmfulQuery/AHarm.parquet` (246 rows) | `id`, `text`, `original_text`, `source`, `audio` (a struct with `array` of floats and `sampling_rate`) |
-| Jailbreak-AudioBench | `researchtopic/Jailbreak-AudioBench` | CC-BY-4.0 | about 89 GB, 316,625 rows | `audio` (WAV bytes), `filepath` |
-| Jailbreak-AudioBench-Plus | `researchtopic/Jailbreak-AudioBench-Plus` | CC-BY-4.0 | about 42 GB in 43 files of roughly 1 GB, 142,674 rows | `audio` (WAV bytes), `filepath` |
+| JALMBench | `AnonymousUser000/JALMBench` @ `53da5217aad7b5640dd0bed5f58b79b19dde7fb2`; not gated | CC-BY-4.0 | 1,460 files, about 138 GB; the plain harmful audio is one file, `HarmfulQuery/AHarm.parquet`, 52,770,540 bytes, 246 rows (LFS sha256 `4bc1a95c...`) | `id`, `text`, `original_text`, `source`, `audio` (a struct with `array` of floats and `sampling_rate`) |
+| Jailbreak-AudioBench | `researchtopic/Jailbreak-AudioBench` @ `9a0fc687ebaebb47bd4fcc3223a07def399eacd3` | CC-BY-4.0 | 85 parquet files, about 89 GB, 316,625 rows | `audio` (WAV bytes), `filepath` |
+| Jailbreak-AudioBench-Plus | `researchtopic/Jailbreak-AudioBench-Plus` @ `732a25c494fbc8b198769efcac09f2f8e25684bb`; not gated | CC-BY-4.0 | 43 parquet files of about 1 GB, 42.2 GB in all, 142,674 rows; plus `datasets_text/` CSVs (`id,question,target,category`) | `audio` (WAV bytes), `filepath` |
+
+Per-file access was checked: a byte-range request for the first four bytes of `AHarm.parquet`
+at the pinned revision returned the parquet magic `PAR1`, so the file can be fetched alone
+without the rest of the repository.
 
 Read before use:
 - The licence above is the one on the dataset page. JALMBench rows come from AdvBench,
   HarmBench, JailbreakBench and MM-SafetyBench, and the AudioBench file paths name AdvBench
   and MM-SafetyBench. The licences of those underlying sets were not checked here.
 - JALMBench `id` values repeat across `source`. Build case ids from both.
-- The two AudioBench sets have **no text column**. Without the words of each clip you cannot
-  run the text arm or show the judge what was asked. The paper points to
-  `github.com/Researchtopic/Code-Jailbreak-AudioBench` for the project code; matching clips
-  to text from there was not attempted here.
+- The two AudioBench sets have **no text column** in their audio files. Without the words
+  of each clip you cannot run the text arm or show the judge what was asked. The Plus
+  repository now also holds `datasets_text/Explicit/*.csv` and `datasets_text/Implicit/*.csv`
+  (for example `Explicit_Advbench.csv` with `id,question,target,category`); matching clips to
+  those rows by `filepath` was not attempted here.
 - The AudioBench "accent" clips imitate the voices of named public figures (the file paths
   carry the names). Decide whether your organisation wants those in a test; filter on
   `filepath` if not.
 - These sets contain harmful requests only. Keep the benign cases from this skill's corpus
   in a separate run, or the refusal rate on safe requests goes unmeasured.
 
-## Sampling JALMBench plain harmful queries (verified here on six clips)
+## Sampling JALMBench plain harmful queries (run on six clips on 2026-11-14; not re-run since)
 
 Needs `pyarrow` in the skill's environment. The download is one 53 MB file.
 
 ```
 curl -L -o AHarm.parquet \
-  https://huggingface.co/datasets/AnonymousUser000/JALMBench/resolve/main/HarmfulQuery/AHarm.parquet
+  https://huggingface.co/datasets/AnonymousUser000/JALMBench/resolve/53da5217aad7b5640dd0bed5f58b79b19dde7fb2/HarmfulQuery/AHarm.parquet
+sha256sum AHarm.parquet   # 4bc1a95c9d66c7d0e68196c5fca0edaf3b357a0a8561452bda2d1dff8596d604
 ```
 
 ```python
@@ -82,8 +96,10 @@ Then:
 python import_clips.py --index <dir>/rows.jsonl --out <clips dir> \
   --source-name "JALMBench AHarm" --source-license CC-BY-4.0
 python run_benchmark.py --corpus <clips dir>/cases.jsonl --clips <clips dir> \
-  --arms text,speech --depth full --model <model> --judge <judge> --out <EXP>
+  --lanes known --arms text,speech --depth full --model <model> --judge <judge> --out <EXP>
 ```
+
+Use `--source-name "JALMBench AHarm"` so the rows carry the benchmark id `jalmbench-aharm`.
 
 The clips in that file are 16 kHz or 24 kHz; `import_clips.py` resamples to 24 kHz. To add
 this skill's perturbations to imported clips, run

@@ -112,7 +112,9 @@ def build(rows: list[dict], threats: list[dict]) -> dict:
             ranks = _ranks(measured) if measured else {}
             for m in cells:
                 cells[m]["rank"] = ranks.get(m)
-            best = max(measured, key=measured.get) if measured else None
+            top = max(measured.values()) if measured else None
+            leaders = [m for m, r in measured.items() if r == top]
+            best = leaders[0] if leaders else None
             row_seps = []
             if best and len(measured) > 1:
                 for m in measured:
@@ -132,7 +134,8 @@ def build(rows: list[dict], threats: list[dict]) -> dict:
             ns = {c["n"] for c in cells.values() if c["n"]}
             table.append({"threat": tid, "name": names.get(tid, tid), "lane": lane,
                           "benchmarks": sorted(benchmarks[key]), "cells": cells,
-                          "best": best, "uneven_n": len(ns) > 1})
+                          "best": best, "leaders": leaders,
+                          "all_tied": len(leaders) == len(measured), "uneven_n": len(ns) > 1})
 
     # ordering: mean over threats of each threat's mean rank across its lanes
     per_threat: dict = defaultdict(lambda: defaultdict(list))
@@ -149,10 +152,12 @@ def build(rows: list[dict], threats: list[dict]) -> dict:
     for tid in order:
         known = next((r for r in table if r["threat"] == tid and r["lane"] == "known"), None)
         custom = next((r for r in table if r["threat"] == tid and r["lane"] == "custom"), None)
-        if known and custom and known["best"] and custom["best"] and len(models) > 1 \
-                and known["best"] != custom["best"]:
-            disagreements.append({"threat": tid, "known_best": known["best"],
-                                  "custom_best": custom["best"]})
+        # The lanes disagree only when their leaders differ outright; a tie for first in
+        # either lane is not a disagreement.
+        if known and custom and len(models) > 1 and not known["all_tied"] \
+                and not custom["all_tied"] and not set(known["leaders"]) & set(custom["leaders"]):
+            disagreements.append({"threat": tid, "known_best": ", ".join(known["leaders"]),
+                                  "custom_best": ", ".join(custom["leaders"])})
 
     coverage = []
     for t in threats:

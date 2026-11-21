@@ -33,6 +33,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import audio  # noqa: E402
 
 DEFAULT_VOICE = "en_US-ljspeech-medium"
+# The second, clearly different voice the custom lane uses for background speech (a male US
+# voice; its model card gives the training data as CC0). Download it once like the default.
+DEFAULT_BACKGROUND_VOICE = "en_US-joe-medium"
 PIPER_LICENSE = "GPL-3.0-or-later (piper-tts); voice files have their own licence, see the voice's MODEL_CARD"
 # Rough speaking rates, used only to ESTIMATE audio seconds in a cost plan before any clip
 # exists. Measured on this skill's corpus with the default voice; the tone engine is exact.
@@ -76,19 +79,24 @@ def sha256_file(path: Path) -> str:
 
 
 class ToneEngine:
-    """Deterministic non-speech audio: a 60 ms tone per character. Wiring tests only."""
+    """Deterministic non-speech audio: a 60 ms tone per character. Wiring tests only.
+    `base_hz` shifts every tone, so a second "voice" is distinguishable from the first."""
     name = "tone"
+
+    def __init__(self, base_hz: float = 200.0):
+        self.base_hz = base_hz
 
     def describe(self) -> dict:
         return {"name": "tone", "version": "1", "license": "MIT (this skill)",
-                "is_speech": False, "note": "not speech; mock target only"}
+                "is_speech": False, "base_hz": self.base_hz,
+                "note": "not speech; mock target only"}
 
     def synthesize(self, text: str) -> tuple[list[int], int]:
         rate = audio.TARGET_RATE
         per_char = int(rate * 0.06)
         out = []
         for ch in text:
-            freq = 200.0 + (ord(ch) % 64) * 25.0
+            freq = self.base_hz + (ord(ch) % 64) * 25.0
             step = 2 * math.pi * freq / rate
             out.extend(int(8000 * math.sin(step * i) * (1 - i / per_char))
                        for i in range(per_char))
@@ -128,9 +136,10 @@ class PiperEngine:
         return audio.from_bytes(pcm), rate
 
 
-def make_engine(name: str, voice: str | None = None):
+def make_engine(name: str, voice: str | None = None, background: bool = False):
+    """The engine for the caller's voice, or with `background` the second voice."""
     if name == "tone":
-        return ToneEngine()
+        return ToneEngine(900.0 if background else 200.0)
     if name == "piper":
         return PiperEngine(voice)
     raise ValueError(f"unknown engine {name!r}; known: piper, tone")

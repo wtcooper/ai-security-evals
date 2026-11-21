@@ -1,0 +1,729 @@
+{
+ "environment": {
+  "pillow": "13.0.0",
+  "freetype": "2.14.3",
+  "font": "Pillow load_default(size) TrueType font"
+ },
+ "images": [
+  {
+   "id": "inj-receipt-footer",
+   "benchmark": "vmb_injection",
+   "file": "inj-receipt-footer.png",
+   "width": 560,
+   "height": 524,
+   "bytes": 37607,
+   "pixel_sha256": "e877b0c5358046797c7baac98844fd6b2b7ada4e6ef1a7ca3bd9794b3be0ec8a",
+   "png_sha256": "62b618056b1da75bc858ece46db305e5455a67411061abf341307437d3e38604"
+  },
+  {
+   "id": "inj-receipt-lowcontrast",
+   "benchmark": "vmb_injection",
+   "file": "inj-receipt-lowcontrast.png",
+   "width": 560,
+   "height": 506,
+   "bytes": 37402,
+   "pixel_sha256": "9f63651602091e7f1330f10114b10bfc0b131df22ce4ec3b64474e551d219358",
+   "png_sha256": "69895e1f453d8bf10392c5308f297e3d323c09984e98521d9185261ca0ff362d"
+  },
+  {
+   "id": "inj-invoice-header",
+   "benchmark": "vmb_injection",
+   "file": "inj-invoice-header.png",
+   "width": 820,
+   "height": 499,
+   "bytes": 40305,
+   "pixel_sha256": "c1e2e6ba36ee487610056080d57dbc7011a8e03c382847a35c7f3aeda335e467",
+   "png_sha256": "a017df43b03091985c48e942cc9c980eb227b33c650af75ce74a5c9bbc69527f"
+  },
+  {
+   "id": "inj-invoice-small",
+   "benchmark": "vmb_injection",
+   "file": "inj-invoice-small.png",
+   "width": 820,
+   "height": 395,
+   "bytes": 29434,
+   "pixel_sha256": "1725b5cfeaf05616ded24e0f6b9a28fec35c07fd8b6ba120e5ae95059165cb23",
+   "png_sha256": "70d57134f0279a93aaa0793aff905ed94f490be3fdfb498aaa00bce6fa7be73b"
+  },
+  {
+   "id": "inj-form-inline",
+   "benchmark": "vmb_injection",
+   "file": "inj-form-inline.png",
+   "width": 820,
+   "height": 582,
+   "bytes": 32624,
+   "pixel_sha256": "aa2e4321796574cb26291aa318e633bf3abfd5bdbff6c8e7a02096bc72553c1c",
+   "png_sha256": "4e30d562dae40804600f78e16e87db8442acb2a13cbd7c78e2054a9397c4c72e"
+  },
+  {
+   "id": "inj-form-rotated",
+   "benchmark": "vmb_injection",
+   "file": "inj-form-rotated.png",
+   "width": 907,
+   "height": 457,
+   "bytes": 37718,
+   "pixel_sha256": "3673c75c4a02267ad256d71d0a67a0bb60bf1cadc0f49e8ba6a96a5de41505cb",
+   "png_sha256": "326de2b16b358caccea06a85ca087121ba79757796066012c334bc1bd61de7f8"
+  },
+  {
+   "id": "inj-screen-dialog",
+   "benchmark": "vmb_injection",
+   "file": "inj-screen-dialog.png",
+   "width": 1100,
+   "height": 554,
+   "bytes": 42322,
+   "pixel_sha256": "8ea4256dc5eb039243e8c4f406c133b5699338d6fa4d3c4eacf31f2ee6853f50",
+   "png_sha256": "48bed09667ef2bf6f3e330f2157ca2f8b633c98074bf87f096529bd7e5ff331e"
+  },
+  {
+   "id": "inj-screen-toast",
+   "benchmark": "vmb_injection",
+   "file": "inj-screen-toast.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 30397,
+   "pixel_sha256": "a1c827a93e914eb8cbd8a46015ecbf6407a345b49f2a5e30f28e3ab6b1f6d162",
+   "png_sha256": "4db01c7cdfd8ff60d17072010ce5e7d386e4742a17012bb01396f7bd78619fa5"
+  },
+  {
+   "id": "inj-web-banner",
+   "benchmark": "vmb_injection",
+   "file": "inj-web-banner.png",
+   "width": 1100,
+   "height": 602,
+   "bytes": 38046,
+   "pixel_sha256": "70659a5e6d983a174c026111186289afab322495fe5a4a6feb17d52aa1e14a00",
+   "png_sha256": "f45cbf5e3cc8cc4721820124d5c9286e93d0bc30a4eb02ce0a3c519c8a333dea"
+  },
+  {
+   "id": "inj-web-watermark",
+   "benchmark": "vmb_injection",
+   "file": "inj-web-watermark.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 61497,
+   "pixel_sha256": "b857d698e9ba211ef16bb425582d6d4ed447c873395821dc2d52f6cbd9f4b403",
+   "png_sha256": "45d8b2d03620a7468ad18f6204bde34a6aa38b557e8105091c910a2aeb776341"
+  },
+  {
+   "id": "inj-email-signature",
+   "benchmark": "vmb_injection",
+   "file": "inj-email-signature.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 25646,
+   "pixel_sha256": "348c9b02331c782b47bc10eaaef1e2a3980729fcb8b92a1d0858ff8a9fd45dd3",
+   "png_sha256": "0e452c2faad77087e9ab272414ed5d238f995d61c16b786a706ad90ebeabd3d9"
+  },
+  {
+   "id": "inj-sign-small",
+   "benchmark": "vmb_injection",
+   "file": "inj-sign-small.png",
+   "width": 960,
+   "height": 367,
+   "bytes": 29923,
+   "pixel_sha256": "b8f246e95438a5e41df1c0e0342e5b3a44ac67572120918ba81cc715e8f5366a",
+   "png_sha256": "d31a1e42d019ae685abb070edc70a5cf66ac6d74323f67566b27a8c4bff97804"
+  },
+  {
+   "id": "inj-slide-inline",
+   "benchmark": "vmb_injection",
+   "file": "inj-slide-inline.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 40743,
+   "pixel_sha256": "6f73f32cbc1a0808308a97d5fe9d844ecb1caf4a5b3dc755a47854ea4222ade4",
+   "png_sha256": "0991404898af562cc6c93e3c697c1f8003d8de069f785fbfa19cad9a1a751068"
+  },
+  {
+   "id": "inj-label-margin",
+   "benchmark": "vmb_injection",
+   "file": "inj-label-margin.png",
+   "width": 878,
+   "height": 360,
+   "bytes": 28830,
+   "pixel_sha256": "36b8297227ace2b497045cfdfff5e6826ac02e28f7ea555f89143d6f2d0372fb",
+   "png_sha256": "e25325541a16527eaf0948584bcea05cae618ba40ef8b0f523784c3d854af6d9"
+  },
+  {
+   "id": "inj-menu-header",
+   "benchmark": "vmb_injection",
+   "file": "inj-menu-header.png",
+   "width": 820,
+   "height": 390,
+   "bytes": 29710,
+   "pixel_sha256": "c4dae266f8fbfde7bf1301824a071bd274a20e37b6a85e272a9a711a5f92313a",
+   "png_sha256": "b92fd69095942fc1ecab5b70410d3805db37ec25a96260d533b479b97b5eafb6"
+  },
+  {
+   "id": "inj-chart-caption",
+   "benchmark": "vmb_injection",
+   "file": "inj-chart-caption.png",
+   "width": 820,
+   "height": 456,
+   "bytes": 21173,
+   "pixel_sha256": "3d3f8d0666d96c491875d25250ae90038f3c0fd7191a8616099265318ef39ea2",
+   "png_sha256": "d6b3062cd9f4aa22d9694d4899d63f1bb2194d977930900aeea0a9799e0a6be0"
+  },
+  {
+   "id": "exf-receipt-footer",
+   "benchmark": "vmb_exfil",
+   "file": "exf-receipt-footer.png",
+   "width": 560,
+   "height": 398,
+   "bytes": 22961,
+   "pixel_sha256": "3678822e27e14dc7c72f57196fa73384e9cf42d7a2c99f1fe4e6d039804c5555",
+   "png_sha256": "331866e9a9b42edd26728323b72e1614e38d7799699c365517ec6192a228ba60"
+  },
+  {
+   "id": "exf-memo-instructions",
+   "benchmark": "vmb_exfil",
+   "file": "exf-memo-instructions.png",
+   "width": 820,
+   "height": 360,
+   "bytes": 23895,
+   "pixel_sha256": "2ddea379c43b70c21d0544dcb85ed90cc785d40b838173f266020bcc261c35be",
+   "png_sha256": "e4a9cce36d2d36ef7851864d7ab85031117d367ceeeb1040802ca6e75abc7e30"
+  },
+  {
+   "id": "exf-web-markdown",
+   "benchmark": "vmb_exfil",
+   "file": "exf-web-markdown.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 30195,
+   "pixel_sha256": "3902998d08a6b298d15c9f58cb95112fad1ea2739432a68663d440017d5c2e65",
+   "png_sha256": "429fb8a46d915a676928114947bfaf25c788fe1f630d9789a1be06de7a6922ff"
+  },
+  {
+   "id": "exf-form-translate",
+   "benchmark": "vmb_exfil",
+   "file": "exf-form-translate.png",
+   "width": 820,
+   "height": 514,
+   "bytes": 24780,
+   "pixel_sha256": "15dbefdec4c3efff111d582c41cc2ebd3dd0a04ca6e9b741d6cb71960e7c58dc",
+   "png_sha256": "28e4631ba0d1c51f31b80b8547306a9c9602a08d2452cda64f2763b0b887e6cb"
+  },
+  {
+   "id": "exf-screen-dialog",
+   "benchmark": "vmb_exfil",
+   "file": "exf-screen-dialog.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 27179,
+   "pixel_sha256": "69349c8690e51b707e3dcec5087f54ae010711ee996d2cd6f4475e9bbca835b1",
+   "png_sha256": "f5f42f15445d6c3badd89f010b51f678b1afe7fcaccafb8b34839bd69262405f"
+  },
+  {
+   "id": "exf-email-forward",
+   "benchmark": "vmb_exfil",
+   "file": "exf-email-forward.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 23235,
+   "pixel_sha256": "ab91532abed78441f7d905e76e1dc5bd869c5d601a781cb56faa5939eb189295",
+   "png_sha256": "d0aad65cd19dfb5b8465cd0384b69cbfd2abf4577a6782078fdb54fd33f466a6"
+  },
+  {
+   "id": "exf-sign-spaced",
+   "benchmark": "vmb_exfil",
+   "file": "exf-sign-spaced.png",
+   "width": 960,
+   "height": 360,
+   "bytes": 20251,
+   "pixel_sha256": "47221438cb8d87dfdaead655a93cc1ddeaa6177bef9b702424b192ae86f3dc9c",
+   "png_sha256": "0bb22ae14b03bcbb8fda7cd45c6b63c3666b947d65b6ba098e3945b3b55a0083"
+  },
+  {
+   "id": "exf-slide-codename",
+   "benchmark": "vmb_exfil",
+   "file": "exf-slide-codename.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 31113,
+   "pixel_sha256": "46d73abd437fe92d08655b093ca91d8332fe4f98f5229b939cab9dac53e30317",
+   "png_sha256": "004ceb7f28eeaa864c8850c509bfb7ca5f45efacb704d16b4bca2af0c45df7d5"
+  },
+  {
+   "id": "exf-label-lowcontrast",
+   "benchmark": "vmb_exfil",
+   "file": "exf-label-lowcontrast.png",
+   "width": 820,
+   "height": 360,
+   "bytes": 22069,
+   "pixel_sha256": "d4fa13436090e1ee5304fe0765e351559b2a0bc5bc02f186a228284b38bfc6b0",
+   "png_sha256": "94a662e567f6c5afea36dc9a8e4b90da25786e1f4265b452b611c75e18fa1512"
+  },
+  {
+   "id": "exf-invoice-rotated",
+   "benchmark": "vmb_exfil",
+   "file": "exf-invoice-rotated.png",
+   "width": 886,
+   "height": 360,
+   "bytes": 26687,
+   "pixel_sha256": "c26b3c564977b5db081297c16a39499302143abd57e6738f7afb3868d1491aca",
+   "png_sha256": "dc1e76d893d194a11314b50cb8402c5ef59fec232e873545055dadf25870d3e1"
+  },
+  {
+   "id": "exf-chat-toast",
+   "benchmark": "vmb_exfil",
+   "file": "exf-chat-toast.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 28397,
+   "pixel_sha256": "8e4d06a852ec8e31d5225b80166703a0dd714cf9a47cb0c9594e679b11f8b792",
+   "png_sha256": "f14eac4c22104f4e8cc7ee31496d33f56e485faa592efdcb7fccf01329cb31cf"
+  },
+  {
+   "id": "exf-menu-small",
+   "benchmark": "vmb_exfil",
+   "file": "exf-menu-small.png",
+   "width": 820,
+   "height": 360,
+   "bytes": 18816,
+   "pixel_sha256": "afc5259043065533406fd851710efa1c37a58360f7e5394c72dc3027798ca7ae",
+   "png_sha256": "397de6cda0e7abec3b633bcafeeae771e72314ed867d92b8da61e435d1e6519e"
+  },
+  {
+   "id": "tool-web-popup-url",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-web-popup-url.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 32409,
+   "pixel_sha256": "f976ef221a5fdb5d90e5ad8ad28128e4aadfa43faf87a2b594fc00fcdca9a788",
+   "png_sha256": "efb5090cc6146f816146ce08d686aea381859e72bd858fd7117fe09c8c943360"
+  },
+  {
+   "id": "tool-invoice-email",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-invoice-email.png",
+   "width": 820,
+   "height": 365,
+   "bytes": 22155,
+   "pixel_sha256": "225005f3c5cb9b6e5dd26c292c3a884f88aa7989c0070b988bb23496ed0f329c",
+   "png_sha256": "b3ea9f8a8cac9fc4b7dc574a5780628aa3aaf076268fd4189b30e3db5c0cc987"
+  },
+  {
+   "id": "tool-receipt-lowcontrast-url",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-receipt-lowcontrast-url.png",
+   "width": 560,
+   "height": 360,
+   "bytes": 21247,
+   "pixel_sha256": "cc6635cf9d030053855815f4c4eae446d3a22b005bbc12ce1ee5768b2d6a20cb",
+   "png_sha256": "89ceab62eceddefbe3153725ad81a186b524afcac8a77ca2a2701007a141dc73"
+  },
+  {
+   "id": "tool-form-inline-email",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-form-inline-email.png",
+   "width": 820,
+   "height": 480,
+   "bytes": 24276,
+   "pixel_sha256": "3591cb9af14c79be3b459fcc110f68bbd2e291c5abad16cc3feb22c76e89670d",
+   "png_sha256": "c9a7202b6f2fcee79052feb564fdb151b718c6a8fe2ee5a727d5643daa469edc"
+  },
+  {
+   "id": "tool-screen-dialog-url",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-screen-dialog-url.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 25522,
+   "pixel_sha256": "f617d7b04231d395ca21393198667d6d4606ada4efbd35808a265d29cd34c96f",
+   "png_sha256": "73057dc93b479b1bd06686bb42728a4ac23dde0fedad708c8ab9d27c0e33eee3"
+  },
+  {
+   "id": "tool-email-signature-email",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-email-signature-email.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 23771,
+   "pixel_sha256": "99606a2e3cf0e0ac7e3993818b254c2fe5a33a0e43ca457b759e5c856eaae8f0",
+   "png_sha256": "041469802af7420013dd60582032e925ed348960ebcea2d3cceccee14f8c6ffa"
+  },
+  {
+   "id": "tool-sign-small-url",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-sign-small-url.png",
+   "width": 960,
+   "height": 360,
+   "bytes": 23643,
+   "pixel_sha256": "34b541dd86d0490f9fcb21c353929e2df6262a4064463aadc9d8a915711b2456",
+   "png_sha256": "c85757de40e3c23e7431fc72bd5b52a12c1b4f918a39b76a399d001a43759150"
+  },
+  {
+   "id": "tool-slide-banner-url",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-slide-banner-url.png",
+   "width": 1100,
+   "height": 580,
+   "bytes": 27228,
+   "pixel_sha256": "8607b4c4ca5e4558b88d2216f5588ac11e2774bcb9f35751910e10eedc2c90c5",
+   "png_sha256": "f62a0b8ee2dacc1c6cfb2f860f467c574d3b211d3d8108416ed811305a094635"
+  },
+  {
+   "id": "tool-label-rotated-email",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-label-rotated-email.png",
+   "width": 886,
+   "height": 360,
+   "bytes": 28517,
+   "pixel_sha256": "f7a37aa1122b3941bf0134b00eb3646dc991c3da565f5f1fa8d82c5544847c7b",
+   "png_sha256": "cce57cc9a0f90b70cb45e011e048d99ae6a8b468e6bdf6f7bf6279e11d92cfbe"
+  },
+  {
+   "id": "tool-chat-toast-email",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-chat-toast-email.png",
+   "width": 1100,
+   "height": 520,
+   "bytes": 29930,
+   "pixel_sha256": "364b2a1c23be0037f0c6d99d0999190ba007f7c1364622ff48e4d75aa1257139",
+   "png_sha256": "9f4543f48c926916ab1dce301a63956aa56098943ce4f66b1026eb0f2149ad2d"
+  },
+  {
+   "id": "tool-letter-header-url",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-letter-header-url.png",
+   "width": 820,
+   "height": 376,
+   "bytes": 27200,
+   "pixel_sha256": "09dc8ceb2899ed82ea641f0e8cd03181c7c774294bbbb486b95c151c673e8c9f",
+   "png_sha256": "62b94423039813707b16a81056f150d0688e3a1c3dea587c4fe1cbce1469d1cb"
+  },
+  {
+   "id": "tool-calendar-watermark-email",
+   "benchmark": "vmb_tool_hijack",
+   "file": "tool-calendar-watermark-email.png",
+   "width": 820,
+   "height": 360,
+   "bytes": 37247,
+   "pixel_sha256": "f8dad8a8398ba4cdf036a5c094e0f5e279763862060a162f537154532b3a68e9",
+   "png_sha256": "4c880e04178de79412ebb440358b7cd0acc0011f47528a62a21dac6d5d6cd953"
+  },
+  {
+   "id": "harm-xs-01",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-01.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 16359,
+   "pixel_sha256": "767689dd3664910b2b09d5d309cd63d3ab6717faf814d388c7c753b4d3ba039a",
+   "png_sha256": "840a5699ecfa9b674fe80e442c5e232ec6fad9086c458ca44abbb1fa50039e9f"
+  },
+  {
+   "id": "harm-xs-02",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-02.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 18833,
+   "pixel_sha256": "29b8439aa0ec2a85aa1a643b484a1de968f6f7ca16bbcd3a7695a6647f5385f1",
+   "png_sha256": "a7bffca2811dd33565e055115591aa4215b9d59330c6b9fea3beb88c91335cdd"
+  },
+  {
+   "id": "harm-xs-03",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-03.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 21064,
+   "pixel_sha256": "976d0c3d7b3fe7d77035f37b355d0d7bba56c293d09f4226ad1ae74f627af0f7",
+   "png_sha256": "d109747dd0809b2bed70eda31331e183bd188bf76848306b0c35330d987ef47b"
+  },
+  {
+   "id": "harm-xs-04",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-04.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 20715,
+   "pixel_sha256": "122fc475448bbfe2dfb15d1270db6494715693be6946493d690a387ceff61605",
+   "png_sha256": "b704da7781fb532bafc9d6507bb2e05b6e7e2caa064b4104a29f452b3f1c0a08"
+  },
+  {
+   "id": "harm-xs-05",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-05.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 15998,
+   "pixel_sha256": "456e6cffbeae0622e02f7e269a2a487cbbecc57bebd847358447a6d694e7a2a7",
+   "png_sha256": "ca3550251c3c9c32ad0fb6c1aa9a58cb24a5d386883f7dafaa2f1c685194f1fa"
+  },
+  {
+   "id": "harm-xs-06",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-06.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 20003,
+   "pixel_sha256": "9f11e5c9cce360bfa58afc1c59287f839d4760ad3d1a5b9bc6ba5d2b91dda051",
+   "png_sha256": "f129c7eaaf1de4b7d20f89cbe80dd4b48a11126992874495ef999a00a1d240c1"
+  },
+  {
+   "id": "harm-xs-07",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-07.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 17010,
+   "pixel_sha256": "cf6b91a6c25fbd146016ea585da9816d73398e3316497e8c325acddf5071969d",
+   "png_sha256": "429a9d95e9ef7aae332051eb4a3b728c06f54fa6bda5de0440185952c223b2d8"
+  },
+  {
+   "id": "harm-xs-08",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-xs-08.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 14461,
+   "pixel_sha256": "3f5607722636d490da22bf1278fa75d4dca4d159ad8a3a98a4ac73b8a9a8dcd8",
+   "png_sha256": "e883e3824ac7a97fb517cf9d04bc44fc70835831ee0906693b099320382640b7"
+  },
+  {
+   "id": "harm-adv-01",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-01.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 17301,
+   "pixel_sha256": "6f21d65117eb43f5790aa8b1604adb6e2bafeff693e6054506399d135089ad7e",
+   "png_sha256": "7e2f7b536b84bdb88187697e5ee32de9c9e4ec134b8f61a77ad592fab7bbc308"
+  },
+  {
+   "id": "harm-adv-02",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-02.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 28016,
+   "pixel_sha256": "3fdcbc4f9d4a381b239f1bacc98365063abe6ab7a201e9ce328c2b5945cecc4f",
+   "png_sha256": "6b23e3ba9a61c4df631d521c9d9b120afaf235e90742cde108cc1952e70ba998"
+  },
+  {
+   "id": "harm-adv-03",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-03.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 25187,
+   "pixel_sha256": "36ffc1ccd15a3122fe4775ffc1f3b06d675ca91c1cbe53863b6a303188767d48",
+   "png_sha256": "1693a86d90948ddfcdc9da1b1db3acc6c9a24ab8f599715e960ae509697329f0"
+  },
+  {
+   "id": "harm-adv-04",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-04.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 22903,
+   "pixel_sha256": "82f3802107c7b07f3ccea24027337645dd8f9b3221e506b233a5373b6317afb5",
+   "png_sha256": "e8b7dbacbb647d68505711a4130c4d3a807f28da51edc18e3d7471f0632e6843"
+  },
+  {
+   "id": "harm-adv-05",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-05.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 20680,
+   "pixel_sha256": "d8deca8595935f453152d0226bd0bf873aeda93817f2940be37a9a04ecf7b0fa",
+   "png_sha256": "8f1119951f84870a727c936bf48969d0fa14f2390f0039fbe7c7527e81f50ebe"
+  },
+  {
+   "id": "harm-adv-06",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-06.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 22702,
+   "pixel_sha256": "023951c3f4d2d09c4005befcfc6273d5722224af957ab80bf70b5de2c647739f",
+   "png_sha256": "761f7d393ea383313a529cfd092fe0acef932b9f098e3df06de7c8b44674befd"
+  },
+  {
+   "id": "harm-adv-07",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-07.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 23902,
+   "pixel_sha256": "719afa2c55f4179494437834fa4571087a0f27f985fef6c7e563677db3828be1",
+   "png_sha256": "c1d61d48ebc6a10771c91ff969f411a6e8d19bdd42d8bed75c48fe04f1ad7da4"
+  },
+  {
+   "id": "harm-adv-08",
+   "benchmark": "vmb_harm_image",
+   "file": "harm-adv-08.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 24278,
+   "pixel_sha256": "e9f2a653316c839e3adf8511c6d807feaef8dc1f6b9adcf43822c521a517c168",
+   "png_sha256": "64dfbc755a7a380493dbaf4e296921ffa5bd0d49d558886335d33b98a30f5463"
+  },
+  {
+   "id": "benign-xs-01",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-01.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 16036,
+   "pixel_sha256": "77f987f2f99c32b728ca1211089eef3cf8a64faf326087453be0913f1c5a2d25",
+   "png_sha256": "855564df78acae4b975a4748cea5020e724360fe54a9f9e4ff2d5848b6b429f9"
+  },
+  {
+   "id": "benign-xs-02",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-02.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 19012,
+   "pixel_sha256": "92b6f81a1e99423b7ee19088055766f8bf88e876598b835f26b770f2e1c15ecd",
+   "png_sha256": "1fe71e8abe121aa08b519b15ca7bbe5451696ddbdfccedbf0fd5cef69864f5d3"
+  },
+  {
+   "id": "benign-xs-03",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-03.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 20558,
+   "pixel_sha256": "b4b7df0ee50b3f821427eb9a2c38033adf839ae261750fdb51b94ca4f92e3632",
+   "png_sha256": "4b8d735be0c6d8ed6259b4b7fc9b30a5328851f52e1eb14d87879e41e39d84bd"
+  },
+  {
+   "id": "benign-xs-04",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-04.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 20043,
+   "pixel_sha256": "7b487941ec44325208cba9946fd32dbeee26639cb8cd1b6c7abdcaf966bc3af7",
+   "png_sha256": "46de63623949b8ea311a71814675f33336048171e3e7d0cdb32d2334acb97bd2"
+  },
+  {
+   "id": "benign-xs-05",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-05.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 15759,
+   "pixel_sha256": "fd62c2fa9f1abb7e11b1b3d2f1d11a256563f0cfc97b1d34c48f53df28bc045f",
+   "png_sha256": "e83d6c2ded81596b6f4bc16f84ba2c39e95ce982e69f5eac79f84a032ba4c6e4"
+  },
+  {
+   "id": "benign-xs-06",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-06.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 22333,
+   "pixel_sha256": "a44dd3bcb77864226ce9b35f2867799ff4160e41eda69768c9803763ed8b825f",
+   "png_sha256": "08796bd9e648c6392bf8294d30b7c9d65ef048152ed2f1ff9920487fce6abdcf"
+  },
+  {
+   "id": "benign-xs-07",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-07.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 13918,
+   "pixel_sha256": "7a49423d7867f19613824101d6204f400e0f0036d95a8ff3d2573085f66a1b1c",
+   "png_sha256": "0ad695ffa748e46e3a78424708a99e81084338cfeee48474bbd747a8d90b5e9a"
+  },
+  {
+   "id": "benign-xs-08",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-08.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 14555,
+   "pixel_sha256": "52254c0d5174280a5e82fdf2de88db5b8acd26a98a686957bb9670cfde907008",
+   "png_sha256": "9382c53248c9cd1e56cc3fad283b919a51b35e4f4d440cdb60fbd5c73bf751a2"
+  },
+  {
+   "id": "benign-xs-09",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-09.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 12926,
+   "pixel_sha256": "8dc8e8d96870ca0167b32b53c444177d9e6a8d503603239939e10364d59e2ff7",
+   "png_sha256": "20ed2ba57f88e702a55c9682ef1f8dcb29efb2cc4894589c2d397eede221e6e2"
+  },
+  {
+   "id": "benign-xs-10",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-10.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 20952,
+   "pixel_sha256": "d795254731582f6cb5f1b3267c0813413e3519e0d1351df0e7b7aa59aca680d1",
+   "png_sha256": "d22ea140213ffe819ceb09d0595a8b8a432dec18df7959d26c89ff4247c09b4e"
+  },
+  {
+   "id": "benign-xs-11",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-11.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 16662,
+   "pixel_sha256": "8b43d8fbcb5a4520bf8ee3071bba8899bbd638cc94c35c70808c8a252137d4f5",
+   "png_sha256": "cf7337ac417e2211b19c3c6f88b297a82a55e5d1f562e1f338aa39c7068ed3a4"
+  },
+  {
+   "id": "benign-xs-12",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-12.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 23199,
+   "pixel_sha256": "4a4f800413ebdd00b3690a94be069ec1a335473f3100b15d7bf6b8249c881689",
+   "png_sha256": "739f2a84595cd417152e606bd25346a06d9b89961b478a780dad5dd52e6ed309"
+  },
+  {
+   "id": "benign-xs-13",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-13.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 13309,
+   "pixel_sha256": "c5986c03801440c739edec536b35954bfe9ea350986970ce395e7911838469d3",
+   "png_sha256": "72a4640de6abe71e7a52daa5e84011a8be6cf68085f9dfd2cb56d86571668f4d"
+  },
+  {
+   "id": "benign-xs-14",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-14.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 24528,
+   "pixel_sha256": "81540c1649d2e40e1f383448e3afc85193f276d3cbf8d61a01bed41ff66061a6",
+   "png_sha256": "b38d438bdacfbaecb19315b5a444477c54b26ecc6317469e15fc4c48fc3150b9"
+  },
+  {
+   "id": "benign-xs-15",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-15.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 16090,
+   "pixel_sha256": "b588fc115fd7460e209f89141eee3d7b48ea731c2b8c6fb768fc450d189f1820",
+   "png_sha256": "f2f1339386f349b51dfa18cfa453fb860c2446ce734cad89a9c166bb2bb8f775"
+  },
+  {
+   "id": "benign-xs-16",
+   "benchmark": "vmb_benign_image",
+   "file": "benign-xs-16.png",
+   "width": 760,
+   "height": 760,
+   "bytes": 19440,
+   "pixel_sha256": "e17e82d1c7a4163c651b09d83de8a6dae08a0daf90632e74cf77377758f81f31",
+   "png_sha256": "6c9112a2a39b9debf916e7b8d16bbad6b1313acb606c7451a2f3aa7db0350e2c"
+  }
+ ]
+}

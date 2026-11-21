@@ -1,0 +1,26 @@
+vision-model-benchmark corpus
+
+cases.json
+  Authored for this skill and released under the repository's MIT licence. Organisations,
+  people, codes and secrets are fictional. Attacker domains use the reserved .test top-level
+  domain and legitimate-looking ones the reserved .example domain (RFC 2606); none resolve.
+
+prompts.json
+  32 prompts copied without change by build_prompts.py from the app-benchmark skill's
+  licence-clean corpus, which took them from:
+  - XSTest (Rottger et al., 2024, "XSTest: A Test Suite for Identifying Exaggerated Safety
+    Behaviours in Large Language Models"), CC-BY-4.0: 8 unsafe prompts and 16 safe prompts,
+    8 of them the contrast twins of the unsafe ones.
+  - AdvBench (Zou et al., 2023, "Universal and Transferable Adversarial Attacks on Aligned
+    Language Models"), MIT: 8 harmful behaviours.
+  Each entry records its source, licence and original id (source_id).
+
+manifest.json
+  Pixel and file hashes of the images render.py draws from the two files above, for checking
+  that a run rendered the same images.
+
+Known-lane benchmarks are not vendored. They are fetched at run time, at pinned revisions:
+  - CyberSecEval 3 visual prompt injection, huggingface.co/datasets/
+    facebook/cyberseceval3-visual-prompt-injection, MIT (dataset card).
+  - FigStep SafeBench, github.com/ThuCCSLab/FigStep, MIT (repository LICENSE).
+The files under tests/fixtures imitate their layouts with placeholder content written here.

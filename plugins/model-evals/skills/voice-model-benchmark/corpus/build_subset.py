@@ -24,10 +24,12 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 MAX_CHARS = 200
-# file -> (case type in this skill, sources taken from it)
+# file -> (case type in this skill, sources taken from it). Only the known lane's two
+# published benchmarks are taken (AdvBench, XSTest); corpus/fetch_known.py checks the result
+# against those benchmarks' own files at pinned revisions.
 INPUTS = {
     "harmful.json": ("harmful", ("AdvBench", "XSTest")),
-    "benign_overrefusal.json": ("benign", ("XSTest", "PromptInject")),
+    "benign_overrefusal.json": ("benign", ("XSTest",)),
 }
 
 

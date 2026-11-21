@@ -17,6 +17,9 @@ class TargetInput:
     text: str | None = None       # the prompt, when modality is "text"
     pcm: bytes | None = None      # little-endian PCM16 mono at `rate`, when modality is "audio"
     rate: int = 24000
+    # Session settings for this input only (instructions, tools, tool_choice). They replace
+    # the run's own values for those keys; the keys that define the measurement stay fixed.
+    session: dict | None = None
 
 
 @dataclass
@@ -28,7 +31,7 @@ class TargetResult:
     output_audio: bytes = b""             # PCM16 the model spoke, when the output is audio
     output_rate: int = 24000
     input_transcript: str | None = None   # provider-side transcription of the input, if enabled
-    tool_calls: list = field(default_factory=list)   # [{name, arguments}] the model asked for
+    tool_calls: list = field(default_factory=list)   # [{name, arguments, call_id?}] the model asked for
     usage: dict = field(default_factory=dict)        # token counts as the provider reports them
     session_model: str | None = None      # the model the provider says the session runs
     latency_s: float | None = None

@@ -27,13 +27,23 @@ Sources (developers.openai.com/api):
 | Ask for a reply | client `response.create` | |
 | Reply, audio output | `response.output_audio.delta`, `response.output_audio_transcript.delta`, `response.output_audio_transcript.done` | `delta` (base64 audio or text), `transcript` |
 | Reply, text output | `response.output_text.delta`, `response.output_text.done` | `delta`, `text` |
-| End of reply | `response.done` | `response.status`, `response.status_details.reason`, `response.output[].content[].transcript` or `.text`, `response.output[]` items of type `function_call` (`name`, `arguments`), `response.usage` |
+| Function calls | `response.output_item.added` / `.done` with `item.type: "function_call"`, `response.function_call_arguments.done` | `item.id`, `item.name`, `call_id`, `name`, `arguments` (a JSON string); calls are keyed by `call_id` so each is recorded once |
+| End of reply | `response.done` | `response.status`, `response.status_details.reason`, `response.output[].content[].transcript` or `.text`, `response.output[]` items of type `function_call` (`name`, `arguments`, `call_id`), `response.usage` |
 | Input transcription (optional) | `conversation.item.input_audio_transcription.completed` | `transcript` |
 | Failure | `error` | `error.type`, `error.code`, `error.message` |
 
 Choices the adapter makes, and why:
 - **One session per case.** A fresh connection for every (arm, case), so no case sees
   another's conversation.
+- **Per-case instructions and tools.** A custom-lane case carries its scenario's
+  `instructions`, `tools` and `tool_choice` (`TargetInput.session`); they replace those of
+  `--session-config` in that case's `session.update` only. The measurement keys (modalities,
+  audio format, turn detection off) stay fixed on top.
+- **Function calls are recorded, never executed.** The exchange ends at the first
+  `response.done`; no `function_call_output` is sent and no second response is requested. The
+  custom lane scores the calls the model chose to make on hearing the request. A model that
+  would first call a lookup tool and only then the privileged one is not exercised; the
+  bundled scenarios declare no lookup tools for that reason.
 - **Voice activity detection off.** With `turn_detection: null` the client commits the audio
   buffer and asks for the response. The clip is the whole user turn in every arm. A
   deployment that leaves detection on can cut a turn short or respond early; that is barge-in

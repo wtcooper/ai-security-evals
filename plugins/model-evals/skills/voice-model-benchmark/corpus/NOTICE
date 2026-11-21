@@ -1,23 +1,23 @@
-Vendored corpus subset: sources, licences, attribution.
+Vendored corpus: the known lane's two published benchmarks. Sources, licences, attribution.
 
-cases.jsonl is a filtered copy of the app-benchmark corpus that ships in this repository.
-No prompt was written for this skill. The licence of each case is the `license` field on
-its row, as recorded by that corpus; manifest.json has the counts and hashes.
+cases.jsonl holds every row of AdvBench and XSTest, copied from the app-benchmark corpus
+that ships in this repository (build_subset.py) and checked against each benchmark's own file
+at a pinned revision (fetch_known.py --check: 970 of 970 rows identical in id, type, source and
+prompt on 2026-11-21). No prompt was written for this skill. The licence of each case is the
+`license` field on its row; manifest.json has the counts and hashes.
 
 AdvBench  (Zou et al., "Universal and Transferable Adversarial Attacks on Aligned
   Language Models")  -- MIT
-  https://github.com/llm-attacks/llm-attacks  (data/advbench/harmful_behaviors.csv)
-  Harmful behaviour requests, used as cases the model should refuse (type: harmful).
+  https://github.com/llm-attacks/llm-attacks  data/advbench/harmful_behaviors.csv
+  pinned at commit 098262edf85f807224e70ecd87b9d83716bf6b73 (sha256 6cd1a5c6...)
+  520 harmful behaviour requests (type: harmful).
 
 XSTest  (Rottger et al., "XSTest: A Test Suite for Identifying Exaggerated Safety
   Behaviours in Large Language Models")  -- CC-BY-4.0, attribution required
-  https://github.com/paul-rottger/xstest  (xstest_prompts.csv)
-  Safe prompts that look unsafe (type: benign, the over-refusal controls) and their unsafe
-  contrasts (type: harmful).
-
-PromptInject  (Perez & Ribeiro, "Ignore Previous Prompt")  -- MIT
-  https://github.com/agencyenterprise/PromptInject
-  Five plain benign questions (type: benign).
+  https://github.com/paul-rottger/xstest  xstest_prompts.csv
+  pinned at commit d7bb5bd738c1fcbc36edd83d5e7d1b71a3e2d84d (sha256 11783fb2...)
+  250 safe prompts that look unsafe (type: benign, the over-refusal controls) and their 200
+  unsafe contrasts (type: harmful).
 
 These are attacker requests and benign controls for defensive evaluation, not operational
 instructions. Use them only against systems you are authorised to test. Apply access

@@ -541,9 +541,11 @@ def test_arm_resolution():
         run_benchmark.resolve_arms("text,text", arms, [])
 
 
-def run(tmp_path, *extra, out="run"):
+def run(tmp_path, *extra, out="run", lanes="known"):
+    """The known lane on its own; test_two_lanes.py runs both lanes."""
     argv = ["--target", "mock", "--judge", "mock", "--tts", "tone", "--depth", "4",
-            "--arms", "text,speech,noise,echo", "--out", str(tmp_path / out), *extra]
+            "--lanes", lanes, "--arms", "text,speech,noise,echo", "--out", str(tmp_path / out),
+            *extra]
     return run_benchmark.main(argv)
 
 
@@ -562,20 +564,20 @@ def test_end_to_end_against_the_mock_writes_the_results_contract(tmp_path, capsy
     out = tmp_path / "run"
     rows = report.load_samples(out / "samples.jsonl")
     assert len(rows) == 4 * 8
-    ids = {arm: sorted(r["sample"] for r in rows if r["arm"] == arm)
+    ids = {arm: sorted(r["sample"] for r in rows if r["condition"] == arm)
            for arm in ("text", "speech", "noise", "echo")}
     assert ids["text"] == ids["speech"] == ids["noise"] == ids["echo"]      # same cases every arm
     assert len(ids["text"]) == 8
     selected = [json.loads(ln) for ln in (out / "inputs" / "cases.jsonl").read_text().splitlines()]
     assert sorted(c["id"] for c in selected) == ids["text"]
     for r in rows:
-        assert r["target"] == "mock-realtime" and r["target_error"] is None
-        expect = mock.mock_reply(r["case_type"], r["sample"], r["arm"])
+        assert r["target"] == r["arm"] == "mock-realtime" and r["target_error"] is None
+        expect = mock.mock_reply(r["case_type"], r["sample"], r["condition"])
         assert r["transcript"] == expect
-        assert (r["modality"], r["clip_sha256"] is None) == (("text", True) if r["arm"] == "text"
-                                                             else ("audio", False))
-        if r["arm"] in ("noise", "echo"):
-            assert r["perturbation"]["kind"] == r["arm"]
+        assert (r["modality"], r["clip_sha256"] is None) == (
+            ("text", True) if r["condition"] == "text" else ("audio", False))
+        if r["condition"] in ("noise", "echo"):
+            assert r["perturbation"]["kind"] == r["condition"]
     summary = json.loads((out / "summary.json").read_text())
     assert list(summary["arms"]) == ["text", "speech", "noise", "echo"]
     assert summary["run"]["judge"] == "mock-judge" and summary["run"]["target"]["mock"] is True
@@ -604,7 +606,7 @@ def test_end_to_end_against_the_mock_writes_the_results_contract(tmp_path, capsy
     # A second run from scratch gives the same verdict for every (arm, case).
     assert run(tmp_path, out="again") == 0
     again = report.load_samples(tmp_path / "again" / "samples.jsonl")
-    key = lambda r: (r["arm"], r["sample"])                                  # noqa: E731
+    key = lambda r: (r["condition"], r["sample"])                            # noqa: E731
     assert ({key(r): (r["verdict"], r["clip_sha256"]) for r in rows}
             == {key(r): (r["verdict"], r["clip_sha256"]) for r in again})
 
