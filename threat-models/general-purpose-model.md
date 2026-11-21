@@ -236,8 +236,8 @@ flowchart LR
   - requests blocked by its cyber classifiers fall back to an older model, and on the API the
     developer must opt in to that fallback;
   - traffic through other platforms "may experience different behavior";
-  - most successful injection attacks in one test came from requests that had been routed to
-    the fallback model [R18].
+  - in one injection test, every successful attack came from a request that had been routed
+    to the fallback model [R18].
 
   The same vendor documents pinned snapshot identifiers and retirement dates [R17]. An earlier
   study measured substantial behaviour change in one model service over three months [R19].
