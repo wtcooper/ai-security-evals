@@ -225,7 +225,7 @@ lanes. **Known lane:** CyberSecEval 3 visual prompt injection, split by the data
 labels into indirect injection (`cyse3_vpi_indirect`, 300), secret extraction
 (`cyse3_vpi_secret`, 300, string match) and policy bypass (`cyse3_vpi_direct`, 400), and FigStep
 SafeBench (`figstep_safebench`, 350) with its typed twin. **Custom lane:** 72 locally rendered
-images over 13 placements: injection (`vmb_injection`, canary), secret extraction (`vmb_exfil`),
+images (40 authored cases over 13 placements, plus 32 prompts set as images): injection (`vmb_injection`, canary), secret extraction (`vmb_exfil`),
 tool hijack with mock tools (`vmb_tool_hijack`, any call to `open_url` or `send_email`),
 harmful and benign prompts as images with typed twins (`vmb_harm_image`, `vmb_benign_image`).
 
