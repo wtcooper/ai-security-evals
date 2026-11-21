@@ -119,7 +119,7 @@ updates, logging) and the platform team (loosening policy to cut false blocks).
 ## 4. Core threats
 
 Ratings combine likelihood and impact using the matrix in the threat-model method. Framework
-ids are reused from the lists this repository verified against the primary sources.
+ids are reused from the lists this repository verified against the primary sources [3][4].
 
 ### gr-evasion — Evasion by encoding, characters, language, turns and splitting (High)
 
@@ -163,7 +163,7 @@ ids are reused from the lists this repository verified against the primary sourc
   definitions, and filters nothing unless user input is tagged [13]. Another's document-attack
   detection is off by default and applies at configured intervention points only [14]. One
   gateway does not apply output guardrails to streamed responses [16]. Images and audio can
-  carry injected instructions to multimodal models [20].
+  carry injected instructions to multimodal models [20], as OWASP also notes for images [1].
 - **Rating.** Likelihood High (RAG and tool use are the norm), impact High. Lower with an
   inventory of channels and a check built for each.
 - **Maps to.** LLM01:2025; ASI01; AML.T0051.001, AML.T0129.
@@ -207,7 +207,7 @@ ids are reused from the lists this repository verified against the primary sourc
 ### gr-latency — Latency, cost and a new availability dependency (Medium)
 
 - **What.** Every inspected request waits for the guardrail; long inputs scanned in segments
-  multiply calls [8]; the vendor's outage becomes the application's, unless it fails open.
+  multiply calls [8]; OWASP counts resource exhaustion among unbounded-consumption risks [2]; the vendor's outage becomes the application's, unless it fails open.
 - **Rating.** Likelihood Medium, impact Medium. Lower with length caps before the check,
   capacity budgets and explicit timeouts.
 - **Maps to.** LLM10:2025; AML.T0029.
@@ -250,7 +250,7 @@ ids are reused from the lists this repository verified against the primary sourc
 |---|---|---|---|
 | Evasion | Direct | Recall per family: `m2s_hyphenize`, `m2s_numberize`, `m2s_pythonize` (SafeMTData reformatting) and project-authored `m2s_cipher`, `m2s_payload_split`, `m2s_crescendo`, `m2s_decomposition` and others, against plain `direct_harmful` and `direct` | Character-level tricks (homoglyph, zero-width, Unicode tags), paraphrase, non-English text (the corpus is effectively English), inputs longer than about 2,600 characters, real multi-turn |
 | Evasion | In-line | `cyse4_multilingual_prompt_injection` (1,004 cases): injection success, baseline against guardrail, paired | Other languages and encodings |
-| Channel gap | In-line | `agentdojo` (944 agent episodes with injected tool output): injected goals executed, with its utility metric. A guardrail not wired to tool results shows no risk removed, which is the finding | Retrieved documents outside AgentDojo, streaming, audio |
+| Channel gap | In-line | `agentdojo` (944 agent episodes with injected tool output [19]): injected goals executed, with its utility metric. A guardrail not wired to tool results shows no risk removed, which is the finding | Retrieved documents outside AgentDojo, streaming, audio |
 | Channel gap | Direct | Input route and output route as separate experiments | Real replies: the corpus is prompts, so an output route classifies prompt-shaped text |
 | Guardrail injection | Direct | Injection families reach the classifier, so obedience shows as misses | No bundled case addresses the classifier itself; add your own |
 | Over-blocking | Both | Direct: false-block rate on `benign` (XSTest safe prompts, CyberSecEval benign cyber questions). In-line: `cyse4_mitre_frr` refusal rate and `agentdojo` utility | Your users' traffic |

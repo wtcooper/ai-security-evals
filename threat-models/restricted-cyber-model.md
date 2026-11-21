@@ -17,7 +17,7 @@ validation, penetration testing and red teaming. The model may be a cyber-specia
 a general model with reduced blocking. In 2026 the larger providers run such programmes:
 
 - OpenAI's Trusted Access for Cyber: identity verification, access tiers, and a cyber-tuned
-  model at the highest tiers [C6][C7].
+  model at the highest tiers [C5][C6].
 - Anthropic's Cyber Verification Program: Defense, Red Team and Specialized Access tiers, caps
   on named users, and required security controls [C1].
 
@@ -25,7 +25,7 @@ What is being protected is a credential that unlocks capability other users are 
 
 | Core risk | Why it matters | Inherent risk | Evaluated by |
 |---|---|---|---|
-| An agent acts beyond its lab or its scope | In 2026, models under cyber evaluation at two developers and one evaluation institute acted against real third parties [C11][C12][C13]. | High | Design review |
+| An agent acts beyond its lab or its scope | In 2026, models under cyber evaluation at two developers and one evaluation institute acted against real third parties [C8][C9][C10]. | High | Design review |
 | Access spreads or is taken over | The relaxed safeguards travel with whatever credential carries them: a shared key, a pipeline secret, an agent's configuration, a phished account. | High | Design review |
 | Exploits and target data leak | The work produces working exploits and details of unpatched flaws, and sends target data to a provider that must retain it for misuse monitoring [C1]. | High | Design review |
 | Hostile targets steer the agent | Malware, attacker pages and hostile repositories are adversarial by nature, and they are read by an agent with offensive capability. | High | Design review |
@@ -40,7 +40,7 @@ controls no longer cover:
 
 The provider has moved part of the control burden from its safeguards to the customer. Of its
 own evaluation incidents, one provider wrote that "the safeguards deployed on our generally
-available models would have blocked the behaviors identified" [C11].
+available models would have blocked the behaviors identified" [C8].
 
 **What evaluations can and cannot tell you.** No skill in this repository evaluates this asset
 class, and that is deliberate (section 5). A refusal benchmark would measure exactly the
@@ -178,7 +178,7 @@ flowchart LR
 - *Evidence.* One programme prohibits mass destruction of data or devices, denial of service,
   extortion and "any request with stated malicious intent" in every tier [C1]. Serving customers
   without approval is "grounds for removal from the program" [C1]. Another provider requires
-  trusted users to "abide by our Usage Policies and Terms of Use" [C6].
+  trusted users to "abide by our Usage Policies and Terms of Use" [C5].
 
 **`cy-sprawl` — access spreads beyond the named group.**
 
@@ -193,7 +193,7 @@ flowchart LR
   - loss of access in every workspace when the cap is exceeded [C1].
 - *Evidence.* A 2026 system card reports that, given apparent credentials to a public package
   registry in a simulated security exercise, the model "took potentially harmful actions in
-  roughly half of cases" [C15]. A credential within an agent's reach is likely to be used.
+  roughly half of cases" [C12]. A credential within an agent's reach is likely to be used.
 
 **`cy-compromise` — account or key compromise.**
 
@@ -202,9 +202,9 @@ flowchart LR
 - *Rating: High.* Raised by phishable MFA and personal devices. Lowered by phishing-resistant
   MFA, company-domain accounts and organisation-controlled devices, which one programme requires
   [C1], and by fast revocation. Another provider bases its programme on "strong KYC and identity
-  checks" [C7].
+  checks" [C6].
 - *Evidence.* MITRE ATLAS records attackers using valid accounts, obtained by credential theft,
-  to reach AI services [C18].
+  to reach AI services [C14].
 
 **`cy-scope` — work aimed at systems outside the authorised scope.**
 
@@ -216,9 +216,9 @@ flowchart LR
   authorisation and enforced outside the model.
 - *Evidence.* In one developer's 2026 evaluations, a fictional target "shared a name with an
   active website domain name". When the simulated target was unreachable, the model compromised
-  the real company instead, and in some runs continued after recognising it was real [C11].
+  the real company instead, and in some runs continued after recognising it was real [C8].
 - *The model is not a scope check.* A 2026 system card reports its model "more often accepting
-  unverifiable claims of authorization" than earlier models [C15].
+  unverifiable claims of authorization" than earlier models [C12].
 
 **`cy-containment` — agent leaves its sandbox or reaches the internet.**
 
@@ -231,14 +231,14 @@ flowchart LR
   - One developer reviewed 141,006 runs and found six, in three incidents, where machines had
     live internet access that the prompt said they lacked, after "a misunderstanding between us
     and our evaluation partner". It concluded that validating "all internet access paths" and
-    "real-time monitoring of the evaluation logs would have helped" [C11].
+    "real-time monitoring of the evaluation logs would have helped" [C8].
   - Another developer's models were in an environment that "did not provide the models with
     direct Internet access". They exploited an unknown flaw in its package proxy and compromised
-    a third party [C13], which had disclosed the intrusion first [C14].
+    a third party [C10], which had disclosed the intrusion first [C11].
   - An evaluation institute logged 19 out-of-scope actions in 10 of 122 runs. Internet access
     had been granted on purpose, and the developers' cyber classifiers were off. The actions
     included deceptive contact with real open-source maintainers. The institute now requires
-    internet access to be actively justified [C12].
+    internet access to be actively justified [C9].
 
 **`cy-injection` — content in a target steers the agent.**
 
@@ -249,11 +249,11 @@ flowchart LR
   definition, and when the agent reading targets also has network reach. Lowered by
   analysis-only agents with no egress.
 - *Evidence.*
-  - Indirect injection was shown in 2023 [C21].
+  - Indirect injection was shown in 2023 [C15].
   - A 2026 system card reports its model more likely to follow malicious instructions in pasted
-    text [C15].
+    text [C12].
   - The institute saw agents trying "to plant hidden instructions that other automated AI
-    systems might execute" [C12]. Reports an agent writes can carry injections onward.
+    systems might execute" [C9]. Reports an agent writes can carry injections onward.
 
 **`cy-output` — exploits and vulnerability details leak.**
 
@@ -263,8 +263,8 @@ flowchart LR
 - *Rating: High.* Raised by harnesses that write to shared storage, and by long retention.
   Lowered by a dedicated, access-limited store and by deletion after remediation.
 - *Evidence.* One provider reports that its restricted-access partners found "more than 10,000
-  high- or critical-severity flaws" [C5]. It publishes only hashes of findings that are not yet
-  fixed [C4].
+  high- or critical-severity flaws" [C4]. It publishes only hashes of findings that are not yet
+  fixed [C3].
 
 **`cy-provider-data` — target data sent to the provider, and retained there.**
 
@@ -281,8 +281,8 @@ flowchart LR
     that we can help monitor and mitigate cyber misuse". It also requires human review of
     automated flags by default, and allows zero retention only for organisations with an
     exemption [C1].
-  - Another provider warns of limits on "no-visibility uses like Zero-Data Retention" [C7].
-  - Flagged API content can be kept for up to two years at one provider [C16].
+  - Another provider warns of limits on "no-visibility uses like Zero-Data Retention" [C6].
+  - Flagged API content can be kept for up to two years at one provider [C13].
 
 **`cy-audit` — actions cannot be tied to a person, a target and an authorisation.**
 
@@ -291,12 +291,12 @@ flowchart LR
 - *Rating: Medium.* Raised by autonomous runs and shared accounts. Lowered by central,
   append-only logs keyed to engagements.
 - *Evidence.* Every 2026 incident was reconstructed from the reporter's own records:
-  - one developer found its incidents through "additional evaluation monitoring" [C11];
-  - the institute's detection came from monitoring outbound traffic [C12];
-  - the hub operator worked from more than 17,000 logged events [C14].
+  - one developer found its incidents through "additional evaluation monitoring" [C8];
+  - the institute's detection came from monitoring outbound traffic [C9];
+  - the hub operator worked from more than 17,000 logged events [C11].
 
   During training, some snapshots of one model tried to cover their tracks by "manipulating git
-  records or deleting logs" [C15].
+  records or deleting logs" [C12].
 
 **`cy-legal` — work not covered by valid authorisation, law or contract.**
 
@@ -311,10 +311,10 @@ flowchart LR
   - Its Red Team tier requires "confirmation that each test is authorized in advance by someone
     with authority over the systems" [C1].
   - Another provider grants exceptions that "may require written terms and apply only to the
-    approved partner, use, and conditions" [C9].
+    approved partner, use, and conditions" [C7].
 
 **Framework ids.** All OWASP ids, and the ATLAS ids not starred, were verified in this
-repository. The starred ATLAS ids were read for this document in the 2026.10 release file [C18].
+repository. The starred ATLAS ids were read for this document in the 2026.10 release file [C14].
 `—` means none verified.
 
 | Threat | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS |
@@ -344,7 +344,7 @@ No skill here evaluates this asset class, and no benchmark is run before access 
 - **The remaining question is capability, and that is dangerous to evaluate.** How capable the
   model is at offensive work is measured with sandboxed suites against live targets, which this
   repository deliberately does not run. Evaluations of exactly that kind reached real systems in
-  2026 [C11][C12][C13].
+  2026 [C8][C9][C10].
 - **The provider's monitoring is not the organisation's evidence.** It serves the provider, and
   the customer cannot see it.
 
@@ -356,7 +356,7 @@ prescribed.
 |---|---|---|
 | Access review | Every person, workspace, role, session and credential that can reach the access, against the named list and seat cap. Authentication and devices. Whether any credential is static, automated or visible to an agent. How fast access can be revoked. Whether use matches the approved use. (`cy-insider`, `cy-sprawl`, `cy-compromise`) | Copies nobody knows about |
 | Scope definition | Per engagement: who signed the authorisation, whether it covers agentic testing, and the targets as a machine-checkable list enforced outside the model. (`cy-scope`, `cy-legal`) | What the agent attempts within an allowed path |
-| Egress controls | A test from inside the sandbox that only the paths the scope needs are open, including package mirrors, proxies and DNS. One 2026 escape went through a package proxy [C13], and another through a connection nobody knew existed [C11]. (`cy-containment`, `cy-scope`) | Flaws in the components that enforce the controls |
+| Egress controls | A test from inside the sandbox that only the paths the scope needs are open, including package mirrors, proxies and DNS. One 2026 escape went through a package proxy [C10], and another through a connection nobody knew existed [C8]. (`cy-containment`, `cy-scope`) | Flaws in the components that enforce the controls |
 | Logging review | Whether prompts, tool calls and network activity are logged centrally, out of reach of the agent and the user, and keyed to person and engagement; and a periodic read for unmatched runs, off-list targets and off-task actions. (`cy-audit`, `cy-insider`, `cy-containment`) | Anything that was never logged |
 
 Output handling (`cy-output`) and the provider's data terms (`cy-provider-data`) are reviewed
@@ -376,12 +376,12 @@ Neither of them measures who holds this access, what it is pointed at, or where 
 
 **What remains.**
 
-- Egress controls can be defeated by the agent they contain [C13].
+- Egress controls can be defeated by the agent they contain [C10].
 - Agents may act beyond their task with no instruction to: "deception emerged as a by-product
-  of pursuing the task" [C12].
+  of pursuing the task" [C9].
 - Access can be narrowed or withdrawn "at any time in our sole discretion" [C1].
 - Classifiers stay on in every tier and can still block legitimate work. When that happens,
-  teams move to unmonitored self-hosted models: one operator did so for incident forensics [C14].
+  teams move to unmonitored self-hosted models: one operator did so for incident forensics [C11].
 
 ## 6. Design review questions
 
@@ -413,17 +413,17 @@ this repository on 2026-11-14.
 
 - C1. Anthropic Help Center, cyber safeguards and the Cyber Verification Program (tiers, seat limits, required controls, retention, prohibited activity, external use), updated 6 October 2026. https://support.claude.com/en/articles/14604842-real-time-cyber-safeguards-on-claude
 - C2. Anthropic Usage Policy, "Do Not Compromise Computer or Network Systems Without Authorization", effective 12 November 2026. https://www.anthropic.com/legal/aup
-- C4. Anthropic, Project Glasswing, 7 April 2026 with later updates. https://www.anthropic.com/glasswing
-- C5. Anthropic, "Expanding Project Glasswing", 2 June 2026. https://www.anthropic.com/news/expanding-project-glasswing
-- C6. OpenAI, Trusted access for cyber, 5 February 2026. https://openai.com/index/trusted-access-for-cyber/
-- C7. OpenAI, Scaling trusted access for cyber defense, 14 April 2026. https://openai.com/index/scaling-trusted-access-for-cyber-defense/
-- C9. OpenAI Usage Policies, effective 20 November 2026. https://openai.com/policies/usage-policies/
-- C11. Anthropic, "Investigating three real-world incidents in our cybersecurity evaluations", 30 July 2026, updated 3 August 2026. https://www.anthropic.com/research/investigating-incidents-cybersecurity-evals
-- C12. UK AI Security Institute, "Incident report: unsanctioned agent behaviour during cyber testing", 4 August 2026. https://aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing
-- C13. OpenAI, Hugging Face model evaluation security incident, 21 July 2026, updated 28–29 July and 26 August 2026. https://openai.com/index/hugging-face-model-evaluation-security-incident/
-- C14. Hugging Face, "Security incident disclosure — July 2026", 16 July 2026. https://huggingface.co/blog/security-incident-july-2026
-- C15. Anthropic, System Card: Claude Opus 5.5, 22 September 2026 (executive summary; alignment assessment). https://www.anthropic.com/claude-opus-5-5-system-card
-- C16. Anthropic Privacy Center, "How long do you store my organization's data?", dated 1 July 2026. https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data
-- C18. MITRE ATLAS data, release 2026.10 (modified 2026-10-28). https://github.com/mitre-atlas/atlas-data/blob/main/dist/v6/ATLAS-2026.10.yaml
-- C21. "Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection", arXiv:2302.12173. https://arxiv.org/abs/2302.12173
+- C3. Anthropic, Project Glasswing, 7 April 2026 with later updates. https://www.anthropic.com/glasswing
+- C4. Anthropic, "Expanding Project Glasswing", 2 June 2026. https://www.anthropic.com/news/expanding-project-glasswing
+- C5. OpenAI, Trusted access for cyber, 5 February 2026. https://openai.com/index/trusted-access-for-cyber/
+- C6. OpenAI, Scaling trusted access for cyber defense, 14 April 2026. https://openai.com/index/scaling-trusted-access-for-cyber-defense/
+- C7. OpenAI Usage Policies, effective 20 November 2026. https://openai.com/policies/usage-policies/
+- C8. Anthropic, "Investigating three real-world incidents in our cybersecurity evaluations", 30 July 2026, updated 3 August 2026. https://www.anthropic.com/research/investigating-incidents-cybersecurity-evals
+- C9. UK AI Security Institute, "Incident report: unsanctioned agent behaviour during cyber testing", 4 August 2026. https://aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing
+- C10. OpenAI, Hugging Face model evaluation security incident, 21 July 2026, updated 28–29 July and 26 August 2026. https://openai.com/index/hugging-face-model-evaluation-security-incident/
+- C11. Hugging Face, "Security incident disclosure — July 2026", 16 July 2026. https://huggingface.co/blog/security-incident-july-2026
+- C12. Anthropic, System Card: Claude Opus 5.5, 22 September 2026 (executive summary; alignment assessment). https://www.anthropic.com/claude-opus-5-5-system-card
+- C13. Anthropic Privacy Center, "How long do you store my organization's data?", dated 1 July 2026. https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data
+- C14. MITRE ATLAS data, release 2026.10 (modified 2026-10-28). https://github.com/mitre-atlas/atlas-data/blob/main/dist/v6/ATLAS-2026.10.yaml
+- C15. "Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection", arXiv:2302.12173. https://arxiv.org/abs/2302.12173
 - Also consulted for programme context: OpenAI Enterprise Trusted Access for Cyber intake form, https://openai.com/en-US/form/enterprise-trusted-access-for-cyber/ (lists eligibility; terms on credentials, logging and revocation not stated), and Google, "Google launches Sec-Gemini v1, a new experimental cybersecurity model", 4 April 2025, https://blog.google/security/google-launches-sec-gemini-v1-new/ (defensive research access for selected organisations; current terms not checked).
