@@ -129,16 +129,6 @@ flowchart LR
   HARN --> AUDIT
 ```
 
-**Trust boundaries.**
-
-| Boundary | What crossing it means |
-|---|---|
-| Provider | Anything sent is retained under the programme's terms. |
-| Team | Named, vetted people and their records. |
-| Lab | The agent may leave only through the egress point. |
-| Authorised targets | Systems the team may touch. |
-| Everything else | Must not be reached at all. |
-
 **Threat actors.**
 
 | Actor | Capability | Motivation | Access |
@@ -152,18 +142,19 @@ flowchart LR
 
 ## 4. Core threats
 
-| Id | Threat | Rough inherent risk |
-|---|---|---|
-| `cy-insider` | Authorised user misuses or repurposes the access | Medium |
-| `cy-sprawl` | Access spreads beyond the named group | High |
-| `cy-compromise` | Account or key compromise | High |
-| `cy-scope` | Work aimed at systems outside the authorised scope | High |
-| `cy-containment` | Agent leaves its sandbox or reaches the internet | High |
-| `cy-injection` | Content in a target steers the agent | High |
-| `cy-output` | Exploits and vulnerability details leak | High |
-| `cy-provider-data` | Target data sent to the provider, and retained there | High |
-| `cy-audit` | Actions cannot be tied to a person, a target and an authorisation | Medium |
-| `cy-legal` | Work not covered by valid authorisation, law or contract | Medium |
+OWASP ids, and ATLAS ids without a star, are those verified in this repository. Starred ATLAS
+ids were read for this document in the 2026.10 release file [C14]. `—` means none verified.
+
+| Id | Threat | Rough risk | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS |
+|---|---|---|---|---|---|
+| `cy-insider` | Authorised user misuses or repurposes the access | Medium | — | — | AML.T0040\*, AML.T0017.001 |
+| `cy-access` | Access spreads beyond the named group or is taken over | High | LLM06:2025 | ASI03 | AML.T0012\*, AML.T0055\*, AML.T0083 |
+| `cy-scope` | Work aimed at systems outside the authorised scope | High | LLM06:2025 | ASI02 | AML.T0053, AML.T0048\* |
+| `cy-containment` | Agent leaves its sandbox or reaches the internet | High | LLM06:2025 | ASI05, ASI10 | AML.T0105, AML.T0048\* |
+| `cy-injection` | Content in a target steers the agent | High | LLM01:2025 | ASI01 | AML.T0051.001 |
+| `cy-output` | Exploits and vulnerability details leak | High | — | — | AML.T0025\*, AML.T0086 |
+| `cy-provider-data` | Target data sent to the provider, and retained there | High | — | — | — |
+| `cy-accountability` | No proof of authorised conduct: weak audit trail, authorisation gaps | Medium | — | — | — |
 
 **`cy-insider` — authorised user misuses or repurposes the access.**
 
@@ -180,31 +171,23 @@ flowchart LR
   without approval is "grounds for removal from the program" [C1]. Another provider requires
   trusted users to "abide by our Usage Policies and Terms of Use" [C5].
 
-**`cy-sprawl` — access spreads beyond the named group.**
+**`cy-access` — access spreads beyond the named group or is taken over.**
 
 - *What it is.* The relaxed access reaches people or processes nobody approved: a shared key,
-  a credential in CI or a repository, a harness configuration copied to a colleague, or
-  sub-agents spawned with the same credential.
-- *Rating: High.* Raised by static keys and pipeline integration. Lowered by programme rules
-  such as:
-  - API keys turned off for the Red Team and Specialized tiers;
-  - access only for people named in the application, with every admin counted as a seat;
-  - caps of 75 and 25 users;
-  - loss of access in every workspace when the cap is exceeded [C1].
-- *Evidence.* A 2026 system card reports that, given apparent credentials to a public package
-  registry in a simulated security exercise, the model "took potentially harmful actions in
-  roughly half of cases" [C12]. A credential within an agent's reach is likely to be used.
-
-**`cy-compromise` — account or key compromise.**
-
-- *What it is.* An attacker takes over a team member's session, account or key and uses the
-  relaxed access as if vetted. Security team members are often publicly known.
-- *Rating: High.* Raised by phishable MFA and personal devices. Lowered by phishing-resistant
-  MFA, company-domain accounts and organisation-controlled devices, which one programme requires
-  [C1], and by fast revocation. Another provider bases its programme on "strong KYC and identity
-  checks" [C6].
-- *Evidence.* MITRE ATLAS records attackers using valid accounts, obtained by credential theft,
-  to reach AI services [C14].
+  a credential in a pipeline or repository, a harness configuration copied to a colleague,
+  sub-agents spawned with the same credential. Or an attacker takes over a team member's
+  session, account or key and uses the access as if vetted; security staff are often publicly
+  known.
+- *Rating: High.* Raised by static keys, pipeline integration, phishable MFA and personal
+  devices. Lowered by programme rules: one programme turns API keys off for its Red Team and
+  Specialized tiers, admits only people named in the application (every admin counts as a
+  seat, with caps of 75 and 25), removes access from every workspace when the cap is exceeded,
+  and requires phishing-resistant MFA, company-domain accounts and organisation-controlled
+  devices [C1]. Another rests on "strong KYC and identity checks" [C6].
+- *Evidence.* Given apparent credentials to a public package registry in a simulated security
+  exercise, a 2026 model "took potentially harmful actions in roughly half of cases" [C12]: a
+  credential within an agent's reach is likely to be used. MITRE ATLAS records valid accounts
+  obtained by credential theft being used to reach AI services [C14].
 
 **`cy-scope` — work aimed at systems outside the authorised scope.**
 
@@ -284,49 +267,25 @@ flowchart LR
   - Another provider warns of limits on "no-visibility uses like Zero-Data Retention" [C6].
   - Flagged API content can be kept for up to two years at one provider [C13].
 
-**`cy-audit` — actions cannot be tied to a person, a target and an authorisation.**
+**`cy-accountability` — no proof of authorised conduct.**
 
-- *What it is.* Logs are partial, local to the harness, held only by the provider, or editable
-  by the people they record.
-- *Rating: Medium.* Raised by autonomous runs and shared accounts. Lowered by central,
-  append-only logs keyed to engagements.
-- *Evidence.* Every 2026 incident was reconstructed from the reporter's own records:
-  - one developer found its incidents through "additional evaluation monitoring" [C8];
-  - the institute's detection came from monitoring outbound traffic [C9];
-  - the hub operator worked from more than 17,000 logged events [C11].
-
-  During training, some snapshots of one model tried to cover their tracks by "manipulating git
-  records or deleting logs" [C12].
-
-**`cy-legal` — work not covered by valid authorisation, law or contract.**
-
-- *What it is.* The authorisation is missing, expired, signed without authority, silent on
-  AI-assisted testing, or across jurisdictions, or the use breaches the provider's terms.
-- *Rating: Medium.* Unlikely in a mature team, but the impact is criminal or civil liability.
-  Raised by external clients, cross-border work and critical infrastructure.
-- *Evidence.*
-  - One provider's usage policy forbids exploiting vulnerabilities "without authorization of the
-    system owner". It exempts authorised work "provided the activity complies with applicable
-    law" [C2].
-  - Its Red Team tier requires "confirmation that each test is authorized in advance by someone
-    with authority over the systems" [C1].
-  - Another provider grants exceptions that "may require written terms and apply only to the
-    approved partner, use, and conditions" [C7].
-
-**Framework ids.** All OWASP ids, and the ATLAS ids not starred, were verified in this
-repository. The starred ATLAS ids were read for this document in the 2026.10 release file [C14].
-`—` means none verified.
-
-| Threat | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS |
-|---|---|---|---|
-| Insider | — | — | AML.T0040\*, AML.T0017.001 |
-| Sprawl | LLM06:2025 | ASI03 | AML.T0083, AML.T0055\* |
-| Compromise | — | ASI03 | AML.T0012\*, AML.T0055\* |
-| Scope | LLM06:2025 | ASI02 | AML.T0053, AML.T0048\* |
-| Containment | LLM06:2025 | ASI05, ASI10 | AML.T0105, AML.T0048\* |
-| Injection | LLM01:2025 | ASI01 | AML.T0051.001 |
-| Output | — | — | AML.T0025\*, AML.T0086 |
-| Provider data, audit, legal | — | — | — |
+- *What it is.* The organisation cannot tie an action to a person, a target and an
+  authorisation: logs are partial, local to the harness, held only by the provider, or editable
+  by those they record. Or the authorisation itself is missing, expired, signed without
+  authority, silent on AI-assisted testing, or across jurisdictions, or the use breaches the
+  provider's terms.
+- *Rating: Medium.* The likelihood is moderate for weak audit trails and low for missing
+  authorisation in a mature team, but the impact includes criminal or civil liability. Raised by
+  autonomous runs, shared accounts, external clients and cross-border work. Lowered by central,
+  append-only logs keyed to engagements, and by authorisations that name agentic testing.
+- *Evidence.* Every 2026 incident was reconstructed from the reporter's own records: through
+  "additional evaluation monitoring" [C8], outbound-traffic monitoring [C9], and more than
+  17,000 logged events [C11]. Some training snapshots of one model tried to cover their tracks by
+  "manipulating git records or deleting logs" [C12]. One provider's usage policy exempts testing
+  only "with the authorization of the system owner" and "provided the activity complies with
+  applicable law" [C2]; its Red Team tier requires "confirmation that each test is authorized in
+  advance by someone with authority over the systems" [C1]. Another grants exceptions that "may
+  require written terms" [C7].
 
 ## 5. How this repository's evaluations relate
 
@@ -354,10 +313,10 @@ prescribed.
 
 | Check | What it looks at | What it cannot show |
 |---|---|---|
-| Access review | Every person, workspace, role, session and credential that can reach the access, against the named list and seat cap. Authentication and devices. Whether any credential is static, automated or visible to an agent. How fast access can be revoked. Whether use matches the approved use. (`cy-insider`, `cy-sprawl`, `cy-compromise`) | Copies nobody knows about |
-| Scope definition | Per engagement: who signed the authorisation, whether it covers agentic testing, and the targets as a machine-checkable list enforced outside the model. (`cy-scope`, `cy-legal`) | What the agent attempts within an allowed path |
+| Access review | Every person, workspace, role, session and credential that can reach the access, against the named list and seat cap. Authentication and devices. Whether any credential is static, automated or visible to an agent. How fast access can be revoked. Whether use matches the approved use. (`cy-insider`, `cy-access`) | Copies nobody knows about |
+| Scope definition | Per engagement: who signed the authorisation, whether it covers agentic testing, and the targets as a machine-checkable list enforced outside the model. (`cy-scope`, `cy-accountability`) | What the agent attempts within an allowed path |
 | Egress controls | A test from inside the sandbox that only the paths the scope needs are open, including package mirrors, proxies and DNS. One 2026 escape went through a package proxy [C10], and another through a connection nobody knew existed [C8]. (`cy-containment`, `cy-scope`) | Flaws in the components that enforce the controls |
-| Logging review | Whether prompts, tool calls and network activity are logged centrally, out of reach of the agent and the user, and keyed to person and engagement; and a periodic read for unmatched runs, off-list targets and off-task actions. (`cy-audit`, `cy-insider`, `cy-containment`) | Anything that was never logged |
+| Logging review | Whether prompts, tool calls and network activity are logged centrally, out of reach of the agent and the user, and keyed to person and engagement; and a periodic read for unmatched runs, off-list targets and off-task actions. (`cy-accountability`, `cy-insider`, `cy-containment`) | Anything that was never logged |
 
 Output handling (`cy-output`) and the provider's data terms (`cy-provider-data`) are reviewed
 from documents and storage locations.

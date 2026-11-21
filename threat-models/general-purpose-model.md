@@ -110,17 +110,6 @@ flowchart LR
   REPO -->|download| FILES
 ```
 
-**Who controls each input.**
-
-| Input | Controlled by |
-|---|---|
-| User prompts | Staff, any of whom can be the attacker |
-| Pasted, uploaded and tool-returned content | Whoever wrote it |
-| Agent memory | Earlier sessions, and anyone whose content was written into it |
-| System prompt | The deployer |
-| Which model and which safeguards answer | The vendor or the gateway operator |
-| Downloaded files | The repository publisher, or anyone able to push to that repository or impersonate it |
-
 **Threat actors.**
 
 | Actor | Capability | Motivation | Access |
@@ -133,18 +122,19 @@ flowchart LR
 
 ## 4. Core threats
 
-| Id | Threat | Rough inherent risk | Measured here? |
-|---|---|---|---|
-| `gm-misuse` | Misuse and jailbreaks, read against over-refusal | Medium | Yes |
-| `gm-content-injection` | Injection through processed content | High | Yes |
-| `gm-tool-injection` | Agent hijack through tool results | High | Yes |
-| `gm-insecure-code` | Insecure generated code | High | Yes |
-| `gm-leakage` | System prompt or context data disclosed | Medium | Partly |
-| `gm-memory-poisoning` | Memory poisoning | Medium | Yes (small set) |
-| `gm-weights` | Unsafe, tampered or backdoored weights | High (open weights) | Harvest only |
-| `gm-surface-drift` | Bare model unlike the deployed surface; silent version change | High | No |
-| `gm-vendor-data` | Vendor retention and processing of submitted data | Medium | No |
-| `gm-consumption` | Unbounded cost or load | Low | No |
+Framework ids are those verified in this repository; `—` means none verified.
+
+| Id | Threat | Rough risk | Measured here? | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS |
+|---|---|---|---|---|---|---|
+| `gm-misuse` | Misuse and jailbreaks, read against over-refusal | Medium | Yes | LLM01:2025 (jailbreak) | — | AML.T0054, AML.T0068 |
+| `gm-injection` | Prompt injection through content and tool results | High | Yes | LLM01:2025, LLM06:2025 | ASI01, ASI02 | AML.T0051.000, AML.T0051.001, AML.T0053, AML.T0129 |
+| `gm-insecure-code` | Insecure generated code | High | Yes | — | — | — |
+| `gm-leakage` | System prompt or context data disclosed | Medium | Partly | LLM02:2025, LLM07:2025 | — | AML.T0069.002, AML.T0086, AML.T0077 |
+| `gm-memory-poisoning` | Memory poisoning | Medium | Yes (10 cases) | — | ASI06 | AML.T0080.000 |
+| `gm-weights` | Unsafe, tampered or backdoored weights | High (open weights) | Harvest only | LLM03:2025, LLM04:2025 | — | AML.T0010.003, AML.T0011.000, AML.T0018.000, AML.T0018.002 |
+| `gm-surface-drift` | Bare model unlike the deployed surface; silent version change | High | No | — | — | — |
+| `gm-vendor-data` | Vendor retention and processing of submitted data | Medium | No | — | — | — |
+| `gm-consumption` | Unbounded cost or load | Low | No | LLM10:2025 | — | AML.T0034, AML.T0029 |
 
 **`gm-misuse` — misuse and jailbreaks, read against over-refusal.**
 
@@ -159,29 +149,23 @@ flowchart LR
   safeguards; fine-tuning on ten examples once removed a model's safety training [R15].
   Lowered by authenticated, attributed use.
 - *Evidence.* Published jailbreak success rates are often overstated [R3].
-- *Not covered.* How much the model's capability helps with offensive operations is a
-  different, capability question; it is deliberately not measured here (section 5).
 
-**`gm-content-injection` — injection through processed content.**
+**`gm-injection` — prompt injection through content and tool results.**
 
 - *What it is.* Text in a document, email, page, pasted text or image overrides the system
-  prompt or the user's request.
-- *Who causes it.* The author of the content, who is usually not the user.
-- *Rating: High,* because any external content reaches the model. Raised by multilingual and
-  image input, and by clients that render model output as links or images.
-- *Evidence.* Indirect injection was shown against real applications in 2023 [R1]. A 2026 system
-  card reports its newest model "more likely than previous models to follow malicious
-  instructions in text that a user pastes into their own prompt" [R18].
-
-**`gm-tool-injection` — agent hijack through tool results.**
-
-- *What it is.* Content that an agent reads while working redirects it to an attacker's goal.
-  The agent then carries that goal out with its own tools and the organisation's credentials.
-- *Rating: High.* Raised when one agent both reads outsider-writable data and can send or
-  write without approval. Lowered by separating those tools and by approving sensitive calls.
-- *Evidence.* In AgentDojo's 97 tasks and 629 security cases, attacks broke some security
-  properties but not all [R2]. A vendor reports an adaptive attacker succeeding on 54.61% of
-  attempts in coding environments without safeguards, and 11.13% with injection probes on [R18].
+  prompt or the user's request. In an agent, content read while working (a tool result, an
+  inbox, a file) redirects it to an attacker's goal, which it then carries out with its own
+  tools and the organisation's credentials. The author of the content is usually not the user.
+- *Rating: High.* Any external content reaches the model. Raised by multilingual and image
+  input, by rendering output as links or images, and by agents that both read outsider-writable
+  data and send or write without approval. Lowered by separating those tools and approving
+  sensitive calls.
+- *Evidence.* Indirect injection was shown against real applications in 2023 [R1]. In
+  AgentDojo's 97 tasks and 629 security cases, attacks broke some security properties but not
+  all [R2]. A 2026 system card reports its newest model "more likely than previous models to
+  follow malicious instructions in text that a user pastes into their own prompt", and an
+  adaptive attacker succeeding on 54.61% of attempts in coding environments without safeguards
+  and 11.13% with injection probes on [R18].
 
 **`gm-insecure-code` — insecure generated code.**
 
@@ -231,16 +215,13 @@ flowchart LR
   new revision.
 - *Rating: High,* because a gap is almost certain whenever anything is added around the model.
   Lowered by pinned identifiers and by re-measuring when anything changes.
-- *Evidence.* One 2026 system card states:
-  - some results are run "with its production safeguards disabled";
-  - requests blocked by its cyber classifiers fall back to an older model, and on the API the
-    developer must opt in to that fallback;
-  - traffic through other platforms "may experience different behavior";
-  - in one injection test, every successful attack came from a request that had been routed
-    to the fallback model [R18].
-
-  The same vendor documents pinned snapshot identifiers and retirement dates [R17]. An earlier
-  study measured substantial behaviour change in one model service over three months [R19].
+- *Evidence.* One 2026 system card runs some results "with its production safeguards
+  disabled", routes requests blocked by its cyber classifiers to an older fallback model (on the
+  API only if the developer opts in), warns that traffic through other platforms "may experience
+  different behavior", and in one injection test found every successful attack among requests
+  routed to the fallback [R18]. The same vendor documents pinned snapshot ids and retirement
+  dates [R17]; an earlier study measured substantial change in one model service over three
+  months [R19].
 
 **`gm-vendor-data` — vendor retention and processing of submitted data.**
 
@@ -260,21 +241,6 @@ flowchart LR
 - *Rating: Low* for an internal deployment. A public endpoint raises it.
 - *Evidence.* OWASP LLM10:2025 describes this as denial of wallet and also names model
   extraction [R6].
-
-**Framework ids** (verified in this repository; `—` means none verified):
-
-| Threat | OWASP LLM 2025 | OWASP Agentic 2026 | MITRE ATLAS |
-|---|---|---|---|
-| Misuse and jailbreaks | LLM01:2025 (jailbreak) | — | AML.T0054, AML.T0068 |
-| Content injection | LLM01:2025 | — | AML.T0051.000, AML.T0051.001, AML.T0129 |
-| Tool injection | LLM01:2025, LLM06:2025 | ASI01, ASI02 | AML.T0051.001, AML.T0053 |
-| Insecure code | — | — | — |
-| Leakage | LLM02:2025, LLM07:2025 | — | AML.T0069.002, AML.T0086, AML.T0077 |
-| Memory poisoning | — | ASI06 | AML.T0080.000 |
-| Weights | LLM03:2025, LLM04:2025 | — | AML.T0010.003, AML.T0011.000, AML.T0018.002, AML.T0018.000 |
-| Surface and drift | — | — | — |
-| Vendor data | — | — | — |
-| Consumption | LLM10:2025 | — | AML.T0034, AML.T0029 |
 
 ## 5. How this repository's evaluations relate
 
@@ -306,26 +272,19 @@ How to read them:
   and the `low_utility` validity flag marks this.
 - **The agentic sets are small.** The ATB checks have 6, 8 and 10 cases. Code scoring uses a
   semgrep-based detector, which flags patterns, not proven exploits [R4].
-- **Profiles:**
-  - `core`: one check per dimension.
-  - `nojudge`: `cyse4_mitre_frr`, `cyse4_instruct`, `agentdojo` and `atb_memory_poison`. It
-    leaves misuse, jailbreak and content injection unmeasured.
-  - `vision`: the image check.
-  - `all`: everything, adding `cyse4_autocomplete`, `atb_autonomy_hijack` and `atb_data_exfil`.
-- **For image-reading deployments,** `vision-model-benchmark` is the better source.
+- **Profiles.** `core` runs one check per dimension. `nojudge` (`cyse4_mitre_frr`,
+  `cyse4_instruct`, `agentdojo`, `atb_memory_poison`) leaves misuse, jailbreak and content
+  injection unmeasured. `vision` is the image check; for image-reading deployments
+  `vision-model-benchmark` is the better source. `all` adds `cyse4_autocomplete`,
+  `atb_autonomy_hijack` and `atb_data_exfil`.
 - **The suite measures the model at the endpoint it is given.** It uses each benchmark's own
   prompts, with no deployment system prompt.
 
 **`review-evidence`** covers `gm-weights` for open weights. Its `weights_scan.py` reads the scan
 verdicts that the Hugging Face Hub publishes for every file at a revision, and downloads no
-weights. The verdict is one of:
-
-- `clean`: every weight file was scanned and none was flagged;
-- `unsafe`: at least one file was flagged;
-- `unscanned`, which is never `clean`;
-- `error`.
-
-It also reports per-scanner coverage, and flags repositories that ship only pickle-based files.
+weights. The verdict is `clean` (scans finished and every weight file was scanned, none
+flagged), `unsafe` (any file flagged), `unscanned` (never treated as `clean`) or `error`. It also
+reports per-scanner coverage, and flags repositories that ship only pickle-based files.
 A `clean` verdict does not rule out a backdoor or a scanner evasion.
 
 **Left to design review, and why.**
