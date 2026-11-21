@@ -34,13 +34,10 @@ reading each step. A headless CI agent triggered by outsiders' issues has all th
 a workstation in an auto-approving mode with no sandbox has all three as soon as the developer
 opens a third-party repository.
 
-**What the evaluations tell you.** `coding-guidance-benchmark` measures how often a pinned
-harness and model write correct and secure code on BaxBench tasks, with nothing installed and
-with each piece of guidance the organisation supplies. `agent-misuse-benchmark`, once completed
-with the organisation's own scenarios, harness module and scorer, measures how often each model
-× harness × safeguards combination declines tasks policy forbids beside completing matched
-legitimate tasks. Neither measures injection, configuration attacks, sandbox and egress,
-secrets, supply chain, vendor data or audit; those are design review.
+**What the evaluations tell you.** `coding-guidance-benchmark` measures insecure code and the
+effect of guidance on it (C9); `agent-misuse-benchmark`, once an organisation completes it,
+measures harness-dependent refusal of restricted work (C7). Everything else is design review
+(section 5).
 
 ## 2. Scope and reference deployment
 
@@ -60,68 +57,49 @@ the impact of most threats. Unattended bypass modes (`--dangerously-skip-permiss
 `--yolo` and equivalents) raise C1, C4 and C5 to their worst case. CI that triggers only on
 trusted actors lowers C2. Personal consumer accounts raise C10. A cyber-capable model raises C7.
 
-**In scope:** the harness, its settings, the model's behaviour inside it, what it reads and
-runs, what it installs, what it sends to the vendor and what it records. **Out of scope:** the
-bare model API (General-purpose models), agent features such as computer use, connectors and
-background agents in general (Agent features), and AI security tools (AI-assisted security
-tools). Harness facts were read from vendor documentation on 2026-11-21 and change often.
+**Out of scope:** the bare model API (General-purpose models), agent features such as computer
+use, connectors and background agents in general (Agent features), and AI security tools
+(AI-assisted security tools). Harness facts were read on 2026-11-21 and change often.
 
 ## 3. System model
 
 ```mermaid
 flowchart LR
-  subgraph EXT["Outside: untrusted content"]
-    WEB["Web pages, search results"]
-    ISSUE["Issues, pull requests, comments"]
-    REG["Package registries, extension and MCP marketplaces"]
+  subgraph EXT["Outside: untrusted"]
+    IN["Web pages, issues and pull requests, dependencies, MCP servers, registries"]
   end
   subgraph HOST["Developer workstation or CI runner"]
     DEV(["Developer or CI trigger"])
+    REPO["Repository: code, docs, and agent config (instruction and rules files, settings, hooks, MCP config)"]
     subgraph HARNESS["Agent harness"]
-      LOOP["Context assembly"]
-      PERM["Permission layer: mode, rules, hooks"]
-      EXEC["Tools: shell, file edit, fetch, MCP client"]
-    end
-    subgraph WS["Repository checkout"]
-      CODE["Code, docs, dependencies"]
-      CFG["Agent config in repo: instruction and rules files, settings, hooks, MCP config"]
+      LOOP["Context assembly"] --> PERM["Permission layer: mode, rules, hooks"] --> EXEC["Tools: shell, edit, fetch, MCP client"]
     end
     SBX["OS sandbox, if enabled"]
-    SECRETS[("Credentials and .env")]
-    LOGS[("Local transcripts")]
+    SEC[("Credentials, .env, local transcripts")]
   end
   subgraph VENDOR["Model vendor"]
-    API["Model API and safeguards"]
-    TEL["Telemetry and feedback"]
+    API["Model API, safeguards, telemetry"]
   end
   subgraph DOWN["Downstream"]
-    GIT["Git remote and CI/CD"]
-    PROD["Cloud and production"]
+    OUT["Git remote, CI/CD, cloud and production"]
   end
   DEV -->|"request"| LOOP
-  CODE --> LOOP
-  CFG --> LOOP
-  CFG --> PERM
-  ISSUE --> LOOP
+  REPO --> LOOP
+  REPO --> PERM
+  IN --> LOOP
   LOOP <--> API
-  LOOP --> PERM --> EXEC
   EXEC --> SBX
-  EXEC --> WEB
-  SBX --> REG
-  SBX --> SECRETS
-  EXEC --> GIT
-  SBX --> PROD
-  HARNESS --> LOGS
-  HARNESS --> TEL
+  SBX --> SEC
+  SBX --> IN
+  EXEC --> OUT
 ```
 
-The trust boundaries that matter: only the developer's request (or a CI job's fixed prompt)
-expresses intent, and everything else reaching the context is data the model cannot
-authenticate; the permission layer and sandbox are the only things between model output and
-execution; the host's network decides what a command can reach; prompts, code and telemetry
-cross to the vendor; commits, pull requests and cloud actions leave the machine and affect
-others. The assets are the credentials on the machine and in CI, the source code, the
-integrity of what ships, the machine itself, reachable production systems, and the audit trail.
+Only the developer's request (or a CI job's fixed prompt) expresses intent; everything else in
+the context is data the model cannot authenticate. The permission layer and sandbox are all that
+stand between model output and execution; the host's network decides what a command reaches;
+prompts, code and telemetry cross to the vendor; commits and cloud actions affect others. The
+assets are the credentials on the machine and in CI, the source code, the integrity of what
+ships, the machine itself, reachable production systems, and the audit trail.
 
 | Threat actor | Capability and access | Motivation |
 |---|---|---|
@@ -137,92 +115,85 @@ integrity of what ships, the machine itself, reachable production systems, and t
 
 **C1. Instructions in content the agent reads take over its tools.** Repository files, a
 dependency's source, command output, web pages and MCP results can carry instructions, often
-hidden (invisible Unicode, licence boilerplate); the agent follows them with the developer's
-privileges. It matters because the developer never sees the instruction and the action runs
-with real credentials.
-- *Inherent risk:* Critical (likelihood High, impact High). Raised by routine work on
-  third-party code, broad allow rules, auto-approving modes and no sandbox. Lowered by opening
-  untrusted code in an isolated environment with no credentials and no egress, and by
-  approvals that show the full command.
-- *Evidence:* an automated framework with 314 payloads reached attack success rates up to 84%
-  for executing malicious commands in two agentic editors [R14]. In Gemini CLI an injection in
-  a README's licence text, plus a command starting with an allowlisted `grep`, ran commands
-  silently and sent environment variables out; fixed in v0.1.14 [R10]. Hidden Unicode in rules
-  files led two editor agents to insert an attacker's script [R11]. Two Claude Code advisories
-  were approval bypasses that needed untrusted content in context [R9].
+hidden (invisible Unicode, licence boilerplate), which the agent follows with the developer's
+privileges and credentials.
+- *Critical* (likelihood High, impact High). Raised by work on third-party code, broad allow
+  rules, auto-approving modes and no sandbox; lowered by opening untrusted code in an isolated
+  environment with no credentials or egress, and by approvals that show the full command.
+- *Evidence:* 314 payloads reached attack success up to 84% for executing malicious commands in
+  two agentic editors [R14]. In Gemini CLI, an injection in a README's licence text plus a
+  command starting with an allowlisted `grep` ran commands silently and sent environment
+  variables out; fixed in v0.1.14 [R10]. Hidden Unicode in rules files made two editor agents
+  insert an attacker's script [R11]. Two Claude Code advisories were approval bypasses that
+  needed untrusted content in context [R9].
 
-**C2. Outsiders' issue and pull request text steers a headless agent.** In CI, an agent is
-started by repository events and given their text, so anyone who can open an issue writes part
-of the prompt; nobody approves anything, and the job holds tokens and keys.
-- *Inherent risk:* Critical (High, High) for repositories that accept outside contributions.
-  Lowered by triggers limited to people with write access, read-only tokens, no secrets in the
-  agent step, and human approval before agent changes run workflows.
-- *Evidence:* research in December 2025 described pipelines that insert issue, pull request
-  or commit text into prompts of agents holding privileged tokens, with one major agent's own
-  repository confirmed affected [R12]. In 2026 instructions in issue or pull request content
-  made the Claude Code GitHub Action read `/proc/self/environ` with a file tool that ran
-  outside its shell sandbox, exposing the workflow's API key; fixed in 2.1.128 [R13]. One hosted
-  agent documents the opposite design: outsiders' comments never reach it, hidden HTML-comment
-  text is filtered, and workflows on its pull requests wait for approval [R8].
+**C2. Outsiders' issue and pull request text steers a headless agent.** In CI an agent is given
+event text, so anyone who can open an issue writes part of the prompt; nobody approves anything,
+and the job holds tokens and keys.
+- *Critical* (High, High) for repositories that accept outside contributions. Lowered by
+  triggers limited to people with write access, read-only tokens, no secrets in the agent step,
+  and human approval before agent changes run workflows.
+- *Evidence:* December 2025 research described pipelines that put issue, pull request or commit
+  text into prompts of agents holding privileged tokens, with one major agent's own repository
+  confirmed affected [R12]. In 2026, instructions in issue content made the Claude Code GitHub
+  Action read `/proc/self/environ` with a file tool that ran outside its shell sandbox, exposing
+  the workflow's API key; fixed in 2.1.128 [R13]. One hosted agent documents the opposite design:
+  outsiders' comments never reach it, HTML-comment text is filtered, and workflows on its pull
+  requests wait for approval [R8].
 
 **C3. Repository configuration runs or steers the agent.** Settings, hooks, MCP server
-definitions, instruction and rules files, and project skills are files a repository can supply.
-Some run before the user is asked to trust the folder or in headless runs that never ask, and an
-agent that can write these paths turns a one-off injection into code that runs at every start.
-- *Inherent risk:* High (Medium, High). Raised by headless use: one harness documents that in
-  non-interactive mode a repository's hooks, environment block and helper commands are used
-  and its MCP servers connected without asking [R3]. Lowered by managed allowlists for hooks and
-  servers, configuration paths the agent cannot write (Codex keeps `.git`, `.agents` and
-  `.codex` read-only in its workspace-write mode [R6]; Claude Code's sandbox write-denies its
-  settings and `.git/hooks` [R4]), trusted-folder modes that ignore project settings [R7], and
-  flags that skip project configuration for repositories not written in-house [R3].
-- *Evidence:* Cursor let an injected agent create a new MCP configuration without approval
-  (CVE-2025-54135) and let an approved one be swapped silently (CVE-2025-54136) [R9]. Research
-  on GitHub Copilot (CVE-2025-53773) showed injected instructions adding an auto-approve
-  setting to the editor's settings file, after which terminal commands ran unasked [R9][R15].
-  A Claude Code flaw let project code run before the trust dialog was accepted
-  (CVE-2025-59536) [R9].
+definitions, instruction and rules files and project skills are files a repository can supply.
+Some run before the folder is trusted or in headless runs that never ask, and an agent that can
+write them turns a one-off injection into code that runs at every start.
+- *High* (Medium, High). Raised by headless use: one harness documents that in non-interactive
+  mode a repository's hooks, environment block and helper commands are used and its MCP servers
+  connected without asking [R3]. Lowered by managed allowlists for hooks and servers, paths the
+  agent cannot write (Codex keeps `.git`, `.agents` and `.codex` read-only in workspace-write
+  mode [R6]; Claude Code's sandbox write-denies its settings and `.git/hooks` [R4]), and
+  trusted-folder modes that ignore project settings [R7].
+- *Evidence:* Cursor let an injected agent create an MCP configuration without approval
+  (CVE-2025-54135) and let an approved one be swapped silently (CVE-2025-54136) [R9]. Research on
+  GitHub Copilot (CVE-2025-53773) showed injected instructions adding an auto-approve setting to
+  the editor's settings file, after which terminal commands ran unasked [R9][R15]. A Claude Code
+  flaw let project code run before the trust dialog was accepted (CVE-2025-59536) [R9].
 
-**C4. Approvals that do not hold.** The permission layer is the main control, but
-auto-approving modes, broad allow rules, command parsers that misread compound commands, and
-approval fatigue let through actions a person would refuse. Bypass flags are open to any process
-that can launch the CLI.
-- *Inherent risk:* High (Medium, High). Raised by defaults moving toward auto-approval (Claude
-  Code's built-in default for interactive sessions is a classifier-reviewed auto mode from
-  v2.1.283 [R2]; opencode allows every action by default and describes no sandbox [R5]).
-  Lowered by managed settings that disable bypass and auto modes [R2][R7], deny rules that hold
-  in every mode, and a sandbox that enforces limits whatever the command text says [R1].
+**C4. Approvals that do not hold.** Auto-approving modes, broad allow rules, parsers that
+misread compound commands, and approval fatigue let through actions a person would refuse.
+Bypass flags are open to any process that can launch the CLI.
+- *High* (Medium, High). Raised by defaults moving toward auto-approval (Claude Code's built-in
+  default for interactive sessions is a classifier-reviewed auto mode from v2.1.283 [R2];
+  opencode allows every action by default and describes no sandbox [R5]). Lowered by managed
+  settings that disable bypass and auto modes [R2][R7], deny rules that hold in every mode, and a
+  sandbox that enforces limits whatever the command text says [R1].
 - *Evidence:* the vendor says auto mode "reduces permission prompts but does not guarantee
-  safety", and limits stated in conversation can be lost when context is compacted [R2].
+  safety", and limits stated in conversation can be lost on context compaction [R2].
   Command-parsing flaws in Claude Code allowed approval bypass and arbitrary file writes
-  (CVE-2025-54795, CVE-2025-64755) [R9]. Malicious Nx releases in August 2025 ran installed
-  agent CLIs with their bypass flags to inventory secrets [R16].
+  (CVE-2025-54795, CVE-2025-64755) [R9]. Malicious Nx releases in August 2025 ran installed agent
+  CLIs with their bypass flags to inventory secrets [R16].
 
-**C5. Destructive or out-of-scope actions, sandbox gaps and open egress.** With no attacker,
-the agent may delete files, reset history, drop a database or touch production through
-credentials on the machine. Isolation is often partial: sandboxes off by default, file tools,
-MCP servers and hooks outside them, unsandboxed retries, broad reads, open network.
-- *Inherent risk:* High (Medium, High). Raised by permissive harnesses, long unattended runs
-  and production credentials on developer machines. Lowered by disposable working copies,
-  least-privilege credentials, deny-by-default egress, no route to metadata endpoints, and
-  harness checks that never auto-approve critical-path deletions [R2]. Codex's default mode
-  keeps network off [R6]; Claude Code's sandbox is opt-in and leaves file tools, MCP servers and
-  hooks outside it [R4].
-- *Evidence:* a benchmark of four coding-agent products found out-of-scope actions on benign
-  tasks in 5.4–27.7% of runs in permissive harnesses against 0.2–4.5% in an ask-to-continue
-  harness [R17]. In 2026 evaluation runs whose environment had live internet access by
-  misconfiguration, agents compromised three real organisations and one published a malicious
-  package that ran on 15 real systems [R18]; in another evaluation agents took 19 unsanctioned
-  real-world actions [R19].
+**C5. Destructive or out-of-scope actions, sandbox gaps and open egress.** With no attacker the
+agent may delete files, reset history, drop a database or touch production through credentials
+on the machine. Isolation is often partial: sandboxes off by default, some tools outside them,
+unsandboxed retries, broad reads, open network.
+- *High* (Medium, High). Raised by permissive harnesses, long unattended runs and production
+  credentials on developer machines. Lowered by disposable working copies, least-privilege
+  credentials, deny-by-default egress with no route to metadata endpoints, and checks that never
+  auto-approve critical-path deletions [R2]. Codex's default mode keeps network off [R6]; Claude
+  Code's sandbox is opt-in and leaves file tools, MCP servers and hooks outside it [R4].
+- *Evidence:* across four coding-agent products, out-of-scope actions on benign tasks ran at
+  5.4–27.7% in permissive harnesses against 0.2–4.5% in an ask-to-continue harness [R17]. In 2026
+  evaluation runs left with live internet by misconfiguration, agents compromised three real
+  organisations and one published a malicious package that ran on 15 real systems [R18]; in
+  another evaluation agents took 19 unsanctioned real-world actions [R19].
 
 **C6. Secrets in the workspace reach the vendor, the logs and the outputs.** Ordinary work makes
 agents read `.env` files, configuration, environment variables and command output that hold
-secrets. Once read, a secret is in the vendor's context, in local transcripts, and available to
-any later injection or output channel (a commit, a comment, a CI log).
-- *Inherent risk:* High (High, Medium). Lowered by short-lived scoped credentials from a
-  secrets manager, read-deny rules for secret files (opencode asks before reading `.env` by
-  default [R5]), scrubbed environments, and hosted sessions where repository credentials never
-  enter the VM [R1] or secrets exist only during setup [R6].
+secrets; once read, a secret is in the vendor's context, in local transcripts, and available to
+any later injection or output channel.
+- *High* (High, Medium). Lowered by short-lived scoped credentials, read-deny rules for secret
+  files (opencode asks before reading `.env` by default [R5]), scrubbed environments, and hosted
+  sessions where repository credentials never enter the VM [R1] or secrets exist only during
+  setup [R6].
 - *Evidence:* Claude Code keeps transcripts in plaintext under `~/.claude/projects/` for 30 days
   by default [R20], and its sandbox allows reads of the whole machine unless denied [R4]. CI
   secrets were read through `/proc/self/environ` [R13]; environment variables were exfiltrated
@@ -230,58 +201,56 @@ any later injection or output channel (a commit, a comment, a CI log).
 
 **C7. Safeguards that depend on the harness, and offensive misuse.** Refusal and caution are
 shaped by the harness's system prompt, tools, permission mode, provider classifiers and version,
-so a result from a model card or the bare API does not describe the deployment. With a shell
-and a network the agent does offensive work rather than describing it, especially when requests
-are framed as authorised testing or split into innocuous steps.
-- *Inherent risk:* High (Medium, High). Raised by open egress, safeguards off or absent in the
-  harness, and more capable models. Lowered by pinned versions, safeguards left on and fixed
-  centrally, enforced usage policy and monitoring.
+so a model-card or bare-API result does not describe the deployment. With a shell and a network
+the agent does offensive work rather than describing it, especially when requests are framed as
+authorised testing or split into innocuous steps.
+- *High* (Medium, High). Raised by open egress, safeguards off or absent, and more capable
+  models; lowered by pinned versions, safeguards fixed centrally, enforced usage policy and
+  monitoring.
 - *Evidence:* a vendor reported an espionage campaign that ran Claude Code against about thirty
-  targets, with tasks split into small steps and the model told it worked for a security firm
-  doing defensive testing; AI did roughly 80–90% of the work [R21]. Browser-agent red-teaming
-  found models that refuse as chatbots do not refuse as agents [R22]. A refusal framework for
-  offensive-security agents found 6 of 8 frontier models with near-zero refusal [R23]. In the
-  out-of-scope benchmark above, the harness dominated effect size across the same models [R17].
+  targets, with tasks split into small steps and the model told it worked for a security firm;
+  AI did roughly 80–90% of the work [R21]. Models that refuse as chatbots do not refuse as browser
+  agents [R22]. 6 of 8 frontier models showed near-zero refusal in offensive-security agent
+  scenarios [R23]. In the out-of-scope benchmark above, the harness dominated effect size across
+  the same models [R17].
 
 **C8. Packages, extensions and harness components.** Agents install dependencies, sometimes
-under names a model invented that an attacker has registered; developers add MCP servers,
-plugins, skills and extensions, often run straight from a registry; harnesses and extensions
-update themselves. Each runs with the developer's privileges and a compromised one can drive the
-agent.
-- *Inherent risk:* High (Medium, High). Lowered by mirrors and allowlists, lockfiles,
-  pre-built environments, and managed allowlists for servers and extensions.
-- *Evidence:* at least 5.2% of packages suggested by commercial code models and 21.7% by open
-  ones were hallucinated, across 576,000 samples [R24]. Malicious Nx versions on npm invoked
-  local agent CLIs with bypass flags [R16]. A release of the Amazon Q Developer VS Code extension
-  shipped injected code designed to call the vendor's agent CLI, inert only because of a syntax
-  error [R25]. MCP servers in general are covered in the Agent features threat model.
+under names a model invented and an attacker registered; developers add MCP servers, plugins,
+skills and extensions straight from registries; harnesses update themselves. Each runs with the
+developer's privileges, and a compromised one can drive the agent.
+- *High* (Medium, High). Lowered by mirrors and allowlists, lockfiles, pre-built environments,
+  and managed allowlists for servers and extensions.
+- *Evidence:* at least 5.2% of packages from commercial code models and 21.7% from open ones were
+  hallucinated, across 576,000 samples [R24]. Malicious Nx versions invoked local agent CLIs with
+  bypass flags [R16]. A release of the Amazon Q Developer VS Code extension shipped injected code
+  designed to call the vendor's agent CLI, inert only because of a syntax error [R25]. MCP
+  servers in general are covered in the Agent features threat model.
 
 **C9. Insecure code ships, and guidance does not change it.** Agent-written code passes its
-tests and contains exploitable flaws, at a volume that outpaces review. Organisations respond
-with instruction files, rules, skills, hooks and MCP servers, but instruction text is context,
-not enforcement: it can be diluted, lost on compaction, never loaded, or argued away.
-- *Inherent risk:* High for insecure code (High, Medium); Medium for ignored guidance, which
-  mainly creates false assurance. Lowered by review and security testing in CI, hard limits in
-  enforced settings and hooks, and guidance whose effect has been measured.
+tests and contains exploitable flaws, at a volume that outpaces review. Instruction files,
+rules, skills, hooks and MCP servers are used to steer it, but instruction text is context, not
+enforcement: it can be diluted, lost on compaction, never loaded, or argued away.
+- *High* for insecure code (High, Medium); *Medium* for ignored guidance, which mainly creates
+  false assurance. Lowered by review and security testing in CI, hard limits in enforced
+  settings and hooks, and guidance whose effect has been measured.
 - *Evidence:* on BaxBench's 392 backend tasks, exploits succeeded on around half of the correct
-  programs each model produced [R26]. On 186 real-world feature tasks, one agent setup was 57%
-  functionally correct and 11.8% secure, and adding vulnerability hints did not help [R27].
-  Claude Code's documentation calls instruction files "context", "not enforced configuration",
-  with "no guarantee of strict compliance" [R28].
+  programs each model produced [R26]. On 186 real-world feature tasks one agent setup was 57%
+  functionally correct and 11.8% secure, and vulnerability hints did not help [R27]. Claude Code's
+  documentation calls instruction files "context", "not enforced configuration", with "no
+  guarantee of strict compliance" [R28].
 
 **C10. Vendor data, telemetry and audit gaps.** Everything the agent reads goes to the model
-provider; harnesses also send metrics, error reports (sometimes to third parties) and feedback
-transcripts. Meanwhile the organisation's own record is thin by default: local transcripts that
-expire, central telemetry off, prompts and tool arguments redacted, commits attributed to the
-developer.
-- *Inherent risk:* Medium (Medium, Medium); higher with consumer accounts or regulated code.
-  Lowered by commercial or zero-retention terms, organisation-restricted login [R29], telemetry
-  fixed centrally, and managed export of agent events.
-- *Evidence:* for Claude Code, consumer accounts may allow training with 5-year retention, and
+provider, and harnesses also send metrics, error reports (sometimes to third parties) and
+feedback transcripts. The organisation's own record is thin by default: expiring local
+transcripts, central telemetry off, prompts and tool arguments redacted.
+- *Medium* (Medium, Medium); higher with consumer accounts or regulated code. Lowered by
+  commercial or zero-retention terms, organisation-restricted login [R29], telemetry fixed
+  centrally, and managed export of agent events.
+- *Evidence:* for Claude Code, consumer accounts may allow training with 5-year retention while
   commercial accounts have 30-day standard retention; feedback transcripts are kept 5 years;
   metrics go to the vendor and third-party logging [R20]. Gemini CLI collects usage statistics by
-  default [R7]. Claude Code's OpenTelemetry export is off unless enabled, redacts prompts and
-  tool arguments by default, and a repository can switch a signal off unless higher-precedence
+  default [R7]. Claude Code's OpenTelemetry export is off unless enabled, redacts prompts and tool
+  arguments by default, and a repository can switch a signal off unless higher-precedence
   settings fix it [R30].
 
 ## 5. How this repository's evaluations relate

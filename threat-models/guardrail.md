@@ -207,7 +207,8 @@ ids are reused from the lists this repository verified against the primary sourc
 ### gr-latency — Latency, cost and a new availability dependency (Medium)
 
 - **What.** Every inspected request waits for the guardrail; long inputs scanned in segments
-  multiply calls [8]; OWASP counts resource exhaustion among unbounded-consumption risks [2]; the vendor's outage becomes the application's, unless it fails open.
+  multiply calls [8]; OWASP counts resource-intensive queries among unbounded-consumption
+  risks [2]; the vendor's outage becomes the application's, unless it fails open.
 - **Rating.** Likelihood Medium, impact Medium. Lower with length caps before the check,
   capacity budgets and explicit timeouts.
 - **Maps to.** LLM10:2025; AML.T0029.
