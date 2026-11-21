@@ -55,9 +55,11 @@ marked **[checked]**; `scripts/run_tests.sh` runs it with everything else.
 Skills that evaluate a model of one modality follow one shape, so a reviewer reads them the
 same way and models can be ranked as new ones are released.
 
-19. **Threat model first.** `references/threat-model.md` sketches the system (input channels,
-    trust boundaries, what the model's output can do), says where each risk comes from, and
-    lists a small set of core threats (four to seven). **[checked]** that it exists.
+19. **Threat model first.** `references/threat-model.md` is a copy of the asset class's formal
+    threat model from `threat-models/` (written by the sync script, never edited in place). It
+    names every threat in `threats.json` with the same id. **[checked]** by
+    `scripts/check_threat_models.py`, which also requires every skill that evaluates an asset
+    class to carry one.
 20. **`threats.json`** at the skill root lists those threats: `id`, `name`, `risk_source`, and
     `lanes` naming the benchmarks that measure each threat in each lane. A threat with no
     benchmark in either lane says so and becomes a design-review question. **[checked]**

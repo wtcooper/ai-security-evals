@@ -57,6 +57,7 @@ jobs:
           python scripts/check_plugins.py
           python scripts/gen_manifests.py --check
           python scripts/check_standard.py
+          python scripts/check_threat_models.py
 
       - name: Skills are copy-paste self-contained
         run: bash scripts/check_independence.sh

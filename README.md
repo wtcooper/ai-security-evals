@@ -67,6 +67,32 @@ The design rationale is in [`docs/design.md`](docs/design.md).
 
 ---
 
+## Threat models
+
+Every asset class this repository evaluates has a formal threat model in
+[`threat-models/`](threat-models/README.md): an executive summary of the core risks, the
+system model and trust boundaries, each threat in detail, and which skill evaluates it and
+why — or why it is left to design review. Each skill carries a copy of its asset class's
+threat model as `references/threat-model.md`.
+
+| Asset class | Threat model | Evaluated by |
+|---|---|---|
+| General-purpose models (frontier API and open weights) | [general-purpose-model](threat-models/general-purpose-model.md) | `model-benchmark` |
+| Restricted-access cyber-capable models | [restricted-cyber-model](threat-models/restricted-cyber-model.md) | threat model only |
+| Decision and classification models | [decision-model](threat-models/decision-model.md) | `decision-model-benchmark` |
+| Realtime voice models | [voice-model](threat-models/voice-model.md) | `voice-model-benchmark` |
+| Vision-input models | [vision-input-model](threat-models/vision-input-model.md) | `vision-model-benchmark` |
+| Image-generation models | [image-generation-model](threat-models/image-generation-model.md) | `image-generation-benchmark` |
+| AI coding agents | [coding-agent](threat-models/coding-agent.md) | `agent-misuse-benchmark`, `coding-guidance-benchmark` |
+| Agent features | [agent-features](threat-models/agent-features.md) | `agent-feature-review` |
+| LLM applications | [llm-application](threat-models/llm-application.md) | `app-benchmark`, `app-redteam` |
+| Guardrails and safety classifiers | [guardrail](threat-models/guardrail.md) | `guardrail-benchmark` |
+| AI-assisted security tools | [security-tooling](threat-models/security-tooling.md) | `security-tool-benchmark` |
+
+Restricted-access cyber-capable models — provided only to a few vetted people for offensive
+security work — have a threat model but no pre-enable benchmark: what matters for them is
+access, scope, oversight and where their output goes.
+
 ## Install
 
 **Claude Code:**
@@ -123,6 +149,7 @@ ai-security-evals/
 │   ├── plugin.json · README.md
 │   └── skills/<skill>/             #   SKILL.md + scripts, vendored lib/, tests/, references/
 ├── catalog/benchmarks.json         # benchmark catalogue: threats covered, engine, tier, cost
+├── threat-models/                  # formal threat model per asset class (copied into each skill)
 ├── targets/                        # things to point skills at: local gateway, vulnerable apps
 ├── tools/                          # MAINTAINER ONLY: shared library, corpus builder, tests
 │   ├── lib/                        #   source of truth for code vendored into skills

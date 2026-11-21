@@ -152,6 +152,9 @@ records who set each criterion and whether that was before or after the results 
   logs every run and excludes a tool on the targets where it failed.
 - **`coding-guidance-benchmark` treats an arm as an opaque folder.** It never inspects or
   interprets the guidance; only a placebo arm ships. Tasks and scoring come from BaxBench.
+- **Every asset class has a formal threat model** in `threat-models/`, copied into each skill
+  that evaluates it. The evaluations exist to test the threats it names, and its evaluation
+  coverage section says which threats each skill measures and which are left to design review.
 - **Modality benchmarks share one shape.** `decision-model-benchmark`,
   `voice-model-benchmark`, `vision-model-benchmark` and `image-generation-benchmark` each start
   from a threat model of their channel (where input comes from, the trust boundaries, what

@@ -46,6 +46,10 @@ echo "== Skills meet docs/skill-standard.md =="
 python3 scripts/check_standard.py
 
 echo
+echo "== Threat models complete and copied into their skills =="
+python3 scripts/check_threat_models.py
+
+echo
 echo "== Skills are copy-paste self-contained (no escaping references) =="
 bash scripts/check_independence.sh
 
