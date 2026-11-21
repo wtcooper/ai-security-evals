@@ -152,8 +152,18 @@ records who set each criterion and whether that was before or after the results 
   logs every run and excludes a tool on the targets where it failed.
 - **`coding-guidance-benchmark` treats an arm as an opaque folder.** It never inspects or
   interprets the guidance; only a placebo arm ships. Tasks and scoring come from BaxBench.
-- **`voice-model-benchmark` varies the modality.** The same prompts go in as text and as
-  locally synthesised speech, with seeded audio perturbations.
+- **Modality benchmarks share one shape.** `decision-model-benchmark`,
+  `voice-model-benchmark`, `vision-model-benchmark` and `image-generation-benchmark` each start
+  from a threat model of their channel (where input comes from, the trust boundaries, what
+  the output can cause) and a short list of core threats. Each threat is measured in up to two
+  lanes: *known*, at most two published benchmarks per skill at pinned revisions, and
+  *custom*, one small core set written here and scored deterministically wherever possible.
+  A shared scorecard compares models threat by threat on the same cases, orders them, and
+  lists only the differences unlikely to be noise, so a newly released model is added by
+  running it on the same seed. Where no published benchmark exists the threat model says so.
+- **`voice-model-benchmark` also varies the modality.** The same prompts go in as text and as
+  locally synthesised speech, with seeded audio perturbations, so the speech-minus-text gap is
+  reported beside the scorecard.
 - **`agent-misuse-benchmark` is a scaffold.** The scenario format, the sweep, the statistics
   and the report ship; the scenarios, the harness module and the outcome scorer are supplied
   by whoever completes it, because what an agent must decline is each organisation's own

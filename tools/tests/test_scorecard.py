@@ -52,8 +52,12 @@ def test_lane_disagreement_and_coverage():
     assert card["lane_disagreements"] == [{"threat": "t-injection", "known_best": "a", "custom_best": "b"}]
     cov = {(c["threat"], c["lane"]): c["status"] for c in card["coverage"]}
     assert cov[("t-leak", "custom")] == "not run"
-    assert cov[("t-leak", "known")] == "no benchmark in this lane"
+    assert ("t-leak", "known") not in cov          # one lane by design is not a gap
     assert cov[("t-unrun", "known")] == "not run"
+    review_only = sc.build(data, THREATS + [{"id": "t-none", "name": "n", "risk_source": "r",
+                                             "lanes": {"known": [], "custom": []}}])
+    assert {"threat": "t-none", "lane": "either", "status": "no benchmark; a design-review question",
+            "planned": []} in review_only["coverage"]
 
 
 def test_rows_without_the_contract_fields_are_ignored(tmp_path):

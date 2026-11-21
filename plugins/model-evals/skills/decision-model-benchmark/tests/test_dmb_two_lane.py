@@ -282,7 +282,8 @@ def test_a_keyless_run_feeds_the_scorecard_in_both_lanes(tmp_path, capsys):
     for t in THREATS["threats"]:
         for lane in ("known", "custom"):
             assert ((t["id"], lane) in measured) == bool(t["lanes"][lane]), (t["id"], lane)
-    assert {(c["threat"], c["lane"]) for c in card["coverage"]} == {
-        (t["id"], "known") for t in THREATS["threats"] if not t["lanes"]["known"]}
+    # Every planned lane ran and every threat has a benchmark, so nothing is reported missing;
+    # a threat measured in one lane by design is not a gap.
+    assert card["coverage"] == []
     text = (out / "scorecard.md").read_text()
-    assert "## Scorecard" in text and "## Ordering" in text and "## Not measured" in text
+    assert "## Scorecard" in text and "## Ordering" in text

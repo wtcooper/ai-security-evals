@@ -36,7 +36,7 @@ Skill names are `<subject>-<method>`: `benchmark` (a fixed labelled test set), `
 | [`model-evals`](plugins/model-evals/) | `model-benchmark` | A fixed suite of Inspect benchmarks, one per risk dimension, on the same seeded samples for every model |
 | | `vision-model-benchmark` | Models that read images: instructions hidden in images, secret extraction, tool hijack, harmful requests written as images, over-refusal; CyberSecEval 3 and FigStep plus a rendered core set |
 | | `decision-model-benchmark` | Decision / classification endpoints: fail-open and fail-closed rates, decision flips under attack against the re-run noise floor |
-| | `voice-model-benchmark` | The same prompts as text and as synthesised speech, with audio perturbations, against a realtime model |
+| | `voice-model-benchmark` | Realtime voice models: spoken harmful requests, audio distortions, a second voice giving instructions, talking the agent into a tool call, secret leakage, over-refusal; AdvBench and XSTest spoken plus a 48-case core set |
 | | `image-generation-benchmark` | Image generation: phishing assets, forged documents, working QR payloads, likeness, justification bypass and provenance, on a small core set plus the C2PA reference verifier |
 | [`agent-evals`](plugins/agent-evals/) | `agent-misuse-benchmark` | **Scaffold.** Does a model inside an agent harness carry out tasks your policy says it must decline? Ships the scenario format, arm sweep, statistics and report; you supply the scenarios, harness module and outcome scorer |
 | | `agent-feature-review` | Guided review of an agent feature: computer use, memory, connectors/MCP, code execution, file search, multi-agent, background agents |

@@ -737,7 +737,7 @@
     },
     {
       "id": "voice_speech_vs_text",
-      "name": "voice-model-benchmark: text, speech and perturbed speech",
+      "name": "AdvBench and XSTest spoken (voice-model-benchmark known lane)",
       "skill": "voice-model-benchmark",
       "status": "available",
       "subjects": [
@@ -754,19 +754,19 @@
       "needs_judge": true,
       "needs_sandbox": false,
       "calls_per_sample": null,
-      "dataset_size": 975,
-      "licence": "mixed: MIT and CC-BY-4.0 (XSTest rows need attribution)",
+      "dataset_size": 970,
+      "licence": "AdvBench MIT; XSTest CC-BY-4.0 (rows vendored, fetched and compared at pinned commits)",
       "verified": true,
       "verified_from": "corpus manifest (975 cases: 720 harmful, 255 benign, with per-source licences) and SKILL.md of the voice-model-benchmark skill, read 2026-11-14",
       "source": null,
-      "note": "The same seeded harmful and benign requests sent to one realtime model as text, as locally synthesised speech, and as that speech under audio perturbations; a separate judge grades each reply transcript. Reports the paired speech-minus-text gap and per-perturbation deltas. Calls per case depend on the arms chosen. Its SKILL.md limits the claim to one synthetic voice, the perturbation settings used and one turn per case.",
+      "note": "Known lane of voice-model-benchmark (vm-spoken-harm, vm-audio-evasion, vm-over-refusal): AdvBench harmful_behaviors.csv (520 rows, llm-attacks commit 098262e) and XSTest (450 rows, commit d7bb5bd) sent to one realtime model as text, as locally synthesised speech and under audio perturbations; a separate judge grades transcripts. The perturbations are the skill's own.",
       "measures": "subject"
     },
     {
       "id": "jalmbench",
       "name": "JALMBench",
       "skill": "voice-model-benchmark",
-      "status": "planned",
+      "status": "candidate",
       "subjects": [
         "voice-model"
       ],
@@ -779,18 +779,18 @@
       "needs_sandbox": null,
       "calls_per_sample": null,
       "dataset_size": 245355,
-      "licence": "code Apache-2.0; dataset licence not checked",
+      "licence": "CC-BY-4.0",
       "verified": true,
-      "verified_from": "README and LICENSE of github.com/sfofgalaxy/JALMBench, read 2026-11-14 (11,316 text prompts and 245,355 audio samples)",
+      "verified_from": "https://huggingface.co/datasets (JALMBench, revision 53da5217)",
       "source": "https://github.com/sfofgalaxy/JALMBench",
-      "note": "Not run by voice-model-benchmark today. Size is audio samples in the full release; a review would run a sample. The dataset is hosted separately and its licence was not checked.",
+      "note": "Optional swap for the spoken AdvBench prompts in voice-model-benchmark (pre-recorded jailbreak audio), not run by default. Revision 53da5217, not gated; per-file byte-range reads work.",
       "measures": "subject"
     },
     {
       "id": "jailbreak_audiobench_plus",
       "name": "Jailbreak-AudioBench-Plus",
       "skill": "voice-model-benchmark",
-      "status": "planned",
+      "status": "candidate",
       "subjects": [
         "voice-model"
       ],
@@ -804,11 +804,11 @@
       "needs_sandbox": null,
       "calls_per_sample": null,
       "dataset_size": null,
-      "licence": null,
-      "verified": false,
-      "verified_from": null,
+      "licence": "CC-BY-4.0",
+      "verified": true,
+      "verified_from": "https://huggingface.co/datasets/researchtopic/Jailbreak-AudioBench-Plus (revision 732a25c4)",
       "source": null,
-      "note": "Named during design as a candidate. Nothing about it was checked.",
+      "note": "42.2 GB in 43 files; text CSVs now accompany the clips but matching them to clips was not tried. Not run by voice-model-benchmark.",
       "measures": "subject"
     },
     {
@@ -1468,6 +1468,32 @@
       "verified_from": "https://github.com/contentauth/c2pa-python",
       "source": "https://github.com/contentauth/c2pa-python",
       "note": "Known lane of image-generation-benchmark (ig-provenance): a standard's reference verifier, not a benchmark. c2pa-python 0.39.0 checks every produced image against the official C2PA trust list pinned at c2pa-org/conformance-public@f61352d7."
+    },
+    {
+      "engine": "custom",
+      "measures": "subject",
+      "tier": "T0",
+      "needs_sandbox": false,
+      "verified": true,
+      "subjects": [
+        "voice-model"
+      ],
+      "id": "voice_core",
+      "name": "voice-model-benchmark core set (vm-core)",
+      "skill": "voice-model-benchmark",
+      "status": "available",
+      "threats": [
+        "voice-background-injection",
+        "voice-tool-abuse",
+        "system-prompt-leak"
+      ],
+      "needs_judge": false,
+      "calls_per_sample": 1,
+      "dataset_size": 48,
+      "licence": "MIT (scenarios written here, fictional businesses; speech synthesised at run time)",
+      "verified_from": "plugins/model-evals/skills/voice-model-benchmark/custom/cases.jsonl",
+      "source": null,
+      "note": "Custom lane of voice-model-benchmark: 8 attacks and 8 benign twins each for a second voice giving instructions, spoken social engineering of a tool call, and extraction of a secret from the session instructions. Scored deterministically from the canary, the function-call events and the transcript; tools are never executed."
     }
   ]
 }

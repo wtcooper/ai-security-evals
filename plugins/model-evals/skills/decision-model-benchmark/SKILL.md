@@ -171,10 +171,10 @@ Gemini) and runs both lanes, the known lane on `fixtures/` (benchmark ids end in
 **Its numbers describe the toy, not any decision model.** Expected:
 - `381` rows in `samples.jsonl` (127 per arm); `mock-b` reports 2 refusals (it refuses
   base64-wrapped input), no arm reports an error.
-- `scorecard.md` has the headings `Where the risk comes from`, `Scorecard`, `Ordering`,
-  `Measurable differences`, `Where the two lanes disagree` (on `dm-perturbation`) and `Not
-  measured`, and 8 scorecard rows: five custom, three known. `Not measured` lists the known
-  lane of `dm-injection` and `dm-option-channel`; no difference is measurable at this size.
+- `scorecard.md` has the headings `Where the risk comes from`, `Scorecard`, `Ordering` and
+  `Measurable differences`, and 8 scorecard rows: five custom, three known. No difference is
+  measurable at this size. `dm-injection` and `dm-option-channel` are measured in the custom
+  lane only, by design.
 - `dm-nondeterminism` is 1.00 for every arm in both lanes: the toy is deterministic.
 - In `summary.md`, `mock-a` flips under `injection`, `option_order` and `option_rename`;
   `mock-a-gemini` shows option-order consistency `1.00` and the `option_order_not_sent` flag,

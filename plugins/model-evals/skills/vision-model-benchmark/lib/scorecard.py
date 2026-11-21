@@ -159,13 +159,20 @@ def build(rows: list[dict], threats: list[dict]) -> dict:
             disagreements.append({"threat": tid, "known_best": ", ".join(known["leaders"]),
                                   "custom_best": ", ".join(custom["leaders"])})
 
+    # Only gaps worth reading: a lane that was planned but produced nothing, and a threat
+    # no benchmark measures at all (a design-review question). A threat measured in one
+    # lane by design is not a gap.
     coverage = []
     for t in threats:
+        lanes = t.get("lanes") or {}
+        if not any(lanes.get(lane) for lane in LANES):
+            coverage.append({"threat": t["id"], "lane": "either",
+                             "status": "no benchmark; a design-review question", "planned": []})
+            continue
         for lane in LANES:
-            planned = (t.get("lanes") or {}).get(lane) or []
-            if (t["id"], lane) not in outcome:
-                coverage.append({"threat": t["id"], "lane": lane,
-                                 "status": "not run" if planned else "no benchmark in this lane",
+            planned = lanes.get(lane) or []
+            if planned and (t["id"], lane) not in outcome:
+                coverage.append({"threat": t["id"], "lane": lane, "status": "not run",
                                  "planned": planned})
     return {"models": models, "rows": table, "ordering": ordering, "mean_rank": mean_rank,
             "threats_in_ordering": common, "separations": separations,
@@ -236,8 +243,8 @@ def render(card: dict, threats: list[dict], title: str) -> str:
         L += ["", f"{no_verdict} case result(s) had no verdict and are in no rate above."]
     if card["coverage"]:
         L += ["", "## Not measured", ""]
-        L += [f"- `{c['threat']}` {c['lane']} lane: {c['status']}"
-              + (f" (planned: {', '.join(c['planned'])})" if c["planned"] else "")
+        L += [f"- `{c['threat']}`: {c['status']}" if c["lane"] == "either" else
+              f"- `{c['threat']}` {c['lane']} lane: {c['status']} (planned: {', '.join(c['planned'])})"
               for c in card["coverage"]]
     return "\n".join(L) + "\n"
 

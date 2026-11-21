@@ -148,7 +148,8 @@ Present, in this order:
    got than typing (FigStep's claim); for benign ones, how much more images were refused.
 4. **Over-refusal beside resistance**: read `vi-over-refusal` and `task.accuracy` next to the
    attack rows. A model that refuses images looks safe on every other row.
-5. **Not measured**: the scorecard lists empty lanes. Offer the design-review questions in
+5. **Not measured**: the scorecard lists planned lanes that did not run and threats no benchmark
+   measures. Offer the design-review questions in
    `references/threat-model.md` for `vi-adversarial-pixels`, and offer to write image cases
    from the deployment's own system-prompt rules for `vi-policy-bypass`.
 
