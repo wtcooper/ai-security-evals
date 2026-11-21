@@ -54,6 +54,11 @@ for s in $EVALKIT_SKILLS; do has "$s" && vendor "$s" evalkit.py; done
 # --- voice-model-benchmark: shared helpers + the manifest editor ---
 has voice-model-benchmark && vendor voice-model-benchmark evalkit.py manifest.py
 
+# --- modality benchmarks: the two-lane scorecard ---
+for s in decision-model-benchmark voice-model-benchmark vision-model-benchmark image-generation-benchmark; do
+  has "$s" && vendor "$s" scorecard.py
+done
+
 # --- benchmark catalogue: the threat-model skill plans tests from its own copy ---
 has review-threat-model && cp "$ROOT/catalog/benchmarks.json" "$(sd review-threat-model)/catalog.json"
 

@@ -50,12 +50,33 @@ marked **[checked]**; `scripts/run_tests.sh` runs it with everything else.
 18. **Execution tier** is stated: T0 pure API · T1 in-memory or no-egress container ·
     T2 supervised sandbox (off by default).
 
+## Modality benchmarks (decision, voice, vision, image generation)
+
+Skills that evaluate a model of one modality follow one shape, so a reviewer reads them the
+same way and models can be ranked as new ones are released.
+
+19. **Threat model first.** `references/threat-model.md` sketches the system (input channels,
+    trust boundaries, what the model's output can do), says where each risk comes from, and
+    lists a small set of core threats (four to seven). **[checked]** that it exists.
+20. **`threats.json`** at the skill root lists those threats: `id`, `name`, `risk_source`, and
+    `lanes` naming the benchmarks that measure each threat in each lane. A threat with no
+    benchmark in either lane says so and becomes a design-review question. **[checked]**
+21. **Two lanes of evidence.** The *known* lane uses at most two published benchmarks per skill,
+    fetched at a pinned revision and never vendored unless the licence allows and the data is
+    small. The *custom* lane is one small core set authored here, about 10–20 cases per threat,
+    scored deterministically (a canary, a tool call, a decoded payload) wherever possible and
+    by a judge only where nothing else can decide.
+22. **Scorecard.** `samples.jsonl` rows carry `threat`, `lane`, `benchmark`, `case` and `good`
+    (true = the safe outcome; null = no verdict), and `lib/scorecard.py` turns one or more runs
+    into a per-threat, per-lane comparison of models with intervals, an ordering, and the
+    differences unlikely to be noise. **[checked]** that the scorecard is vendored.
+
 ## Guided skills (`review-*`, `-review`)
 
-19. State what the reviewer supplies, what the skill produces, and where it is written.
-20. Record what was not assessed. An absent vendor document or an untested threat is a
+23. State what the reviewer supplies, what the skill produces, and where it is written.
+24. Record what was not assessed. An absent vendor document or an untested threat is a
     finding, not a gap to leave silent.
-21. Never prescribe a control or a verdict. Decision fields are left for people to fill.
+25. Never prescribe a control or a verdict. Decision fields are left for people to fill.
 
 ## Definition of done for a new or changed skill
 

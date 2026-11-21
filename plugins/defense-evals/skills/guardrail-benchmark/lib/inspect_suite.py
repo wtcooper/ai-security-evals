@@ -51,6 +51,11 @@ class Check:
     calls_per_sample: int = 1
     dataset_size: int | None = None
     note: str = ""
+    # Optional: the threat this check measures and its evidence lane ("known" for a published
+    # benchmark, "custom" for a skill's own core set). Written into samples.jsonl so a
+    # two-lane scorecard can be built from any run.
+    threat: str | None = None
+    lane: str | None = None
 
     @property
     def needs_judge(self) -> bool:

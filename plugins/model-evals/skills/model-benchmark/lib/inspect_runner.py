@@ -69,8 +69,12 @@ def sample_rows(check: suite.Check, arm: str, samples) -> list[dict]:
     for sample in samples or []:
         scores = list((getattr(sample, "scores", None) or {}).values())
         good = check.sample_good(getattr(scores[0], "value", None)) if scores else None
-        rows.append({"arm": arm, "target": check.id, "sample": str(getattr(sample, "id", "")),
-                     "epoch": getattr(sample, "epoch", 1), "good": good})
+        sid, epoch = str(getattr(sample, "id", "")), getattr(sample, "epoch", 1)
+        row = {"arm": arm, "target": check.id, "sample": sid, "epoch": epoch, "good": good}
+        if check.threat and check.lane:
+            row.update({"threat": check.threat, "lane": check.lane, "benchmark": check.id,
+                        "case": f"{sid}#{epoch}"})
+        rows.append(row)
     return rows
 
 
