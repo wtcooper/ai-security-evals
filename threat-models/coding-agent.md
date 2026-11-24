@@ -375,7 +375,7 @@ extension, including any AI automation in it, is part of the attack surface.
   installed the OpenClaw agent globally and was live for about eight hours [R38]. Malicious
   copies of the Claude Code extension, which Anthropic did not publish, sat in Cursor's extension
   marketplace cache for about 11 hours, available to at most 5,000 users, placed with a
-  credential taken in a provider breach [R40]. Claude Code's plugin installer could be made to
+  credential stolen in the same incident [R40]. Claude Code's plugin installer could be made to
   install a branch named like a pinned commit instead of the commit (CVE-2026-86063) [R36], and
   Cursor let an approved MCP configuration be swapped without re-approval (CVE-2025-54136) [R9].
   MCP servers in general are covered in the Agent features threat model.
