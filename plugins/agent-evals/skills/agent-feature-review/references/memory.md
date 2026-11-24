@@ -23,7 +23,7 @@ Besides the scope and the six dimensions in `deployment-context.md`, ask:
 
 An instruction or false fact arrives in a document, a tool result or a message, is written to memory, and acts in sessions where the attacker is no longer present.
 
-OWASP LLM: LLM01:2025 Prompt Injection · OWASP Agentic: ASI06 Memory & Context Poisoning · MITRE ATLAS: AML.T0080.000 AI Agent Context Poisoning: Memory, AML.T0051.001 LLM Prompt Injection: Indirect
+OWASP LLM: LLM01:2026 Prompt Injection · OWASP Agentic: ASI06 Memory & Context Poisoning · MITRE ATLAS: AML.T0080.000 AI Agent Context Poisoning: Memory, AML.T0051.001 LLM Prompt Injection: Indirect
 
 Review questions
 
@@ -50,7 +50,7 @@ No standardized test for
 
 A detail from a personal or confidential conversation appears in an unrelated one: another project, another audience, a shared screen.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure · MITRE ATLAS: AML.T0085.002 Data from AI Services: Conversation Context and Memory
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure · MITRE ATLAS: AML.T0085.002 Data from AI Services: Conversation Context and Memory
 
 Review questions
 
@@ -74,7 +74,7 @@ No standardized test for
 
 In a team workspace or a shared agent, one person's content reaches another through memory.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure
 
 Review questions
 
@@ -98,7 +98,7 @@ No standardized test for
 
 Secrets, personal data or regulated data end up in a store nobody planned for.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure
 
 Review questions
 
@@ -123,7 +123,7 @@ No standardized test for
 
 Remembered beliefs and preferences make the model agree with the user where it should not, or bias later work.
 
-OWASP LLM: LLM09:2025 Misinformation
+OWASP LLM: LLM07:2026 Misinformation
 
 Review questions
 
@@ -168,5 +168,5 @@ No standardized test for
 
 ## Sources
 
-Framework ids: OWASP Top 10 for LLM Applications 2025, https://genai.owasp.org/llm-top-10/ (read 2026-11-14); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
+Framework ids: OWASP Top 10 for LLM Applications 2026, https://genai.owasp.org/top-10-for-llm-applications-2026/ (read 2026-11-24); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
 Benchmarks: see `benchmarks.md` for what was and was not verified about each.

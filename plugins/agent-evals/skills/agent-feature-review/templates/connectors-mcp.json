@@ -20,7 +20,7 @@
       "title": "Tool poisoning: instructions hidden in tool descriptions",
       "description": "A tool's metadata tells the model to do something the user never asked for. Nothing has to be called for the text to take effect.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI04"
@@ -57,7 +57,7 @@
       "title": "Injection through what a tool returns",
       "description": "A ticket, email, document or record fetched by a connector carries instructions, and the agent follows them.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI01"
@@ -100,7 +100,7 @@
       "title": "A malicious, compromised or changed server",
       "description": "The server itself is hostile: published to be installed, taken over later, renamed to collide with a trusted one, or changed after approval.",
       "owasp_llm": [
-        "LLM03:2025"
+        "LLM04:2026"
       ],
       "owasp_agentic": [
         "ASI04"
@@ -137,7 +137,7 @@
       "title": "Over-broad permissions and credential handling",
       "description": "The connector's token can do more than the task needs, is stored where it can be read, or lets one user act with another's rights.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI03"
@@ -166,7 +166,7 @@
       "title": "Data read through one tool leaves through another",
       "description": "Private content fetched by one connector is written, sent or encoded into a call to another that an attacker can read.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [
         "ASI02"
@@ -204,7 +204,7 @@
       "title": "Destructive or unintended writes through tools",
       "description": "The agent deletes, overwrites, sends or changes something in a connected system, by error or under manipulation.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI02"

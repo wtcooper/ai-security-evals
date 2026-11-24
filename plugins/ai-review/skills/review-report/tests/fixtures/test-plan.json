@@ -80,7 +80,7 @@
       "description": "Content the agent reads while working (a tool result, a file, a web page, an issue) redirects it to an attacker's goal.",
       "why_here": "Every file, issue, web page and tool result the agent reads is an instruction channel.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI01"
@@ -207,7 +207,7 @@
       "description": "The agent uses a legitimate tool in a harmful way: destroying data, sending data out, spending money, changing configuration.",
       "why_here": "Shell, file and network tools turn a steered model into actions.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI02"
@@ -233,7 +233,7 @@
       "description": "Secrets, personal data or another user's data that are in the context, in memory or reachable by a tool appear in a response, in rendered content or in a tool call to an outside destination.",
       "why_here": "Environment variables, credentials and source code are within reach of tools that can send data.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -305,7 +305,7 @@
       "description": "The capability holds credentials, scopes or autonomy beyond what the task needs; whoever steers it inherits them.",
       "why_here": "The agent runs with the user's credentials unless scoped otherwise.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI03"
@@ -559,7 +559,7 @@
       "description": "A crafted prompt gets the model to produce what its safeguards would otherwise withhold.",
       "why_here": "Harness system prompts and tool framing change what gets through.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -857,7 +857,7 @@
       "description": "A component added to the agent is malicious, is poisoned later, or changes after it was approved.",
       "why_here": "Skills, plugins, rule files and MCP servers added to the harness.",
       "owasp_llm": [
-        "LLM03:2025"
+        "LLM04:2026"
       ],
       "owasp_agentic": [
         "ASI04"
@@ -884,7 +884,7 @@
       "description": "Downloaded weights or model files carry malicious code or were replaced on the way: unsafe serialisation formats, a look-alike repository, a changed revision.",
       "why_here": "Open weights only.",
       "owasp_llm": [
-        "LLM03:2025"
+        "LLM04:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -997,7 +997,7 @@
       "description": "Requests, loops or tool calls drive cost or load without a cap.",
       "why_here": "Loops and long runs.",
       "owasp_llm": [
-        "LLM10:2025"
+        "LLM06:2026"
       ],
       "owasp_agentic": [],
       "atlas": [

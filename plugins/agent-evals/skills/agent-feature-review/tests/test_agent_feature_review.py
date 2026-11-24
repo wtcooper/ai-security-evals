@@ -52,7 +52,7 @@ def test_template_is_complete_and_every_id_it_cites_is_in_the_verified_lists(fea
 
 def test_framework_ids_have_the_shape_of_their_source():
     fw = templates.frameworks()
-    assert sorted(fw["owasp_llm"]) == [f"LLM{n:02d}:2025" for n in range(1, 11)]
+    assert sorted(fw["owasp_llm"]) == [f"LLM{n:02d}:2026" for n in range(1, 11)]
     assert sorted(fw["owasp_agentic"]) == [f"ASI{n:02d}" for n in range(1, 11)]
     assert all(re.fullmatch(r"AML\.T\d{4}(\.\d{3})?", a) for a in fw["atlas"])
     assert all(src for src in fw["sources"].values())

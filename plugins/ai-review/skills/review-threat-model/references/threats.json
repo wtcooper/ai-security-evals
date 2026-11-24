@@ -18,7 +18,7 @@
       "name": "Jailbreak",
       "description": "A crafted prompt gets the model to produce what its safeguards would otherwise withhold.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -44,7 +44,7 @@
       "name": "Prompt injection through input or content",
       "description": "Text in the user's input, or in content the model is asked to process, overrides the instructions the system gave it.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -74,7 +74,7 @@
       "name": "Instructions hidden in an image",
       "description": "Text or patterns inside an input image are followed as instructions.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -90,7 +90,7 @@
       "name": "System prompt disclosure",
       "description": "The system prompt or other configuration is revealed, exposing rules, internal details or secrets that were placed in it.",
       "owasp_llm": [
-        "LLM07:2025"
+        "LLM08:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -106,7 +106,7 @@
       "name": "Sensitive data leaves through output or a tool",
       "description": "Secrets, personal data or another user's data that are in the context, in memory or reachable by a tool appear in a response, in rendered content or in a tool call to an outside destination.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -123,7 +123,7 @@
       "name": "Memorised training data is recovered",
       "description": "The model reproduces personal, confidential or copyrighted material it memorised during training or fine-tuning.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -149,7 +149,7 @@
       "name": "Wrong output that is acted on",
       "description": "Confident but false output is relied on by people or by downstream systems.",
       "owasp_llm": [
-        "LLM09:2025"
+        "LLM07:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],
@@ -175,7 +175,7 @@
       "name": "Agent goal hijack through tool results or data",
       "description": "Content the agent reads while working (a tool result, a file, a web page, an issue) redirects it to an attacker's goal.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI01"
@@ -194,7 +194,7 @@
       "name": "Tool misuse",
       "description": "The agent uses a legitimate tool in a harmful way: destroying data, sending data out, spending money, changing configuration.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI02"
@@ -214,7 +214,7 @@
       "name": "Excessive permissions and identity abuse",
       "description": "The capability holds credentials, scopes or autonomy beyond what the task needs; whoever steers it inherits them.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI03"
@@ -263,7 +263,7 @@
       "name": "Memory or context leaks across sessions or users",
       "description": "Something stored in one session or by one user surfaces in another's.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -278,7 +278,7 @@
       "name": "Poisoned retrieval or connected data",
       "description": "Content planted in an index or a connected data source is retrieved and steers the answer or the agent.",
       "owasp_llm": [
-        "LLM08:2025"
+        "LLM09:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -294,7 +294,7 @@
       "name": "Model output trusted by downstream code",
       "description": "Output is rendered, executed or passed to another system without validation, turning a model reply into script injection, a query, a command or an outbound request.",
       "owasp_llm": [
-        "LLM05:2025"
+        "LLM10:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -387,7 +387,7 @@
       "name": "Tampered or unsafe model artefact",
       "description": "Downloaded weights or model files carry malicious code or were replaced on the way: unsafe serialisation formats, a look-alike repository, a changed revision.",
       "owasp_llm": [
-        "LLM03:2025"
+        "LLM04:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -404,7 +404,7 @@
       "name": "Malicious or changed tool, plugin, skill or MCP server",
       "description": "A component added to the agent is malicious, is poisoned later, or changes after it was approved.",
       "owasp_llm": [
-        "LLM03:2025"
+        "LLM04:2026"
       ],
       "owasp_agentic": [
         "ASI04"
@@ -423,7 +423,7 @@
       "name": "Poisoned training data or backdoored model",
       "description": "The model was trained or modified so that it misbehaves on a trigger.",
       "owasp_llm": [
-        "LLM04:2025"
+        "LLM05:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -439,7 +439,7 @@
       "name": "Unbounded cost or resource use",
       "description": "Requests, loops or tool calls drive cost or load without a cap.",
       "owasp_llm": [
-        "LLM10:2025"
+        "LLM06:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -477,7 +477,7 @@
       "name": "Injection through the judged content",
       "description": "Text inside the content being judged changes the decision. Unverified opinions and flawed arguments work about as well as explicit commands.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -574,7 +574,7 @@
       "name": "Gate reads content controlled by the party it judges",
       "description": "A decision model used as an agent gate reads tool output or content written by the attacker whose action it is approving.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -611,7 +611,7 @@
       "name": "Spoken request succeeds where text is refused",
       "description": "A request the model refuses as text is fulfilled when delivered as speech.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -639,7 +639,7 @@
       "name": "Background speech followed as an instruction",
       "description": "Speech from another person, a played recording or media in the room is treated as the caller's instruction.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -655,7 +655,7 @@
       "name": "Tool call triggered by voice",
       "description": "A spoken instruction, including one from the background, triggers a tool call the caller should not be able to cause.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI02"

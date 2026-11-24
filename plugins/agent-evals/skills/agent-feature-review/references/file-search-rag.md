@@ -23,7 +23,7 @@ Besides the scope and the six dimensions in `deployment-context.md`, ask:
 
 A document written to be retrieved changes what the model says or does for other users.
 
-OWASP LLM: LLM01:2025 Prompt Injection, LLM08:2025 Vector and Embedding Weaknesses · OWASP Agentic: ASI06 Memory & Context Poisoning · MITRE ATLAS: AML.T0070 RAG Poisoning, AML.T0071 False RAG Entry Injection, AML.T0066 Retrieval Content Crafting, AML.T0051.001 LLM Prompt Injection: Indirect
+OWASP LLM: LLM01:2026 Prompt Injection, LLM09:2026 Vector and Embedding Weaknesses · OWASP Agentic: ASI06 Memory & Context Poisoning · MITRE ATLAS: AML.T0070 RAG Poisoning, AML.T0071 False RAG Entry Injection, AML.T0066 Retrieval Content Crafting, AML.T0051.001 LLM Prompt Injection: Indirect
 
 Review questions
 
@@ -53,7 +53,7 @@ No standardized test for
 
 The index was built by an account with wide access, or access rules are not applied at query time, or they are stale.
 
-OWASP LLM: LLM08:2025 Vector and Embedding Weaknesses, LLM02:2025 Sensitive Information Disclosure · MITRE ATLAS: AML.T0085.000 Data from AI Services: RAG Databases
+OWASP LLM: LLM09:2026 Vector and Embedding Weaknesses, LLM02:2026 Sensitive Information Disclosure · MITRE ATLAS: AML.T0085.000 Data from AI Services: RAG Databases
 
 Review questions
 
@@ -77,7 +77,7 @@ No standardized test for
 
 Credentials or personal data sitting in indexed documents can now be asked for in plain language.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure · MITRE ATLAS: AML.T0082 RAG Credential Harvesting, AML.T0085.000 Data from AI Services: RAG Databases
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure · MITRE ATLAS: AML.T0082 RAG Credential Harvesting, AML.T0085.000 Data from AI Services: RAG Databases
 
 Review questions
 
@@ -100,7 +100,7 @@ No standardized test for
 
 One customer's or project's passages are retrieved for another.
 
-OWASP LLM: LLM08:2025 Vector and Embedding Weaknesses
+OWASP LLM: LLM09:2026 Vector and Embedding Weaknesses
 
 Review questions
 
@@ -123,7 +123,7 @@ No standardized test for
 
 Retrieved text is placed in a link or image address that the user's client fetches, sending it to an attacker.
 
-OWASP LLM: LLM05:2025 Improper Output Handling, LLM02:2025 Sensitive Information Disclosure · MITRE ATLAS: AML.T0077 LLM Response Rendering, AML.T0136 Exfiltration via AI User Interface
+OWASP LLM: LLM10:2026 Improper Output Handling, LLM02:2026 Sensitive Information Disclosure · MITRE ATLAS: AML.T0077 LLM Response Rendering, AML.T0136 Exfiltration via AI User Interface
 
 Review questions
 
@@ -150,7 +150,7 @@ No standardized test for
 
 Conflicting, promotional or fabricated passages are presented with citations that make them look checked.
 
-OWASP LLM: LLM09:2025 Misinformation · OWASP Agentic: ASI09 Human-Agent Trust Exploitation · MITRE ATLAS: AML.T0067.000 LLM Trusted Output Components Manipulation: Citations
+OWASP LLM: LLM07:2026 Misinformation · OWASP Agentic: ASI09 Human-Agent Trust Exploitation · MITRE ATLAS: AML.T0067.000 LLM Trusted Output Components Manipulation: Citations
 
 Review questions
 
@@ -173,7 +173,7 @@ No standardized test for
 
 Copies of documents and embeddings sit somewhere new, are kept after the source is deleted, or are used for other purposes.
 
-OWASP LLM: LLM08:2025 Vector and Embedding Weaknesses
+OWASP LLM: LLM09:2026 Vector and Embedding Weaknesses
 
 Review questions
 
@@ -194,5 +194,5 @@ No standardized test for
 
 ## Sources
 
-Framework ids: OWASP Top 10 for LLM Applications 2025, https://genai.owasp.org/llm-top-10/ (read 2026-11-14); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
+Framework ids: OWASP Top 10 for LLM Applications 2026, https://genai.owasp.org/top-10-for-llm-applications-2026/ (read 2026-11-24); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
 Benchmarks: see `benchmarks.md` for what was and was not verified about each.

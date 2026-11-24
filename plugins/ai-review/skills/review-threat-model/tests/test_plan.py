@@ -66,7 +66,7 @@ def test_every_threat_referenced_anywhere_is_in_the_registry():
 def test_framework_ids_are_only_ones_recorded_as_verified():
     """An id that is not in frameworks.json was not checked against its source: leave it out."""
     allowed = {key: set(FRAMEWORKS[key]["ids"]) for key in ("owasp_llm", "owasp_agentic", "atlas")}
-    shape = {"owasp_llm": r"LLM\d{2}:2025", "owasp_agentic": r"ASI\d{2}",
+    shape = {"owasp_llm": r"LLM\d{2}:2026", "owasp_agentic": r"ASI\d{2}",
              "atlas": r"AML\.T\d{4}(\.\d{3})?"}
     for threat in THREATS.values():
         for key in allowed:

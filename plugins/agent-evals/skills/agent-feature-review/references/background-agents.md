@@ -23,7 +23,7 @@ Besides the scope and the six dimensions in `deployment-context.md`, ask:
 
 An email, an issue, a webhook or a file starts a run and also supplies its instructions.
 
-OWASP LLM: LLM01:2025 Prompt Injection · OWASP Agentic: ASI01 Agent Goal Hijack · MITRE ATLAS: AML.T0051.002 LLM Prompt Injection: Triggered, AML.T0093 Prompt Infiltration via Public-Facing Application
+OWASP LLM: LLM01:2026 Prompt Injection · OWASP Agentic: ASI01 Agent Goal Hijack · MITRE ATLAS: AML.T0051.002 LLM Prompt Injection: Triggered, AML.T0093 Prompt Infiltration via Public-Facing Application
 
 Review questions
 
@@ -47,7 +47,7 @@ No standardized test for
 
 Long-lived tokens with broad scope sit in a task definition, and keep working after their owner has moved on.
 
-OWASP LLM: LLM06:2025 Excessive Agency · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0083 Credentials from AI Agent Configuration, AML.T0055 Unsecured Credentials
+OWASP LLM: LLM03:2026 Excessive Agency · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0083 Credentials from AI Agent Configuration, AML.T0055 Unsecured Credentials
 
 Review questions
 
@@ -70,7 +70,7 @@ No standardized test for
 
 Approvals are granted in advance or skipped, so the agent's first mistake or manipulation takes effect.
 
-OWASP LLM: LLM06:2025 Excessive Agency · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0053 AI Agent Tool Invocation
+OWASP LLM: LLM03:2026 Excessive Agency · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0053 AI Agent Tool Invocation
 
 Review questions
 
@@ -117,7 +117,7 @@ No standardized test for
 
 Loops, retries and fan-out consume budget or repeat an action many times.
 
-OWASP LLM: LLM10:2025 Unbounded Consumption · OWASP Agentic: ASI08 Cascading Failures · MITRE ATLAS: AML.T0034.002 Cost Harvesting: Agentic Resource Consumption
+OWASP LLM: LLM06:2026 Unbounded Consumption · OWASP Agentic: ASI08 Cascading Failures · MITRE ATLAS: AML.T0034.002 Cost Harvesting: Agentic Resource Consumption
 
 Review questions
 
@@ -184,5 +184,5 @@ No standardized test for
 
 ## Sources
 
-Framework ids: OWASP Top 10 for LLM Applications 2025, https://genai.owasp.org/llm-top-10/ (read 2026-11-14); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
+Framework ids: OWASP Top 10 for LLM Applications 2026, https://genai.owasp.org/top-10-for-llm-applications-2026/ (read 2026-11-24); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
 Benchmarks: see `benchmarks.md` for what was and was not verified about each.

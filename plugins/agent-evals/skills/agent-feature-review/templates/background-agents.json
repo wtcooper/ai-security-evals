@@ -20,7 +20,7 @@
       "title": "A trigger an outsider can fire or shape",
       "description": "An email, an issue, a webhook or a file starts a run and also supplies its instructions.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI01"
@@ -48,7 +48,7 @@
       "title": "Standing credentials and permissions",
       "description": "Long-lived tokens with broad scope sit in a task definition, and keep working after their owner has moved on.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI03"
@@ -75,7 +75,7 @@
       "title": "Actions with nobody present to approve",
       "description": "Approvals are granted in advance or skipped, so the agent's first mistake or manipulation takes effect.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI02"
@@ -130,7 +130,7 @@
       "title": "Runaway runs",
       "description": "Loops, retries and fan-out consume budget or repeat an action many times.",
       "owasp_llm": [
-        "LLM10:2025"
+        "LLM06:2026"
       ],
       "owasp_agentic": [
         "ASI08"

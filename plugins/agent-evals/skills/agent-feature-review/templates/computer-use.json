@@ -20,7 +20,7 @@
       "title": "Instructions on screen take over the task",
       "description": "Text or images on a page, in an email or in a document tell the agent to do something else, and it complies. The attacker needs only to put content where the agent will look.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI01"
@@ -64,7 +64,7 @@
       "title": "The agent acts with the session's signed-in privileges",
       "description": "Whatever the profile can reach, the agent can reach: internal applications, single sign-on, a password manager, payment methods.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI03"
@@ -93,7 +93,7 @@
       "title": "Irreversible actions taken by mistake or under manipulation",
       "description": "The agent sends, buys, deletes, posts or submits something the user did not intend, through an ordinary interface used in an unintended way.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI02"
@@ -123,7 +123,7 @@
       "title": "Data leaves through the agent's own actions",
       "description": "The agent types, pastes, uploads or navigates in a way that carries private data to a place an attacker can read.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [
         "ASI02"

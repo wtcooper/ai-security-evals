@@ -20,7 +20,7 @@
       "title": "An injection spreads from agent to agent",
       "description": "One agent reads planted content and its output carries the instruction to the orchestrator or to peers, possibly copying itself onward.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI07",
@@ -52,7 +52,7 @@
       "title": "Delegation widens privileges",
       "description": "A low-privilege agent gets a higher-privilege one to act for it, or subagents inherit the orchestrator's credentials.",
       "owasp_llm": [
-        "LLM06:2025"
+        "LLM03:2026"
       ],
       "owasp_agentic": [
         "ASI03"
@@ -100,7 +100,7 @@
       "title": "One failure cascades",
       "description": "An error, a loop or a compromised agent is amplified through the chain: repeated actions, runaway cost, wide damage.",
       "owasp_llm": [
-        "LLM10:2025"
+        "LLM06:2026"
       ],
       "owasp_agentic": [
         "ASI08"
@@ -126,7 +126,7 @@
       "title": "Context is over-shared between agents",
       "description": "The orchestrator passes its whole context, including secrets and personal data, to a subagent that has outbound tools or runs elsewhere.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],
@@ -170,7 +170,7 @@
       "title": "Agents supplied by others",
       "description": "An agent you call is built or operated by a third party, and can change.",
       "owasp_llm": [
-        "LLM03:2025"
+        "LLM04:2026"
       ],
       "owasp_agentic": [
         "ASI04"

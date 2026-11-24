@@ -23,7 +23,7 @@ Besides the scope and the six dimensions in `deployment-context.md`, ask:
 
 A tool's metadata tells the model to do something the user never asked for. Nothing has to be called for the text to take effect.
 
-OWASP LLM: LLM01:2025 Prompt Injection · OWASP Agentic: ASI04 Agentic Supply Chain Vulnerabilities · MITRE ATLAS: AML.T0110 AI Agent Tool Poisoning, AML.T0011.002 User Execution: Poisoned AI Agent Tool
+OWASP LLM: LLM01:2026 Prompt Injection · OWASP Agentic: ASI04 Agentic Supply Chain Vulnerabilities · MITRE ATLAS: AML.T0110 AI Agent Tool Poisoning, AML.T0011.002 User Execution: Poisoned AI Agent Tool
 
 Review questions
 
@@ -53,7 +53,7 @@ No standardized test for
 
 A ticket, email, document or record fetched by a connector carries instructions, and the agent follows them.
 
-OWASP LLM: LLM01:2025 Prompt Injection · OWASP Agentic: ASI01 Agent Goal Hijack · MITRE ATLAS: AML.T0051.001 LLM Prompt Injection: Indirect, AML.T0099 AI Agent Tool Data Poisoning
+OWASP LLM: LLM01:2026 Prompt Injection · OWASP Agentic: ASI01 Agent Goal Hijack · MITRE ATLAS: AML.T0051.001 LLM Prompt Injection: Indirect, AML.T0099 AI Agent Tool Data Poisoning
 
 Review questions
 
@@ -86,7 +86,7 @@ No standardized test for
 
 The server itself is hostile: published to be installed, taken over later, renamed to collide with a trusted one, or changed after approval.
 
-OWASP LLM: LLM03:2025 Supply Chain · OWASP Agentic: ASI04 Agentic Supply Chain Vulnerabilities · MITRE ATLAS: AML.T0010.005 Supply Chain Compromise: AI Agent Tool, AML.T0109 AI Supply Chain Rug Pull, AML.T0115.002 Publish Poisoned AI Artifacts: AI Agent Tools
+OWASP LLM: LLM04:2026 Supply Chain · OWASP Agentic: ASI04 Agentic Supply Chain Vulnerabilities · MITRE ATLAS: AML.T0010.005 Supply Chain Compromise: AI Agent Tool, AML.T0109 AI Supply Chain Rug Pull, AML.T0115.002 Publish Poisoned AI Artifacts: AI Agent Tools
 
 Review questions
 
@@ -115,7 +115,7 @@ No standardized test for
 
 The connector's token can do more than the task needs, is stored where it can be read, or lets one user act with another's rights.
 
-OWASP LLM: LLM06:2025 Excessive Agency · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0098 AI Agent Tool Credential Harvesting, AML.T0083 Credentials from AI Agent Configuration
+OWASP LLM: LLM03:2026 Excessive Agency · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0098 AI Agent Tool Credential Harvesting, AML.T0083 Credentials from AI Agent Configuration
 
 Review questions
 
@@ -140,7 +140,7 @@ No standardized test for
 
 Private content fetched by one connector is written, sent or encoded into a call to another that an attacker can read.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0086 Exfiltration via AI Agent Tool Invocation, AML.T0085.001 Data from AI Services: AI Agent Tools
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0086 Exfiltration via AI Agent Tool Invocation, AML.T0085.001 Data from AI Services: AI Agent Tools
 
 Review questions
 
@@ -171,7 +171,7 @@ No standardized test for
 
 The agent deletes, overwrites, sends or changes something in a connected system, by error or under manipulation.
 
-OWASP LLM: LLM06:2025 Excessive Agency · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0101 Data Destruction via AI Agent Tool Invocation, AML.T0053 AI Agent Tool Invocation
+OWASP LLM: LLM03:2026 Excessive Agency · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0101 Data Destruction via AI Agent Tool Invocation, AML.T0053 AI Agent Tool Invocation
 
 Review questions
 
@@ -216,5 +216,5 @@ No standardized test for
 
 ## Sources
 
-Framework ids: OWASP Top 10 for LLM Applications 2025, https://genai.owasp.org/llm-top-10/ (read 2026-11-14); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
+Framework ids: OWASP Top 10 for LLM Applications 2026, https://genai.owasp.org/top-10-for-llm-applications-2026/ (read 2026-11-24); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
 Benchmarks: see `benchmarks.md` for what was and was not verified about each.

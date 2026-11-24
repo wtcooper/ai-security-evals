@@ -3,7 +3,7 @@ name: review-threat-model
 description: >-
   Third stage of a guided AI security review. Produces the threat model for the subject
   type in review.json (model, agent in a harness, app, decision model, voice model, image
-  model, agent feature) with OWASP LLM Top 10 2025, OWASP Agentic Top 10 and MITRE ATLAS
+  model, agent feature) with OWASP LLM Top 10 2026, OWASP Agentic Top 10 and MITRE ATLAS
   ids where verified, and a test plan that sorts every threat into: covered by a
   catalogued benchmark (skill, benchmark, depth), needs a custom probe, design review
   only, or uncovered. Use after review-scope and before running any measurement skill.
@@ -182,6 +182,7 @@ no tools, so `agent-goal-hijack` is listed as not applicable.
   - The templates were not reviewed by practitioners for each subject type; they were
     written from the design notes, the decision-model research note and the three
     frameworks.
-  - The full text of the OWASP Top 10 for Agentic Applications (the PDF sits behind a
-    download form); ids and short titles were read on the publisher's own pages.
+  - Which threat each framework id is attached to is this skill's own reading of the
+    framework text; the 2025-edition OWASP LLM mappings were carried over to the
+    renumbered 2026 edition by risk, not re-derived.
   - Whether catalogue entries marked `planned` have since become runnable.

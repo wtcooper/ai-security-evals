@@ -20,8 +20,8 @@
       "title": "Planted documents steer answers or carry instructions",
       "description": "A document written to be retrieved changes what the model says or does for other users.",
       "owasp_llm": [
-        "LLM01:2025",
-        "LLM08:2025"
+        "LLM01:2026",
+        "LLM09:2026"
       ],
       "owasp_agentic": [
         "ASI06"
@@ -63,8 +63,8 @@
       "title": "Retrieval returns what the asking user may not see",
       "description": "The index was built by an account with wide access, or access rules are not applied at query time, or they are stale.",
       "owasp_llm": [
-        "LLM08:2025",
-        "LLM02:2025"
+        "LLM09:2026",
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -89,7 +89,7 @@
       "title": "Secrets and personal data become searchable",
       "description": "Credentials or personal data sitting in indexed documents can now be asked for in plain language.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -114,7 +114,7 @@
       "title": "Leakage between tenants or projects in a shared index",
       "description": "One customer's or project's passages are retrieved for another.",
       "owasp_llm": [
-        "LLM08:2025"
+        "LLM09:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],
@@ -136,8 +136,8 @@
       "title": "Private content leaves through the rendered answer",
       "description": "Retrieved text is placed in a link or image address that the user's client fetches, sending it to an attacker.",
       "owasp_llm": [
-        "LLM05:2025",
-        "LLM02:2025"
+        "LLM10:2026",
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -167,7 +167,7 @@
       "title": "Wrong answers with trustworthy-looking citations",
       "description": "Conflicting, promotional or fabricated passages are presented with citations that make them look checked.",
       "owasp_llm": [
-        "LLM09:2025"
+        "LLM07:2026"
       ],
       "owasp_agentic": [
         "ASI09"
@@ -195,7 +195,7 @@
       "title": "The store itself: location, retention, deletion",
       "description": "Copies of documents and embeddings sit somewhere new, are kept after the source is deleted, or are used for other purposes.",
       "owasp_llm": [
-        "LLM08:2025"
+        "LLM09:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],

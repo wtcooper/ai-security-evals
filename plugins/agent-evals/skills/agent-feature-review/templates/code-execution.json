@@ -20,8 +20,8 @@
       "title": "Planted instructions decide what code runs",
       "description": "A file, a web page or a repository the session reads tells the model to run something, and it does.",
       "owasp_llm": [
-        "LLM01:2025",
-        "LLM05:2025"
+        "LLM01:2026",
+        "LLM10:2026"
       ],
       "owasp_agentic": [
         "ASI05"
@@ -87,7 +87,7 @@
       "title": "Network egress: data out, and internal services in reach",
       "description": "Code sends data to an outside host, or reaches internal addresses and metadata services.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [
         "ASI02"
@@ -113,7 +113,7 @@
       "title": "Credentials and data left inside the environment",
       "description": "Secrets in environment variables, mounted volumes or leftover files are readable by any code that runs.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [
         "ASI03"
@@ -141,7 +141,7 @@
       "title": "Packages pulled in at run time",
       "description": "Model-written code installs a package that is malicious, typosquatted, or registered under a name the model invented.",
       "owasp_llm": [
-        "LLM03:2025"
+        "LLM04:2026"
       ],
       "owasp_agentic": [
         "ASI04"
@@ -168,7 +168,7 @@
       "title": "Resource and cost abuse",
       "description": "Long-running or looping jobs consume compute and budget.",
       "owasp_llm": [
-        "LLM10:2025"
+        "LLM06:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -192,7 +192,7 @@
       "title": "Files and output handed on without checking",
       "description": "Something produced in the sandbox (a document, HTML, a script) is opened or rendered by a person or another system that trusts it.",
       "owasp_llm": [
-        "LLM05:2025"
+        "LLM10:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],

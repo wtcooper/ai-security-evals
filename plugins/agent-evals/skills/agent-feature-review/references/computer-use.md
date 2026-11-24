@@ -23,7 +23,7 @@ Besides the scope and the six dimensions in `deployment-context.md`, ask:
 
 Text or images on a page, in an email or in a document tell the agent to do something else, and it complies. The attacker needs only to put content where the agent will look.
 
-OWASP LLM: LLM01:2025 Prompt Injection · OWASP Agentic: ASI01 Agent Goal Hijack · MITRE ATLAS: AML.T0051.001 LLM Prompt Injection: Indirect, AML.T0100 AI Agent Clickbait, AML.T0129 Triggers in Multimodal Inputs
+OWASP LLM: LLM01:2026 Prompt Injection · OWASP Agentic: ASI01 Agent Goal Hijack · MITRE ATLAS: AML.T0051.001 LLM Prompt Injection: Indirect, AML.T0100 AI Agent Clickbait, AML.T0129 Triggers in Multimodal Inputs
 
 Review questions
 
@@ -59,7 +59,7 @@ No standardized test for
 
 Whatever the profile can reach, the agent can reach: internal applications, single sign-on, a password manager, payment methods.
 
-OWASP LLM: LLM06:2025 Excessive Agency · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0112.000 Machine Compromise: Local AI Agent
+OWASP LLM: LLM03:2026 Excessive Agency · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0112.000 Machine Compromise: Local AI Agent
 
 Review questions
 
@@ -85,7 +85,7 @@ No standardized test for
 
 The agent sends, buys, deletes, posts or submits something the user did not intend, through an ordinary interface used in an unintended way.
 
-OWASP LLM: LLM06:2025 Excessive Agency · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0053 AI Agent Tool Invocation
+OWASP LLM: LLM03:2026 Excessive Agency · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0053 AI Agent Tool Invocation
 
 Review questions
 
@@ -110,7 +110,7 @@ No standardized test for
 
 The agent types, pastes, uploads or navigates in a way that carries private data to a place an attacker can read.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0086 Exfiltration via AI Agent Tool Invocation
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0086 Exfiltration via AI Agent Tool Invocation
 
 Review questions
 
@@ -212,5 +212,5 @@ No standardized test for
 
 ## Sources
 
-Framework ids: OWASP Top 10 for LLM Applications 2025, https://genai.owasp.org/llm-top-10/ (read 2026-11-14); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
+Framework ids: OWASP Top 10 for LLM Applications 2026, https://genai.owasp.org/top-10-for-llm-applications-2026/ (read 2026-11-24); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
 Benchmarks: see `benchmarks.md` for what was and was not verified about each.

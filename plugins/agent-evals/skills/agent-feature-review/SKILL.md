@@ -8,7 +8,7 @@ description: >-
   search and RAG, multi-agent and subagents, scheduled and background agents. Each template
   says what the feature changes about the trust boundary and, per threat, the review
   questions, the vendor evidence to look for, which existing benchmark could test it and
-  through which skill, and what has no standardized test. Threats carry OWASP LLM 2025,
+  through which skill, and what has no standardized test. Threats carry OWASP LLM 2026,
   OWASP Agentic and MITRE ATLAS ids where verified. Writes a JSON and markdown record,
   evidence.jsonl rows, and a list of every threat left unassessed. It prescribes no
   control and makes no recommendation. For an image-generation model use image-generation-benchmark.
@@ -169,7 +169,7 @@ Unit tests: `python -m pytest tests -q`.
   it by `python scripts/templates.py --render`; a unit test fails if they differ.
 - `lib/evalkit.py` is a vendored copy of the repo's shared helpers, used for the context
   keys every skill records. Do not edit it here.
-- Framework ids were checked against the OWASP Top 10 for LLM Applications 2025, the OWASP
+- Framework ids were checked against the OWASP Top 10 for LLM Applications 2026, the OWASP
   Top 10 for Agentic Applications 2026 (the December 2025 PDF) and MITRE ATLAS data release
   2026.10. A threat with no id that was verified to fit carries none.
 - Skills named as routes (`model-benchmark`, `app-benchmark`, `app-redteam`,

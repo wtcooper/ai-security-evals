@@ -20,7 +20,7 @@
       "title": "Memory poisoning: planted content is saved and steers later sessions",
       "description": "An instruction or false fact arrives in a document, a tool result or a message, is written to memory, and acts in sessions where the attacker is no longer present.",
       "owasp_llm": [
-        "LLM01:2025"
+        "LLM01:2026"
       ],
       "owasp_agentic": [
         "ASI06"
@@ -53,7 +53,7 @@
       "title": "Something remembered in one context surfaces in another",
       "description": "A detail from a personal or confidential conversation appears in an unrelated one: another project, another audience, a shared screen.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [
@@ -80,7 +80,7 @@
       "title": "Leakage between users or tenants of a shared memory",
       "description": "In a team workspace or a shared agent, one person's content reaches another through memory.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],
@@ -103,7 +103,7 @@
       "title": "Sensitive data is written to memory and kept",
       "description": "Secrets, personal data or regulated data end up in a store nobody planned for.",
       "owasp_llm": [
-        "LLM02:2025"
+        "LLM02:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],
@@ -127,7 +127,7 @@
       "title": "Stored content degrades later answers",
       "description": "Remembered beliefs and preferences make the model agree with the user where it should not, or bias later work.",
       "owasp_llm": [
-        "LLM09:2025"
+        "LLM07:2026"
       ],
       "owasp_agentic": [],
       "atlas": [],

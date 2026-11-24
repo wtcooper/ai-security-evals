@@ -29,7 +29,7 @@ def _cell(text: str) -> str:
 
 
 def _table(uses: list[dict], threats: dict) -> list[str]:
-    lines = ["| Threat id | Threat | Why it matters here | OWASP LLM 2025 | OWASP Agentic 2026 | "
+    lines = ["| Threat id | Threat | Why it matters here | OWASP LLM 2026 | OWASP Agentic 2026 | "
              "MITRE ATLAS | With no benchmark available |",
              "|---|---|---|---|---|---|---|"]
     for use in uses:

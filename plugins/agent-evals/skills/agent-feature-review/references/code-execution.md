@@ -23,7 +23,7 @@ Besides the scope and the six dimensions in `deployment-context.md`, ask:
 
 A file, a web page or a repository the session reads tells the model to run something, and it does.
 
-OWASP LLM: LLM01:2025 Prompt Injection, LLM05:2025 Improper Output Handling · OWASP Agentic: ASI05 Unexpected Code Execution (RCE) · MITRE ATLAS: AML.T0050 Command and Scripting Interpreter, AML.T0051.001 LLM Prompt Injection: Indirect
+OWASP LLM: LLM01:2026 Prompt Injection, LLM10:2026 Improper Output Handling · OWASP Agentic: ASI05 Unexpected Code Execution (RCE) · MITRE ATLAS: AML.T0050 Command and Scripting Interpreter, AML.T0051.001 LLM Prompt Injection: Indirect
 
 Review questions
 
@@ -79,7 +79,7 @@ No standardized test for
 
 Code sends data to an outside host, or reaches internal addresses and metadata services.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0086 Exfiltration via AI Agent Tool Invocation
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure · OWASP Agentic: ASI02 Tool Misuse and Exploitation · MITRE ATLAS: AML.T0086 Exfiltration via AI Agent Tool Invocation
 
 Review questions
 
@@ -102,7 +102,7 @@ No standardized test for
 
 Secrets in environment variables, mounted volumes or leftover files are readable by any code that runs.
 
-OWASP LLM: LLM02:2025 Sensitive Information Disclosure · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0055 Unsecured Credentials, AML.T0037 Data from Local System
+OWASP LLM: LLM02:2026 Sensitive Information Disclosure · OWASP Agentic: ASI03 Identity and Privilege Abuse · MITRE ATLAS: AML.T0055 Unsecured Credentials, AML.T0037 Data from Local System
 
 Review questions
 
@@ -126,7 +126,7 @@ No standardized test for
 
 Model-written code installs a package that is malicious, typosquatted, or registered under a name the model invented.
 
-OWASP LLM: LLM03:2025 Supply Chain · OWASP Agentic: ASI04 Agentic Supply Chain Vulnerabilities · MITRE ATLAS: AML.T0011.001 User Execution: Malicious Package, AML.T0060 Publish Hallucinated Entities
+OWASP LLM: LLM04:2026 Supply Chain · OWASP Agentic: ASI04 Agentic Supply Chain Vulnerabilities · MITRE ATLAS: AML.T0011.001 User Execution: Malicious Package, AML.T0060 Publish Hallucinated Entities
 
 Review questions
 
@@ -149,7 +149,7 @@ No standardized test for
 
 Long-running or looping jobs consume compute and budget.
 
-OWASP LLM: LLM10:2025 Unbounded Consumption · MITRE ATLAS: AML.T0034.002 Cost Harvesting: Agentic Resource Consumption
+OWASP LLM: LLM06:2026 Unbounded Consumption · MITRE ATLAS: AML.T0034.002 Cost Harvesting: Agentic Resource Consumption
 
 Review questions
 
@@ -172,7 +172,7 @@ No standardized test for
 
 Something produced in the sandbox (a document, HTML, a script) is opened or rendered by a person or another system that trusts it.
 
-OWASP LLM: LLM05:2025 Improper Output Handling
+OWASP LLM: LLM10:2026 Improper Output Handling
 
 Review questions
 
@@ -222,5 +222,5 @@ No standardized test for
 
 ## Sources
 
-Framework ids: OWASP Top 10 for LLM Applications 2025, https://genai.owasp.org/llm-top-10/ (read 2026-11-14); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
+Framework ids: OWASP Top 10 for LLM Applications 2026, https://genai.owasp.org/top-10-for-llm-applications-2026/ (read 2026-11-24); OWASP Top 10 for Agentic Applications 2026, published December 2025, https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/ (PDF read 2026-11-14); MITRE ATLAS data release 2026.10, https://github.com/mitre-atlas/atlas-data (dist/v6/ATLAS-2026.10.yaml, read 2026-11-14).
 Benchmarks: see `benchmarks.md` for what was and was not verified about each.

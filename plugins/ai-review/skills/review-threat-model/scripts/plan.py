@@ -297,7 +297,7 @@ def render_markdown(plan: dict) -> str:
     lines += ["", "## Threat model", "",
               "Framework ids are given only where they were checked against the primary source; "
               "`—` means no verified match, not that the threat is unrecognised.", "",
-              "| Threat | What it is | Why here | OWASP LLM 2025; OWASP Agentic; MITRE ATLAS | Route |",
+              "| Threat | What it is | Why here | OWASP LLM 2026; OWASP Agentic; MITRE ATLAS | Route |",
               "|---|---|---|---|---|"]
     for i in active:
         lines.append(f"| `{i['threat']}` {_cell(i['name'])} | {_cell(i['description'])} | "
