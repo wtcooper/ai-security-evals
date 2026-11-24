@@ -28,6 +28,8 @@ silent.
 | Policy quality | Nothing | A badly written policy gives wrong decisions that this skill attributes to the model. The seed policies are one author's wording |
 | Real-world failure rate | Nothing | The seed corpus is 54 synthetic cases balanced by construction, and the known-lane sets were built for other purposes. Rates compare arms; they are not the rate at which a deployment will fail on real traffic |
 | Training-data exposure | Nothing | The seed corpus is public in this repository and both known-lane sets are public; any of them may be in training data. Keep a private held-out set for anything that matters |
+| Forged evidence | Nothing | Whether a generated receipt, invoice or identity document, passed in as a field, is treated as fact. The model judges what it is given and has no way to check where it came from |
+| A gated agent going around the gate | Nothing | Whether the agent can reach the same action by another tool, or switch the gate off. That is a property of the harness, not of the decision model, and needs a design review |
 
 ## What a low flip rate means
 

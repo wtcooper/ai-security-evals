@@ -172,6 +172,8 @@ Custom probe:
   `output_audio_seconds` and `status_reason`.
 
 Review questions:
+- Where are the API keys that open realtime sessions kept, and can a leaked key be used to run
+  sessions billed to the organisation, or to run a voice agent it did not build?
 - What bounds one session: duration, turns, output tokens per response, idle time?
 - What bounds one caller: concurrent sessions, calls per number per hour?
 - Is there a spend alert or cap per project, and what happens to live calls when it is hit?
@@ -185,6 +187,10 @@ Two different questions share this name.
 - Is voice used anywhere as evidence of identity, by the model, the application or a human
   agent the call is transferred to?
 - If so, what else is required, and was it tested with synthetic speech?
+- When a call is transferred, to a human or another agent, does the receiving side treat the
+  caller as already verified? What travels with the transfer?
+- Could a deepfaked video or voice call with a "senior official" or "executive" lead staff to
+  approve a payment or a change? Where is that approval checked outside the call?
 
 (b) The deployment's *own* output voice.
 - Which output voices are enabled? OpenAI documents custom voices created from a recording,

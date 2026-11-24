@@ -279,16 +279,16 @@ reconstructed only from what the caller logged (state, distribution, model id, p
 **11. Forged evidence passes as fact.** Where the state carries a receipt, an invoice, an identity
 document, a screenshot, a selfie or a recording, the gate is asked to judge facts that generative
 tools now fabricate cheaply. Unlike threat 1, the forgery neither instructs nor argues; it shows.
-A decision model judges what an artefact says and how plausible it looks, not whether it is
-genuine, and the vendors that accept images, PDF, audio or video [8][11] describe no authenticity
-check. In the reference deployment the same pattern is a fabricated approval, ticket or test
-result in the context an agent hands the gate.
+A decision model is asked what an artefact says and whether it fits the policy; whether it is
+genuine is a different question. In the reference deployment the same pattern is a fabricated
+approval, ticket or test result in the context an agent hands the gate.
 - *Evidence* (observed in deployed systems against other automated and human screening;
   demonstrated in research against a decision model): in one expense-audit vendor's data,
   AI-generated receipts rose from none in March 2025 to 70.8% of flagged fraudulent receipts by
   May 2026, mostly below review thresholds [36]; threat reports describe AI-generated or altered
   identity documents and deepfakes aimed at identity, liveness and hiring checks [37][38][39][40]
-  [41][43], and a vendor passed Sora 2's cameo liveness check with real-time deepfakes [42].
+  [41][43], and a deepfake-detection vendor reported passing Sora 2's cameo liveness check with
+  real-time deepfakes [42].
   VisualJevBench tested "visual evidence spoofing" against Jev's image input [28]. None of the
   incidents involved a typed decision model.
 - *Rating*: Low / High → **Medium** in the reference deployment, which judges calls and text;
