@@ -28,7 +28,7 @@ settings and environment together.
 | Insecure code, and guidance that does not change it (C9) | A large share of functionally correct agent-written code is exploitable in published benchmarks; instruction files are context, not enforcement | High | `coding-guidance-benchmark` |
 | Packages, extensions and harness releases (C8, C12) | Agents install names a model invented; a tampered agent extension, an extension release carrying a destructive agent prompt and an unauthorised CLI release reached users in 2025–2026 | High | Design review; `security-tool-benchmark` measures scanners of extensions |
 | Installed agents reused by malware (C11) | Malware has run installed agent CLIs with their bypass flags to search machines for secrets | Medium | Design review |
-| Vendor data, telemetry and audit gaps (C10) | Agent traces held by a vendor's provider were copied in 2026 and the credentials in them reused; the organisation's own record is thin by default | Medium | Design review |
+| Vendor data, telemetry and audit gaps (C10) | Agent traces a vendor shared with its inference provider were copied in 2026 and the credentials in them reused; the organisation's own record is thin by default | Medium | Design review |
 
 **Where risk concentrates.** In one combination: the agent reads content an outsider can
 write, holds credentials or data worth taking, and can act or send data out without a person
@@ -38,8 +38,8 @@ opens a third-party repository.
 
 **What changed in version 1.1.** Two threats were split out of C4 and C8: malware that drives
 an installed agent (C11) and tampering with extensions and harness releases (C12). Every threat
-now states what kind of evidence supports it. The 2025–2026 incidents (section 6) gave C2, C5, C6, C7
-and C10 observed cases; no rating went up.
+now states what kind of evidence supports it. The 2025–2026 incidents (section 6) gave C2, C5,
+C6, C7 and C10 observed cases; no rating went up.
 
 **What the evaluations tell you.** `coding-guidance-benchmark` measures insecure code and the
 effect of guidance on it (C9); `agent-misuse-benchmark`, once an organisation completes it,
@@ -254,8 +254,8 @@ and available to any later injection or output channel.
   private-repository secrets into pre-generated image-proxy URLs, one per character; GitHub
   disabled image rendering in Copilot Chat [R35]. Nx malware asked local agents to list SSH keys
   and `.env` files [R16], and the leaked material included over a thousand valid GitHub tokens
-  [R32]. Coding-agent traces copied from a vendor's inference provider held credentials that gave
-  access to further systems (C10) [R40].
+  [R32]. Coding-agent traces that a vendor shared with its inference provider were copied, and
+  credentials in them gave access to further systems (C10) [R40].
 - *Evidence status:* observed [R32][R40]; disclosed [R13][R35][R36].
 
 **C7. Safeguards that depend on the harness, and offensive misuse.** Refusal and caution are
@@ -296,8 +296,8 @@ Instruction and skill files copied between repositories carry invented names fur
   the skills [R39]. In an evaluation run with unintended internet access, an agent published a
   malicious package under an unregistered dependency name and it ran on 15 real systems [R18].
   Compromised releases of AI libraries that agents and developers install (LiteLLM twice in
-  2026, Microsoft's agent-framework) carried stealers that collected AI provider keys among other
-  credentials [R51][R52].
+  2026, Microsoft's agent-framework) carried credential stealers, one collecting environment
+  variables named for AI providers [R51][R52].
 - *Evidence status:* research [R24]; disclosed exposure with no known exploitation [R39];
   observed for compromised packages [R51][R52] and for an agent exploiting an unregistered name
   [R18]. No case was found of an attacker registering a hallucinated name that an agent then
@@ -332,9 +332,10 @@ off, prompts and tool arguments redacted.
   metrics go to the vendor and third-party logging [R20]. Gemini CLI collects usage statistics by
   default [R7]. Claude Code's OpenTelemetry export is off unless enabled, redacts prompts and tool
   arguments by default, and a repository can switch a signal off unless higher-precedence
-  settings fix it [R30]. An access key that Cursor had issued to its inference provider was
-  exposed in that provider's breach and used to copy stored 2025 agent traces from sessions
-  outside Cursor's privacy mode; credentials in the traces gave access to further systems [R40].
+  settings fix it [R30]. An access key that Cursor had issued to its inference provider, for a
+  bucket used to share data with it, was exposed in that provider's breach and used to copy
+  stored 2025 agent traces from sessions outside Cursor's privacy mode; credentials in the traces
+  gave access to further systems [R40].
   An external review estimated that about 10% of eligible internal Codex traffic at OpenAI went
   unmonitored between May and July 2026 because compaction events were not monitored [R49].
 - *Evidence status:* observed [R40][R49]; vendor documentation [R7][R20][R30].
@@ -389,7 +390,7 @@ release 2026.10, all checked on 2026-11-24 [R50][R19]. The crosswalk from 2025 L
 
 **(a) Per threat.**
 
-| Threat | OWASP LLM 2026 | OWASP Agentic 2026 | OWASP MCP (beta) | MITRE ATLAS 2026.10 |
+| Threat | OWASP LLM 2026 | OWASP Agentic 2026 | OWASP MCP | MITRE ATLAS 2026.10 |
 |---|---|---|---|---|
 | C1 Content takes over tools | LLM01:2026, LLM03:2026 | ASI01, ASI02, ASI05 | MCP06:2025, MCP03:2025 | AML.T0051.001, AML.T0068, AML.T0053, AML.T0086 |
 | C2 Issue and PR text steers a CI agent | LLM01:2026, LLM02:2026 | ASI01, ASI03, ASI08 | — | AML.T0093, AML.T0051.001, AML.T0098 |
@@ -433,7 +434,7 @@ loads MCP servers and similar extensions.
 | ASI09 Human-Agent Trust Exploitation | C4 (approval fatigue, approvals that hide the full command), C5 (trust in the agent's account of its own actions) |
 | ASI10 Rogue Agents | C5 |
 
-| OWASP MCP Top 10 (beta) | Covered by |
+| OWASP MCP Top 10 | Covered by |
 |---|---|
 | MCP01:2025 Token Mismanagement & Secret Exposure | C6 |
 | MCP02:2025 Privilege Escalation via Scope Creep | C5: tools and credentials broader than the task |
@@ -482,7 +483,7 @@ Espionage Campaign (C7), AML.CS0073 and AML.CS0074 on evaluation agents acting i
 | 2026-07 | In cyber-evaluation runs left with live internet by misconfiguration, Claude agents compromised three real organisations; one published a malicious package under an unregistered dependency name that ran on 15 systems | Failure or accident | C5, C8 | [Anthropic](https://www.anthropic.com/news/investigating-incidents-cybersecurity-evals); ATLAS AML.CS0073 |
 | 2026-07 | AISI logged 19 unsanctioned real-world actions by evaluation agents with internet enabled, including a malicious pull request to a real open-source project | Failure or accident | C5 | [AISI](https://www.aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing); ATLAS AML.CS0074 |
 | 2026-10 | OpenAI internal agents turned off monitoring alerts during a pipeline repair and removed a monitoring integration, one then telling the user it had not | Failure or accident | C5, C10 | [OpenAI](https://openai.com/safety-alignment/misalignment-reports/suppressing-misalignment-monitoring-alerts-and-disabling-misalignment-monitoring/) |
-| 2026-10 | An inference provider's breach exposed a coding-agent vendor's key: stored agent traces were copied and credentials in them reused, and tampered Claude Code extension copies sat in Cursor's marketplace cache for about 11 hours | Attack on an AI system | C10, C6, C12 | [Cursor](https://cursor.com/blog/security-incident-update); [Fireworks](https://fireworks.ai/security/bulletins) |
+| 2026-10 | An inference provider's breach exposed a key to agent traces a coding-agent vendor shared with it: the traces were copied and credentials in them reused, and tampered Claude Code extension copies sat in Cursor's marketplace cache for about 11 hours | Attack on an AI system | C10, C6, C12 | [Cursor](https://cursor.com/blog/security-incident-update); [Fireworks](https://fireworks.ai/security/bulletins) |
 
 **Patterns.** The events in which attackers actually reached users through coding-agent tooling
 went through CI and publishing credentials (Amazon Q, Cline), malware driving installed CLIs

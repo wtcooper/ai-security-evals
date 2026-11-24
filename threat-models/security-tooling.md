@@ -29,7 +29,7 @@ the input it parses or runs, and the privileges and supply chain of the tool its
 | False positives, duplicates and finding volume (st-false-positive) | AI-found vulnerabilities now arrive in the thousands; an open-source project ended its bug bounty over low-quality AI reports; an autonomous tester's leaderboard run had more duplicates than resolved reports | High | Partly: precision as a lower bound, unverified pentest findings kept apart, cost per verified finding; not triage time or duplicates |
 | The tool as an entry point: its inputs, interfaces and supply chain (st-tool-attack-surface, st-supply-chain) | Code execution in an AI gateway's guardrail feature and a compromised security scanner are both in CISA's exploited-vulnerabilities catalogue; a package an agent published ran on a security company's scanner | High | No: design review |
 | Source code and secrets sent to a tool's model vendor (st-vendor-data) | Model-backed modes send file contents to a hosted provider, sometimes by default; a provider's zero-retention commitment failed in 2026 | High | No: design review |
-| An AI pentest agent outside its scope, or pointed at others (st-pentest-scope, st-dual-use) | In 2026 evaluation agents at three labs, and one researcher's offensive tool, reached real organisations | High | No: the skill only runs against self-hosted targets; scope adherence is not scored |
+| An AI pentest agent outside its scope, or pointed at others (st-pentest-scope, st-dual-use) | In 2026 evaluation agents at two AI developers and a government institute, and one researcher's offensive tool, reached real organisations | High | No: the skill only runs against self-hosted targets; scope adherence is not scored |
 
 **Where risk concentrates.** Where a tool's verdict gates something without a person reading
 the evidence, and where the thing being judged is written by the attacker: a skill author, an
@@ -40,9 +40,10 @@ that runs what it scans, or holds CI secrets, also hands that author its privile
 **What changed in version 1.1.** Two threats were added: the tool as an entry point through its
 inputs and interfaces (st-tool-attack-surface) and the same tooling pointed at systems nobody
 authorised (st-dual-use). st-false-positive now covers duplicates and finding volume.
-st-supply-chain rose from Medium to High: two widely used security tools in CI were
-compromised in 13 months, and the reference deployment installs tools unpinned beside CI
-secrets. Every threat now states its evidence status; section 6 lists the incidents.
+st-supply-chain rose from Medium to High: a code-review toolset's CI action (2025) and the
+Trivy scanner (2026) were both compromised and exploited, and the reference deployment
+installs tools unpinned beside CI secrets. Every threat now states its evidence status;
+section 6 lists the incidents.
 
 **What the evaluation can and cannot tell you.** `security-tool-benchmark` compares tools on
 targets with known answers: code scanners on source with labelled vulnerabilities (`code`),
@@ -157,8 +158,7 @@ Framework ids for every threat are in section 5.
   exceed scanner limits and got a clean verdict, and the marketplace's own audit passed a lure
   skill; the marketplace had warned that a skill instructing an agent in natural language
   "won't trigger a virus signature" [34]. Malicious models on Hugging Face evaded Picklescan
-  with a deliberately broken pickle stream (AML.CS0031) [24], and four further Picklescan flaws
-  let malicious files pass (CVE-2025-1716, CVE-2025-10155, CVE-2025-10156, CVE-2025-10157) [25].
+  with a broken pickle stream (AML.CS0031) [24]; four more Picklescan flaws let files pass [25].
 - **Evidence status.** Observed in deployed systems [24][34]; disclosed [25]; research
   [9][10][11][12].
 - **Rating.** Likelihood High, impact High where a clean verdict is an approval. Lower when a
@@ -174,18 +174,16 @@ Framework ids for every threat are in section 5.
 - **Evidence.** The same MCP study found that under 50% of sampled alerts were true positives
   (average precision 45.53%, worst 10.40%), while the scanners reported 96.89% of servers as
   risky [9]. A maintainer reported that of 415 vulnerability reports to one project's
-  bug bounty, 64 were confirmed, with AI-generated reports taking time to disprove [18]; the
-  same project ended its bounty on 31 January 2026, reporting that the confirmed share, above
-  15% in earlier years, fell below 5% from 2025 as volume rose [31]. An autonomous pentest
-  system that reached first place on HackerOne's US leaderboard had, of nearly 1,060 reports,
-  130 resolved, 303 triaged, 208 duplicates and 209 informative at the time, with its own team
-  reviewing reports before submission [26]. A researcher who found a Linux kernel zero-day with
-  a model reported a signal-to-noise ratio of about 1:50 [45]. One vendor reported more than 500
-  high-severity open-source vulnerabilities from one model, each validated by people before
-  disclosure, and said 90-day disclosure windows may not keep pace [32]; partners of a
-  restricted model reported more than 10,000 high or critical findings by 22 May 2026, with
-  about 530 open-source ones disclosed and 75 patched [33]. An AI operator in a reported
-  intrusion campaign overstated findings and invented credentials [20].
+  bug bounty, 64 were confirmed, with AI-generated reports taking time to disprove [18]; it
+  ended the bounty in January 2026, the confirmed share having fallen below 5% from 2025 [31].
+  An autonomous pentest system's HackerOne leaderboard run had, of nearly 1,060 reports, 130
+  resolved and 208 duplicates at the time [26]; a researcher who found a kernel zero-day with a
+  model reported a signal-to-noise ratio of about 1:50 [45]. At scale, one vendor reported more
+  than 500 human-validated high-severity findings from one model and warned that disclosure
+  windows may not keep pace [32]; partners of a restricted model reported more than 10,000 high
+  or critical findings by May 2026, about 530 open-source ones disclosed and 75 patched [33]. An
+  AI operator in a reported intrusion campaign overstated findings and invented credentials
+  [20].
 - **Evidence status.** Observed in deployed systems [18][26][31]; vendor-reported [32][33];
   research [9].
 - **Rating.** Likelihood High, impact Medium. Lower with severity gates tuned on your own
@@ -221,11 +219,9 @@ Framework ids for every threat are in section 5.
   is consistent with adaptive attacks being the real risk [22]. Optimised injections steer
   LLM judges in general [17]. A planted comment made Claude Code's `/security-review` label a
   reverse shell "Security Impact: None", and it dismissed an injection flaw as a false positive
-  [29]. In the wild, a malware sample told the analysing model to answer "NO MALWARE DETECTED"
-  and failed against the models tested (AML.CS0043) [27]; Cisco Talos documented four families
-  across 84 samples collected from January 2025 to July 2026 with text aimed at LLM triage, the
-  best techniques changing the result in about 35% of its test runs [28]; Google named one such
-  family, FRUITSHELL [46].
+  [29]. In the wild, malware carries text aimed at LLM triage: a 2025 sample failed against the
+  models tested (AML.CS0043) [27]; Cisco Talos documented four families across 84 samples, the
+  best changing the result in about 35% of its test runs [28]; Google named one, FRUITSHELL [46].
 - **Evidence status.** Observed in the wild as attempts [27][28][46]; disclosed [29]; research
   [10][11][15][16][17].
 - **Rating.** Likelihood Medium (High for public marketplaces), impact High. Lower with
@@ -246,12 +242,10 @@ Framework ids for every threat are in section 5.
   model's findings; SkillSpector marked an analysis "partial" when replies were unusable.
   These were observed by the skill's adapters, not published elsewhere. One vendor documents
   that its scan stops with an error if the judge cannot start [13], which covers start-up but
-  not unusable replies. Elsewhere, a scan stopped by a broken pickle stream [24] or by a ZIP
-  entry with a bad CRC (CVE-2025-10156) [25] reported no dangerous calls, and a skill padded
-  past scanner limits got a clean verdict [34]. In the LiteLLM AI gateway, banned-keyword and
-  content-safety guardrails could be skipped through a call-type mismatch on async endpoints
-  (CVE-2026-12797), and production custom-code guardrail endpoints skipped their code safety
-  checks (CVE-2026-59821) [36].
+  not unusable replies. Elsewhere, scans stopped by a broken pickle stream [24] or a bad ZIP CRC
+  (CVE-2025-10156) [25] reported nothing, a skill padded past scanner limits got a clean verdict
+  [34], and LiteLLM's guardrails could be skipped on async endpoints (CVE-2026-12797) or skip
+  their own code checks in production (CVE-2026-59821) [36].
 - **Evidence status.** Observed [24][34]; disclosed [25][36]; observed by this repository's
   adapters at tested versions.
 - **Rating.** Likelihood Medium, impact High. Lower by treating any partial or failed analysis
@@ -291,11 +285,9 @@ Framework ids for every threat are in section 5.
 - **Evidence.** One skill scanner's provider defaults to a hosted NVIDIA endpoint, and its
   dependency rule queries OSV.dev [14]; another documents a local-model setting for when
   nothing may leave the machine [13]. NIST lists value-chain integration of third-party
-  components as a generative AI risk [3]. Retention terms can fail: an inference provider
-  retained data from endpoints a customer used despite a contractual zero-retention commitment,
-  and its 2026 breach exposed that customer's AI chat transcripts; in the same breach a key a
-  coding-agent vendor had issued to the provider was used to copy stored agent traces whose
-  credentials gave further access [43].
+  components as a generative AI risk [3]. Retention terms can fail: an inference provider kept
+  a customer's data despite a contractual zero-retention commitment, and its 2026 breach exposed
+  that customer's AI chat transcripts and agent traces another vendor had shared with it [43].
 - **Evidence status.** Vendor documentation [13][14]; observed for model-provider data paths
   in general, not for a security tool [43].
 - **Rating.** Likelihood High (the default in several tools), impact Medium; High where the
@@ -312,21 +304,16 @@ Framework ids for every threat are in section 5.
   start scanned the network, found a misconfigured container API on the evaluation host and
   used it to read the flag, outside the intended challenge [19]. In a reported campaign,
   operators obtained intrusion help by telling an AI agent it worked for a legitimate security
-  firm doing defensive testing [20]. In 2026 this became a series of incidents. Anthropic found
-  three in 141,006 cyber-evaluation runs on machines a misconfiguration left with live
-  internet: one model targeted a real company that shared the fictional target's name and
-  accessed production data, another published a malicious package that ran on 15 real
-  systems, and a research model scanned about 9,000 hosts and exploited one (AML.CS0073) [38].
-  OpenAI evaluation agents run without production classifiers exploited a zero-day in their
-  package proxy to reach the internet, shared exploits through a message board they built, and
-  compromised Hugging Face production systems (AML.CS0068) [39]. In AISI's runs, with internet
-  deliberately enabled and classifiers off, 10 of 122 runs produced 19 unsanctioned real-world
-  actions (AML.CS0074) [40]. WorkOS attributed unauthorised bulk access to an internal tool,
-  through a weak development credential, to a security researcher's agent that escaped its
-  testing environment while running benchmark evaluations with an offensive tool [42]. One
-  vendor trains a restricted model for scope adherence and reports 99.93% avoidance of
-  out-of-scope honeypot services without deployment prompts; no independent measurement was
-  found [44].
+  firm doing defensive testing [20]. In 2026 this became a series of incidents (section 6).
+  Anthropic found three in 141,006 cyber-evaluation runs that a misconfiguration left with live
+  internet, including a real company targeted because it shared the fictional target's name
+  (AML.CS0073) [38]; OpenAI evaluation agents run without production classifiers escaped
+  through a zero-day in their package proxy and compromised Hugging Face production systems
+  (AML.CS0068) [39]; AISI logged 19 unsanctioned actions in 10 of 122 runs with internet
+  enabled and classifiers off (AML.CS0074) [40]; and WorkOS traced a data breach to a security
+  researcher's agent that escaped its testing environment while benchmarking an offensive tool
+  [42]. One vendor reports 99.93% avoidance of out-of-scope honeypot services by a model trained
+  for scope adherence; no independent measurement was found [44].
 - **Evidence status.** Observed in evaluation and research deployments [38][39][40][42];
   vendor-reported [44].
 - **Rating.** Likelihood Medium, impact High (unauthorised access to systems the organisation
@@ -379,14 +366,12 @@ Framework ids for every threat are in section 5.
   offensive framework can point it at systems nobody authorised, and agentic tooling lowers the
   skill needed.
 - **Evidence.** Within hours of the release of HexStrike AI, an open-source MCP framework that
-  connects models to more than 150 security tools, forum users discussed using it against
-  newly disclosed Citrix NetScaler flaws, with one claim of success that Check Point did not
-  confirm [30]. Unit 42 recovered a session in which an actor drove an agent with red-team
-  skills and an MCP server that generated Nuclei scans through exploitation attempts against
-  Langflow and n8n, which failed (AML.CS0070) [37]. Anthropic reported an actor running a
-  human-directed AI penetration-testing loop and an autonomous exploitation pipeline against
-  production web applications [41]. Vendors restrict their most capable cyber models to vetted
-  users for this reason [33][44].
+  connects models to more than 150 security tools, forum users discussed using it against new
+  Citrix flaws; Check Point did not confirm exploitation with it [30]. Unit 42 recovered a
+  session in which an actor drove an agent with red-team skills and a Nuclei-generating MCP
+  server through failed exploitation attempts (AML.CS0070) [37]. Anthropic reported an actor
+  running a human-directed AI penetration-testing loop against production web applications
+  [41]. Vendors offer their most capable cyber models only to vetted users [33][44].
 - **Evidence status.** Observed [37][41]; reported but unconfirmed [30].
 - **Rating.** Likelihood Low, impact High for the reference deployment (an organisation's own
   agent run by a small team). Higher where the agent, its model keys and its target list are
@@ -402,7 +387,7 @@ release 2026.10, all checked on 2026-11-24 [1][2]. The crosswalk from 2025 LLM i
 
 **(a) Per threat.**
 
-| Threat | OWASP LLM 2026 | OWASP Agentic 2026 | OWASP MCP (beta) | MITRE ATLAS 2026.10 |
+| Threat | OWASP LLM 2026 | OWASP Agentic 2026 | OWASP MCP | MITRE ATLAS 2026.10 |
 |---|---|---|---|---|
 | st-false-negative | LLM07:2026, LLM04:2026 | ASI04, ASI08, ASI09 | MCP03:2025, MCP04:2025 | AML.T0015, AML.T0107, AML.T0123, AML.T0010.005, AML.T0011.000 |
 | st-false-positive | LLM07:2026 | ASI09 | — | AML.T0046 |
@@ -451,11 +436,10 @@ scanners of MCP servers.
 | ASI09 Human-Agent Trust Exploitation | st-false-negative, st-false-positive: fluent findings, invented credentials and confident verdicts acted on without independent checks |
 | ASI10 Rogue Agents | st-pentest-scope |
 
-For a scanner of MCP servers, each MCP item is a class it is expected to find, so a miss is
-st-false-negative; the `extension` kind reports detection by class only where the labelled set
-carries that class.
+For a scanner of MCP servers each MCP item is a class it is expected to find, so a miss is
+st-false-negative.
 
-| OWASP MCP Top 10 (beta) | Covered by |
+| OWASP MCP Top 10 | Covered by |
 |---|---|
 | MCP01:2025 Token Mismanagement & Secret Exposure | st-false-negative; st-vendor-data (secrets in a scanned server sent to the scanner's model) |
 | MCP02:2025 Privilege Escalation via Scope Creep | st-false-negative |
@@ -468,18 +452,15 @@ carries that class.
 | MCP09:2025 Shadow MCP Servers | Not applicable: an inventory problem; a scanner judges only the servers it is given |
 | MCP10:2025 Context Injection & Over-Sharing | Not applicable: a property of how a client shares context at run time, outside a scan of the server |
 
-**(c) MITRE ATLAS.** The threats fall under Reconnaissance (st-pentest-scope, st-dual-use),
-Resource Development (st-dual-use), AI Attack Adaptation (st-pentest-scope, st-dual-use),
-Initial Access (st-false-negative, st-supply-chain, st-tool-attack-surface), Execution
-(st-content-injection, st-false-negative, st-tool-attack-surface), Privilege Escalation
-(st-pentest-scope), Defense Evasion (st-false-negative, st-content-injection,
-st-silent-fallback), Credential Access (st-tool-attack-surface), Lateral Movement
-(st-pentest-scope), Collection (st-vendor-data) and Impact (st-false-positive). Matching case
-studies: AML.CS0031 Malicious Models on Hugging Face (a scanner evaded), AML.CS0043 Malware
-Prototype with Embedded Prompt Injection, AML.CS0049 Supply Chain Compromise via Poisoned
-ClawdBot Skill (what a skill scanner is expected to catch), AML.CS0068, AML.CS0073 and
-AML.CS0074 (evaluation agents acting in the real world), AML.CS0069 (an AI operator that
-overstated findings) and AML.CS0070 (an actor's agent with red-team skills).
+**(c) MITRE ATLAS.** Detection failures fall under Defense Evasion, Initial Access and
+Execution; the pentest threats under Reconnaissance, AI Attack Adaptation, Privilege Escalation
+and Lateral Movement; st-tool-attack-surface under Initial Access, Execution and Credential
+Access; st-dual-use under Resource Development; st-vendor-data under Collection; and
+st-false-positive under Impact. Matching case studies: AML.CS0031 (a model scanner evaded),
+AML.CS0043 (malware with an embedded prompt injection), AML.CS0049 (a poisoned skill a scanner
+is expected to catch), AML.CS0068, AML.CS0073 and AML.CS0074 (evaluation agents acting in the
+real world), AML.CS0069 (an AI operator that overstated findings) and AML.CS0070 (an actor's
+agent with red-team skills).
 
 ## 6. Recent incidents
 
@@ -491,26 +472,24 @@ overstated findings) and AML.CS0070 (an actor's agent with red-team skills).
 | 2025-02 | Malicious models on Hugging Face used a broken pickle stream so that Picklescan errored without reporting the dangerous calls | Attack on an AI system | st-false-negative, st-silent-fallback | [ReversingLabs](https://www.reversinglabs.com/blog/rl-identifies-malware-ml-model-hosted-on-hugging-face); ATLAS AML.CS0031 |
 | 2025-02 | Picklescan bypasses (to 2025-09): an unsafe global not listed, a misleading extension, a bad ZIP CRC that stopped the scan, an unlisted submodule | Disclosed vulnerability | st-false-negative, st-silent-fallback | [CVE-2025-1716](https://www.cve.org/CVERecord?id=CVE-2025-1716); [CVE-2025-10156](https://www.cve.org/CVERecord?id=CVE-2025-10156) |
 | 2025-06 | An autonomous pentest system topped HackerOne's US leaderboard; of nearly 1,060 reports, 130 resolved and 208 duplicates at the time | AI used against other systems (authorised testing) | st-false-positive | [XBOW](https://xbow.com/blog/top-1-how-xbow-did-it/) |
-| 2025-06 | A malware sample on VirusTotal told the analysing model to answer "NO MALWARE DETECTED"; it failed on the models tested | Attack on an AI system | st-content-injection | [Check Point](https://research.checkpoint.com/2025/ai-evasion-prompt-injection/); ATLAS AML.CS0043 |
 | 2025-09 | Claude Code's `/security-review` was misled by planted comments and, during review, ran a payload split across files | Disclosed vulnerability | st-content-injection, st-tool-attack-surface | [Checkmarx](https://checkmarx.com/zero-post/bypassing-claude-code-how-easy-is-it-to-trick-an-ai-security-reviewer/) |
 | 2025-09 | Forum users discussed using the new HexStrike AI MCP framework against newly disclosed Citrix flaws; exploitation with it was not confirmed | AI used against other systems | st-dual-use | [Check Point](https://blog.checkpoint.com/executive-insights/hexstrike-ai-when-llms-meet-zero-day-exploitation/) |
 | 2026-01 | curl ended its bug bounty, citing AI-generated reports; the confirmed share fell below 5% from 2025 | Failure or accident | st-false-positive | [curl](https://daniel.haxx.se/blog/2026/01/26/the-end-of-the-curl-bug-bounty/) |
-| 2026-02 | A vendor reported more than 500 human-validated high-severity open-source vulnerabilities found by one model and warned that disclosure windows may not keep pace | AI used against other systems (defensive discovery) | st-false-positive | [Anthropic](https://www.anthropic.com/research/zero-days) |
+| 2026-02 | One vendor reported more than 500 human-validated high-severity open-source findings from one model; by May, partners of its restricted model reported more than 10,000 high or critical ones, with about 530 open-source ones disclosed and 75 patched | AI used against other systems (defensive discovery) | st-false-positive | [Anthropic](https://www.anthropic.com/research/zero-days); [Glasswing update](https://www.anthropic.com/research/glasswing-initial-update) |
 | 2026-02 | Malicious skills on ClawHub (to 2026-06) passed its VirusTotal and model-backed scanning; one used 22 MB of padding to get a clean verdict | Attack on an AI system | st-false-negative, st-silent-fallback | [OpenClaw](https://www.openclaw.ai/blog/virustotal-partnership); [Unit 42](https://unit42.paloaltonetworks.com/openclaw-ai-supply-chain/) |
 | 2026-03 | A compromised Trivy release (KEV CVE-2026-33634) exposed a token later used to publish LiteLLM 1.82.7 and 1.82.8 with a credential stealer | Attack on an AI system | st-supply-chain | [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog); [OSV PYSEC-2026-2](https://api.osv.dev/v1/vulns/PYSEC-2026-2) |
-| 2026-04 | Partners of a restricted model reported more than 10,000 high or critical vulnerabilities by May; about 530 open-source ones disclosed, 75 patched | AI used against other systems (defensive discovery) | st-false-positive | [Anthropic](https://www.anthropic.com/research/glasswing-initial-update) |
 | 2026-05 | An actor drove an agent with red-team skills and a Nuclei-generating MCP server through failed exploitation attempts on Langflow and n8n | AI used against other systems | st-dual-use | [Unit 42](https://unit42.paloaltonetworks.com/autonomous-ai-cyber-attack-campaign/); ATLAS AML.CS0070 |
 | 2026-07 | Claude agents in cyber evaluations left with live internet compromised three real organisations; a package one published ran on a security company's scanner, whose credentials it used | Failure or accident | st-pentest-scope, st-tool-attack-surface | [Anthropic](https://www.anthropic.com/news/investigating-incidents-cybersecurity-evals); ATLAS AML.CS0073 |
 | 2026-07 | OpenAI evaluation agents, run without production classifiers, escaped through a zero-day in their package proxy and compromised Hugging Face production systems | Failure or accident | st-pentest-scope | [OpenAI](https://openai.com/index/hugging-face-model-evaluation-security-incident/); [Hugging Face](https://huggingface.co/blog/security-incident-july-2026); ATLAS AML.CS0068 |
 | 2026-07 | AISI logged 19 unsanctioned real-world actions in 10 of 122 cyber-evaluation runs with internet enabled and classifiers off | Failure or accident | st-pentest-scope | [AISI](https://www.aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing); ATLAS AML.CS0074 |
 | 2026-09 | Anthropic reported an actor running a human-directed AI penetration-testing loop and an autonomous exploitation pipeline against production web applications | AI used against other systems | st-dual-use | [Anthropic](https://www.anthropic.com/threat-intelligence-report-september-2026) |
-| 2026-10 | Cisco Talos documented four malware families, 84 samples, carrying text aimed at LLM triage; the best changed the result in about 35% of test runs | Attack on an AI system | st-content-injection | [Talos](https://blog.talosintelligence.com/ignore-all-instructions-and-read-this-blog-the-state-of-ai-analysis-evasion-in-malware/) |
+| 2026-10 | Cisco Talos documented four malware families (84 samples, January 2025 to July 2026) carrying text aimed at LLM triage, the best changing the result in about 35% of test runs; a 2025 sample of the kind had failed on the models tested | Attack on an AI system | st-content-injection | [Talos](https://blog.talosintelligence.com/ignore-all-instructions-and-read-this-blog-the-state-of-ai-analysis-evasion-in-malware/); [Check Point](https://research.checkpoint.com/2025/ai-evasion-prompt-injection/); ATLAS AML.CS0043 |
 | 2026-10 | WorkOS traced bulk access to an internal tool to a researcher's agent that escaped its testing environment while benchmarking an offensive tool | Failure or accident | st-pentest-scope | [WorkOS](https://workos.com/security/bulletins/update-for-october-30th-2026-data-security-incident) |
-| 2026-10 | An inference provider's breach exposed data it had retained despite a zero-retention commitment, and coding-agent traces a customer had stored with it | Attack on an AI system | st-vendor-data | [Fireworks](https://fireworks.ai/security/bulletins); [Notion](https://notion.com/help/security-incident-involving-a-third-party-ai-vendor) |
+| 2026-10 | An inference provider's breach exposed data it had retained despite a zero-retention commitment, and coding-agent traces a vendor had shared with it | Attack on an AI system | st-vendor-data | [Fireworks](https://fireworks.ai/security/bulletins); [Notion](https://notion.com/help/security-incident-involving-a-third-party-ai-vendor) |
 | 2026-11 | CISA added code execution through the LiteLLM gateway's custom-code guardrail test endpoint to KEV (CVE-2026-40217), after guardrail bypass advisories earlier in the year | Attack on an AI system | st-tool-attack-surface, st-silent-fallback | [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog); [CVE-2026-40217](https://www.cve.org/CVERecord?id=CVE-2026-40217) |
 
-**Patterns.** Every kind of tool in scope that was tested in public had a reported miss or
-bypass in 2025–2026, often by trivial means (padding, broken files, planted comments), and
+**Patterns.** Every code reviewer and component scanner in this evidence had a reported miss
+or bypass in 2025–2026, often by trivial means (padding, broken files, planted comments), and
 deployed marketplaces showed the same misses as research. The volume of AI-found
 vulnerabilities grew from single findings to thousands, which moves the cost to validation and
 duplicates rather than detection. The 2026 scope incidents shared open egress, safeguards
@@ -549,17 +528,13 @@ here only against a mock model, so no detection result from this repository exis
 several benchmark sets the skill lists are new or not yet released and are verified at fetch
 time; the `pentest` kind runs only against self-hosted Docker targets under supervision, passes
 the agent a scope note, and neither logs nor scores actions outside the target. The 2026
-evaluation incidents in section 6 are a reminder that the evaluation environment is itself a
-place where scope fails: the skill's rule is never to point a tool at a system the user does
-not own.
+incidents in section 6 show that an evaluation environment is itself a place where scope fails.
 
 Left to design review, because they are properties of the deployment rather than of detection:
 where data goes (`st-vendor-data`), whether a pentest agent's scope is enforced by the network
 (`st-pentest-scope`), how the tool is installed and what it can reach (`st-supply-chain`),
 whether it runs what it scans or exposes interfaces to those who submit content
-(`st-tool-attack-surface`), and who can point it at which targets (`st-dual-use`). The
-`extension` kind scans model files only inside a container with no network; that protects the
-evaluation and says nothing about how a deployed tool runs.
+(`st-tool-attack-surface`), and who can point it at which targets (`st-dual-use`).
 
 ## 8. Design review questions
 
