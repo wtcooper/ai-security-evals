@@ -71,7 +71,10 @@ The design rationale is in [`docs/design.md`](docs/design.md).
 
 Every asset class this repository evaluates has a short threat model in
 [`threat-models/`](threat-models/README.md): an executive summary of the core risks, where
-they come from, and how the skills here relate to them.
+they come from, the 2025–2026 incidents behind them, a mapping to the OWASP LLM (2026), Agentic
+and MCP Top 10 lists and MITRE ATLAS, and how the skills here relate to them. A shared
+[incident register](threat-models/incidents.md) and [framework reference](threat-models/frameworks.md)
+sit beside them.
 
 | Asset class | Threat model | Related skills |
 |---|---|---|

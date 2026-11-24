@@ -153,7 +153,9 @@ records who set each criterion and whether that was before or after the results 
 - **`coding-guidance-benchmark` treats an arm as an opaque folder.** It never inspects or
   interprets the guidance; only a placebo arm ships. Tasks and scoring come from BaxBench.
 - **Every asset class has a short threat model** in `threat-models/` that explains its core
-  risks and how the skills here relate to them.
+  risks, the evidence behind each (incident, disclosed vulnerability, research or theory) and
+  how the skills here relate to them. A shared incident register and framework reference sit
+  beside them.
 - **Modality benchmarks share one shape.** `decision-model-benchmark`,
   `voice-model-benchmark`, `vision-model-benchmark` and `image-generation-benchmark` each start
   from a threat model of their channel (where input comes from, the trust boundaries, what
@@ -174,7 +176,9 @@ records who set each criterion and whether that was before or after the results 
 ## 6. Reference frameworks
 
 Used as vocabularies for threat ids and context, not as the process: OWASP Top 10 for LLM
-Applications and for Agentic Applications, MITRE ATLAS, the AWS Agentic AI Security Scoping
+Applications (2026 edition), OWASP Top 10 for Agentic Applications, OWASP MCP Top 10 (a beta),
+MITRE ATLAS (release 2026.10; the editions used are listed in `threat-models/frameworks.md`),
+the AWS Agentic AI Security Scoping
 Matrix (autonomy), Microsoft's taxonomy of agentic failure modes, CSA's AI controls
 questionnaire, NIST AI RMF with its Generative AI Profile. Ids appear in templates only where
 they were verified against the primary source.

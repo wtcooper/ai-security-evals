@@ -103,13 +103,13 @@ AML.T0115.001), and AML.T0024.000 to .002.
 
 ### Techniques used in these threat models
 
-112 techniques and sub-techniques, each with the threat models that cite it.
+114 techniques and sub-techniques, each with the threat models that cite it.
 
 | Id | Name | Used in |
 |---|---|---|
 | AML.T0005.001 | Replicate AI Model Behavior: Replicate Behavior from Model Outputs | General-purpose, Decision |
 | AML.T0006.003 | Active Scanning: Probe AI Agent Trigger Channels | Agent features |
-| AML.T0010.001 | Supply Chain Compromise: Software | General-purpose, Coding agent, LLM application, Guardrail, Security tooling |
+| AML.T0010.001 | Supply Chain Compromise: Software | General-purpose, Restricted cyber, Coding agent, LLM application, Guardrail, Security tooling |
 | AML.T0010.003 | Supply Chain Compromise: Model Repository | General-purpose, LLM application |
 | AML.T0010.005 | Supply Chain Compromise: AI Agent Tool | Coding agent, Agent features, LLM application, Security tooling |
 | AML.T0011.000 | User Execution: Unsafe AI Artifacts | General-purpose, Security tooling |
@@ -118,7 +118,7 @@ AML.T0115.001), and AML.T0024.000 to .002.
 | AML.T0011.003 | User Execution: Malicious Link | Vision input, Image generation, Agent features |
 | AML.T0012 | Valid Accounts | General-purpose, Restricted cyber, Decision, Voice, Image generation, LLM application, Guardrail |
 | AML.T0013 | Discover AI Model Ontology | Decision |
-| AML.T0015 | Evade AI Model | Decision, Vision input, Image generation, Guardrail, Security tooling |
+| AML.T0015 | Evade AI Model | Restricted cyber, Decision, Vision input, Image generation, Guardrail, Security tooling |
 | AML.T0016.002 | Obtain Capabilities: Generative AI | General-purpose, Decision, Voice, Vision input, Image generation, Coding agent |
 | AML.T0016.004 | Obtain Capabilities: AI Agent Tools | Security tooling |
 | AML.T0017.001 | Develop Capabilities: Autonomous Exploit Development | Restricted cyber |
@@ -184,11 +184,13 @@ AML.T0115.001), and AML.T0024.000 to .002.
 | AML.T0086 | Exfiltration via AI Agent Tool Invocation | General-purpose, Restricted cyber, Vision input, Coding agent, Agent features, LLM application |
 | AML.T0087 | Gather Victim Identity Information | Vision input, Image generation |
 | AML.T0088 | Generate Deepfakes | Decision, Voice, Image generation |
+| AML.T0091 | Use Alternate Authentication Material | Restricted cyber |
 | AML.T0091.000 | Use Alternate Authentication Material: Application Access Token | Voice, Agent features |
 | AML.T0092 | Manipulate User LLM Chat History | Agent features |
 | AML.T0093 | Prompt Infiltration via Public-Facing Application | Vision input, Coding agent, Agent features, LLM application |
 | AML.T0094 | Delay Execution of LLM Instructions | Agent features |
-| AML.T0098 | AI Agent Tool Credential Harvesting | Coding agent, Agent features |
+| AML.T0097 | Virtualization/Sandbox Evasion | Restricted cyber |
+| AML.T0098 | AI Agent Tool Credential Harvesting | Restricted cyber, Coding agent, Agent features |
 | AML.T0099 | AI Agent Tool Data Poisoning | Agent features |
 | AML.T0100 | AI Agent Clickbait | Vision input, Agent features |
 | AML.T0101 | Data Destruction via AI Agent Tool Invocation | Coding agent, Agent features |
@@ -204,9 +206,9 @@ AML.T0115.001), and AML.T0024.000 to .002.
 | AML.T0112.000 | Machine Compromise: Local AI Agent | Coding agent, Agent features |
 | AML.T0115.001 | Publish Poisoned AI Artifacts: Models | General-purpose |
 | AML.T0115.002 | Publish Poisoned AI Artifacts: AI Agent Tools | Agent features, LLM application |
-| AML.T0116 | Autonomous Reconnaissance | Coding agent, Agent features, Security tooling |
+| AML.T0116 | Autonomous Reconnaissance | Restricted cyber, Coding agent, Agent features, Security tooling |
 | AML.T0117 | Autonomous Attack-Path Adaptation | Security tooling |
-| AML.T0118.000 | Autonomous AI Agent Communication: Communication via Shared Artifacts | Agent features, Security tooling |
+| AML.T0118.000 | Autonomous AI Agent Communication: Communication via Shared Artifacts | Restricted cyber, Agent features, Security tooling |
 | AML.T0122 | Exploitation of Remote Services | Security tooling |
 | AML.T0123 | Obfuscated Files or Information | Security tooling |
 | AML.T0124 | Autonomous Attack Orchestration | General-purpose, Coding agent, Agent features |
@@ -215,7 +217,7 @@ AML.T0115.001), and AML.T0024.000 to .002.
 | AML.T0131 | Crafted AI Assistant Links | General-purpose, Agent features, LLM application |
 | AML.T0132 | Misconfigured or Publicly Exposed AI Services | General-purpose, Voice, Agent features, LLM application |
 | AML.T0136 | Exfiltration via AI User Interface | Agent features, LLM application |
-| AML.T0138 | Indicator Removal | General-purpose, Decision, Coding agent, Agent features |
+| AML.T0138 | Indicator Removal | General-purpose, Restricted cyber, Decision, Coding agent, Agent features |
 | AML.T0141 | AI Service Request Metadata Sanitization | Image generation |
 | AML.T0142 | Event Triggered Execution | Coding agent, Agent features |
 | AML.T0143 | LLM Prompt Propagation | Agent features |
@@ -228,7 +230,7 @@ AML.T0115.001), and AML.T0024.000 to .002.
 | AML.CS0017 | Bypassing ID.me Identity Verification | Decision |
 | AML.CS0026 | Financial Transaction Hijacking with M365 Copilot as an Insider | LLM application |
 | AML.CS0029 | Google Bard Conversation Exfiltration | LLM application |
-| AML.CS0030 | LLMjacking: Stolen Cloud Credentials Used to Access Cloud LLM Services | General-purpose, Image generation, LLM application |
+| AML.CS0030 | LLMjacking: Stolen Cloud Credentials Used to Access Cloud LLM Services | General-purpose, Restricted cyber, Image generation, LLM application |
 | AML.CS0031 | Malicious Models on Hugging Face | General-purpose, Security tooling |
 | AML.CS0032 | Attempted Evasion of ML Phishing Webpage Detection System | Decision, Guardrail |
 | AML.CS0033 | Live Deepfake Image Injection to Evade Mobile KYC Verification | Decision, Voice, Image generation |
@@ -254,7 +256,7 @@ AML.T0115.001), and AML.T0024.000 to .002.
 | AML.CS0054 | Data Exfiltration via Remote Poisoned MCP Tool | Agent features, LLM application |
 | AML.CS0055 | AI ClickFix: Hijacking Computer-Use Agents Using ClickFix | Vision input, Agent features |
 | AML.CS0056 | Model Distillation Campaigns Targeting Anthropic Claude | General-purpose |
-| AML.CS0057 | Storm-2139 Azure OpenAI Guardrail Bypass | General-purpose, Image generation, LLM application, Guardrail |
+| AML.CS0057 | Storm-2139 Azure OpenAI Guardrail Bypass | General-purpose, Restricted cyber, Image generation, LLM application, Guardrail |
 | AML.CS0059 | EchoLeak: Zero-Click Prompt Injection Targeting M365 Copilot for Data Exfiltration | General-purpose, Agent features, LLM application, Guardrail |
 | AML.CS0060 | Cross-Site Scripting via Prompt Manipulation in Lenovo AI Chatbot | LLM application |
 | AML.CS0062 | RCE Vulnerability in Semantic Kernel Search Plugin | Agent features, LLM application |
@@ -263,13 +265,13 @@ AML.T0115.001), and AML.T0024.000 to .002.
 | AML.CS0065 | Model Namespace Reuse Supply Chain Attack | General-purpose, LLM application |
 | AML.CS0066 | ZombieAgent: Data Exfiltration Attack on ChatGPT | Agent features, LLM application |
 | AML.CS0067 | Claude Code GitHub Action Secret Exposure | Coding agent, Agent features |
-| AML.CS0068 | Autonomous OpenAI Evaluation Agents Compromise Hugging Face Infrastructure | General-purpose, Agent features, Security tooling |
-| AML.CS0069 | GTG-1002 Claude Code Espionage Campaign | General-purpose, Coding agent, Agent features, Guardrail, Security tooling |
+| AML.CS0068 | Autonomous OpenAI Evaluation Agents Compromise Hugging Face Infrastructure | General-purpose, Restricted cyber, Agent features, Security tooling |
+| AML.CS0069 | GTG-1002 Claude Code Espionage Campaign | General-purpose, Restricted cyber, Coding agent, Agent features, Guardrail, Security tooling |
 | AML.CS0070 | Threat Actor Uses a DeepSeek-Powered Hermes Agent in Langflow and n8n Exploitation Attempts | General-purpose, LLM application, Security tooling |
 | AML.CS0071 | Multi-Agent Framework Compromises Taiwanese Government Systems | Agent features |
 | AML.CS0072 | AI Recommendation Poisoning via Crafted AI Assistant Links | General-purpose, Agent features, LLM application |
-| AML.CS0073 | Autonomous Claude Agents Compromise Three Real Organizations During Cyber Evaluations | General-purpose, Coding agent, Agent features, Security tooling |
-| AML.CS0074 | AISI Evaluation Agents Conduct Unsanctioned Real-World Cyber Activity | General-purpose, Coding agent, Agent features, Security tooling |
+| AML.CS0073 | Autonomous Claude Agents Compromise Three Real Organizations During Cyber Evaluations | General-purpose, Restricted cyber, Coding agent, Agent features, Security tooling |
+| AML.CS0074 | AISI Evaluation Agents Conduct Unsanctioned Real-World Cyber Activity | General-purpose, Restricted cyber, Coding agent, Agent features, Security tooling |
 | AML.CS0075 | Model Distillation Campaigns Targeting Google AI Services | General-purpose |
 | AML.CS0076 | China-Based Artificial Intelligence Companies Conducting Industrial-Scale Distillation Campaigns Against U.S. AI Companies | General-purpose |
 

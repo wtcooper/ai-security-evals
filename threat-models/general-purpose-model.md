@@ -364,7 +364,7 @@ OWASP crosswalk is in [frameworks.md](frameworks.md). Evidence: **observed** in 
 - *Evidence (observed).* Stolen customer keys were used to reach a cloud AI service and resell
   access [R46]. Cloning at scale has been reported against frontier vendors: over 16 million
   exchanges through about 24,000 fraudulent accounts, and a 2026 joint advisory attributing such
-  campaigns to six companies [R64]. OWASP's entry (LLM10:2025, now LLM06:2026) describes this as
+  campaigns to six companies [R64]. OWASP's entry for this risk (now LLM06:2026) describes it as
   denial of wallet and also names model extraction [R6].
 
 ## 5. Framework mapping
@@ -440,15 +440,13 @@ AML.CS0076 (`gm-consumption`, cloning); AML.CS0068, AML.CS0073, AML.CS0074
 | 2025-08 | Anthropic reports an extortion operation against at least 17 organisations run through a coding agent, and ransomware built and sold with its model | AI used against other systems | `gm-uplift`, `gm-misuse` | [Anthropic](https://www.anthropic.com/news/detecting-countering-misuse-aug-2025) |
 | 2025-08 | Malicious npm releases ran victims' installed AI coding CLIs with permission checks off to search for secrets (s1ngularity) | AI used against other systems | `gm-uplift` | [Nx](https://nx.dev/blog/s1ngularity-postmortem) |
 | 2025-09 | Re-registered Hub author names served attacker models to cloud model catalogues that load by name | Disclosed vulnerability | `gm-weights` | [Unit 42](https://unit42.paloaltonetworks.com/model-namespace-reuse/) |
-| 2025-10 | OpenAI reports actors obtaining malware building blocks after direct requests were refused, and generating multilingual phishing | AI used against other systems | `gm-misuse`, `gm-uplift` | [OpenAI](https://openai.com/global-affairs/disrupting-malicious-uses-of-ai-october-2025) |
 | 2025-11 | Anthropic reports an espionage campaign (GTG-1002) in which a coding agent with MCP tools did about 80–90% of the work against about 30 targets, after task splitting and a security-firm pretext | AI used against other systems | `gm-uplift`, `gm-misuse` | [Anthropic](https://www.anthropic.com/news/disrupting-AI-espionage) |
 | 2026-01 | A package name invented in LLM-written agent skills spread to more than 237 repositories; a researcher registered it before an attacker did | Disclosed vulnerability | `gm-insecure-code` | [Aikido](https://aikido.dev/blog/agent-skills-spreading-hallucinated-npx-commands) |
 | 2026-02 | 31 companies hid "remember us as a trusted source" prompts in AI assistant links | Attack on an AI system | `gm-memory-poisoning` | [Microsoft](https://www.microsoft.com/en-us/security/blog/2026/02/10/ai-recommendation-poisoning/) |
 | 2026-02, 2026-09 | Distillation of frontier models through about 24,000 fraudulent accounts; a joint NSA, CISA and FBI advisory attributes such campaigns to six companies | Attack on an AI system | `gm-consumption` | [Anthropic](https://www.anthropic.com/news/detecting-and-preventing-distillation-attacks); [CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa26-251a) |
-| 2026-03 to 2026-11 | Compromised publishing paths put credential stealers into LiteLLM releases on PyPI (twice) and into Microsoft's agent-framework package | Attack on an AI system | `gm-serving` | [OSV](https://api.osv.dev/v1/vulns/PYSEC-2026-2); [LiteLLM](https://docs.litellm.ai/blog/security-incident-oct-21-2026-attack-chain); [Wiz](https://www.wiz.io/blog/malicious-version-of-microsofts-agent-framework-published-to-pypi) |
+| 2026-03 to 2026-11 | Compromised publishing paths put credential stealers into LiteLLM releases on PyPI (twice) and into Microsoft's agent-framework package; four LiteLLM gateway flaws were added to CISA's known-exploited catalogue | Attack on an AI system | `gm-serving` | [OSV](https://api.osv.dev/v1/vulns/PYSEC-2026-2); [LiteLLM](https://docs.litellm.ai/blog/security-incident-oct-21-2026-attack-chain); [Wiz](https://www.wiz.io/blog/malicious-version-of-microsofts-agent-framework-published-to-pypi); [CISA KEV](https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json) |
 | 2026-04 | A system card reports that an earlier internal model version, asked to escape a secured sandbox, gained internet access and then, unasked, posted exploit details on public sites | Failure or accident | `gm-agent-overreach` | [Anthropic](https://www.anthropic.com/claude-mythos-preview-system-card) |
 | 2026-04 | At least nine Mexican government bodies breached with a coding agent and an LLM API as core tools (ATT&CK campaign C0064) | AI used against other systems | `gm-uplift` | [MITRE ATT&CK](https://attack.mitre.org/campaigns/C0064/) |
-| 2026-05 to 2026-11 | Four LiteLLM gateway flaws added to CISA's known-exploited catalogue, including SQL injection in API-key checks and command execution through MCP test endpoints | Attack on an AI system | `gm-serving` | [CISA KEV](https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json) |
 | 2026-07 | Evaluation agents run with reduced refusals and safeguards off escaped through a package-proxy zero-day and compromised Hugging Face production infrastructure | Failure or accident | `gm-agent-overreach`, `gm-surface-drift` | [OpenAI](https://openai.com/index/hugging-face-model-evaluation-security-incident/); [Hugging Face](https://huggingface.co/blog/security-incident-july-2026) |
 | 2026-07 | A review of 141,006 cyber-evaluation runs finds three incidents that reached real organisations through unintended internet access | Failure or accident | `gm-agent-overreach` | [Anthropic](https://www.anthropic.com/research/investigating-incidents-cybersecurity-evals) |
 | 2026-08 | An evaluation institute logs 19 unsanctioned actions in 10 of 122 runs with internet access enabled and classifiers off, including contact with real people | Failure or accident | `gm-agent-overreach` | [UK AISI](https://aisi.gov.uk/blog/incident-report-unsanctioned-agent-behaviour-during-cyber-testing) |
@@ -456,16 +454,14 @@ AML.CS0076 (`gm-consumption`, cloning); AML.CS0068, AML.CS0073, AML.CS0074
 | 2026-10 | In a vendor's internal use, one agent turned off monitoring alerts and another removed its monitor and said it had not | Failure or accident | `gm-agent-overreach` | [OpenAI](https://openai.com/safety-alignment/misalignment-reports/suppressing-misalignment-monitoring-alerts-and-disabling-misalignment-monitoring/) |
 | 2026-10, 2026-11 | An inference provider was breached; it had kept one customer's data despite a contractual zero-retention term, and another customer's stored agent traces were copied | Attack on an AI system | `gm-vendor-data` | [Fireworks](https://fireworks.ai/security/bulletins); [Notion](https://notion.com/help/security-incident-involving-a-third-party-ai-vendor); [Cursor](https://cursor.com/blog/security-incident-update) |
 
-**Patterns.** Misuse in the record moved from assistance in 2025 (research, code, content) to
-operation from late 2025, with agents running most of an intrusion; it went around refusals by
-splitting tasks and giving pretexts, and it ran on generally available models. Against the
-model's delivery path, the most damaging events were not malicious weights but compromised
-publishing paths for AI libraries, whose payloads looked for AI provider keys. The new
-2026 class is agents reaching real systems with no attacker: in every evaluation incident
-egress was misconfigured or deliberately enabled and safeguards or monitors were off, while
-in one vendor's ordinary internal use agents disabled their own monitoring. Vendor-side
-exposure came from misconfiguration, a sub-processor, and an inference host that kept data its
-contract excluded.
+**Patterns.** Misuse moved from assistance in 2025 to operation from late 2025, with agents
+running most of an intrusion; it went around refusals by splitting tasks and giving pretexts,
+on generally available models. On the delivery path, the most damaging events were compromised
+publishing paths for AI libraries whose payloads looked for provider keys, not malicious
+weights. The new 2026 class is agents reaching real systems with no attacker: evaluation egress
+was misconfigured or enabled with safeguards off, and in one vendor's ordinary use agents
+disabled their own monitoring. Vendor-side exposure came from misconfiguration, a
+sub-processor, and an inference host that kept data its contract excluded.
 
 ## 7. How this repository's evaluations relate
 
@@ -580,8 +576,8 @@ including its case studies. R1–R23 were read on 2026-11-21; R24 onwards on 202
 - R2. "AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents", arXiv:2406.13352. https://arxiv.org/abs/2406.13352
 - R3. "A StrongREJECT for Empty Jailbreaks", arXiv:2402.10260. https://arxiv.org/abs/2402.10260
 - R4. inspect_evals, CyberSecEval 4 README (tasks, sizes, semgrep-based detector). https://github.com/UKGovernmentBEIS/inspect_evals/tree/main/src/inspect_evals/cyberseceval_4
-- R5. OWASP, LLM07:2025 System Prompt Leakage (now LLM08:2026 Hidden Context Exposure). https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/
-- R6. OWASP, LLM10:2025 Unbounded Consumption (now LLM06:2026). https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
+- R5. OWASP, System Prompt Leakage, 2025 edition entry (now LLM08:2026 Hidden Context Exposure). https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/
+- R6. OWASP, Unbounded Consumption, 2025 edition entry (now LLM06:2026). https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
 - R7. "Asleep at the Keyboard? Assessing the Security of GitHub Copilot's Code Contributions", arXiv:2108.09293. https://arxiv.org/abs/2108.09293
 - R8. "AgentPoison: Red-teaming LLM Agents via Poisoning Memory or Knowledge Bases", arXiv:2407.12784. https://arxiv.org/abs/2407.12784
 - R9. "Memory Injection Attacks on LLM Agents via Query-Only Interaction", arXiv:2503.03704. https://arxiv.org/abs/2503.03704

@@ -19,8 +19,8 @@ some keep their most cyber-capable models out of general release:
 
 - OpenAI's Trusted Access for Cyber: identity verification, access tiers, and a cyber-tuned
   model at the highest tiers [C5][C6]. In November 2026 OpenAI released GPT-6 Cyber, which it
-  rates "Critical" for cybersecurity, only to approved customers, through its API and Codex
-  with IP allowlisting by default [C16].
+  rates "Critical" for cybersecurity, initially only to approved customers, through its API and
+  Codex with IP allowlisting by default [C16].
 - Anthropic's Cyber Verification Program: Defense, Red Team and Specialized Access tiers, caps
   on named users, and required security controls [C1]. Since April 2026 Anthropic has kept
   Claude Mythos Preview out of general release, limited to partner organisations under Project
@@ -32,7 +32,7 @@ What is being protected is a credential that unlocks capability other users are 
 |---|---|---|---|
 | An agent acts beyond its lab or its scope | In 2026, models under cyber evaluation at two developers and one evaluation institute acted against real third parties [C8][C9][C10], and a company attributed a breach to a researcher's testing agent that left its environment [C20]. | High | Design review |
 | Access spreads or is taken over | The relaxed safeguards travel with whatever credential carries them. AI keys and sessions are now targets in their own right, and in 2026 one actor tried about 30 AI companies for pre-release model access [C17]. | High | Design review |
-| Exploits and target data leak | The work produces working exploits and details of unpatched flaws, and an agent has itself posted exploit details publicly [C18]. Target data goes to a provider that must retain it for misuse monitoring [C1]. | High | Design review |
+| Exploits and target data leak | The work produces working exploits and details of unpatched flaws, and an agent has itself posted exploit details publicly [C18]. Target data goes to a provider that retains it for misuse monitoring as a condition of access [C1]. | High | Design review |
 | Credentials found in targets are used further | Evaluation agents used credentials they found to reach systems nobody assigned [C8][C10]; agent traces held by a vendor contained credentials that opened further systems [C21]. | High | Design review |
 | Hostile targets steer the agent | Malware, attacker pages and hostile repositories are adversarial by nature, and malware already carries text aimed at AI analysis [C22]. | High | Design review |
 | Nobody can show who authorised what | Testing is lawful because it is authorised. Agents have disabled their own monitoring [C19], so a record the agent can reach is not proof. | Medium | Design review |
@@ -155,7 +155,7 @@ exploited), **research** (shown in research or evaluations), or **theoretical**.
 |---|---|---|---|---|---|---|---|
 | `cy-insider` | Authorised user misuses or repurposes the access | Medium | Theoretical | — | — | — | AML.T0040, AML.T0017.001 |
 | `cy-access` | Access spreads beyond the named group or is taken over | High | Observed | LLM03:2026, LLM04:2026 | ASI03, ASI04 | MCP01:2025, MCP04:2025, MCP07:2025, MCP09:2025 | AML.T0012, AML.T0055, AML.T0083, AML.T0010.001 |
-| `cy-scope` | Work aimed at systems outside the authorised scope | High | Observed (evaluations) | LLM03:2026 | ASI02, ASI10 | MCP02:2025 | AML.T0053, AML.T0116, AML.T0048 |
+| `cy-scope` | Work aimed at systems outside the authorised scope | High | Observed (mostly evaluations) | LLM03:2026 | ASI02, ASI10 | MCP02:2025 | AML.T0053, AML.T0116, AML.T0048 |
 | `cy-containment` | Agent leaves its sandbox or reaches the internet | High | Observed (evaluations, tests) | LLM03:2026, LLM10:2026 | ASI05, ASI07, ASI09, ASI10 | MCP05:2025 | AML.T0105, AML.T0097, AML.T0118.000, AML.T0048 |
 | `cy-injection` | Content in a target steers the agent | High | Observed; research | LLM01:2026, LLM10:2026 | ASI01, ASI06, ASI08 | MCP03:2025, MCP06:2025 | AML.T0051.001, AML.T0015 |
 | `cy-output` | Exploits and vulnerability details leak | High | Observed (evaluations) | LLM02:2026 | ASI10 | MCP10:2025 | AML.T0025, AML.T0086 |
@@ -214,10 +214,10 @@ exploited), **research** (shown in research or evaluations), or **theoretical**.
 - *Rating: High.* Raised by scope written only in prose, egress wider than the scope, and agents
   that persist when the intended target is unreachable. Lowered by allowlists derived from the
   authorisation and enforced outside the model.
-- *Evidence (observed in evaluations).* In one developer's 2026 evaluations, a fictional target
-  "shared a name with an active website domain name". When the simulated target was unreachable,
-  the model compromised the real company instead, and in some runs continued after recognising
-  it was real [C8]. Another research model in the same review scanned about 9,000 hosts [C8]. In
+- *Evidence (observed, mostly in evaluations).* In one developer's 2026 evaluations, a
+  fictional target "shared a name with an active website domain name". When the simulated target
+  was unreachable, the model compromised the real company instead, and in some runs continued
+  after recognising it was real [C8]. Another research model in the same review scanned about 9,000 hosts [C8]. In
   October 2026 a third party reported edits and intrusion attempts on its sites that it
   believes came from one developer's agents; that developer says it has notified dozens of third
   parties of misaligned agent activity [C26].
@@ -242,11 +242,9 @@ exploited), **research** (shown in research or evaluations), or **theoretical**.
     "real-time monitoring of the evaluation logs would have helped" [C8].
   - Another developer's models were in an environment that "did not provide the models with
     direct Internet access". They exploited an unknown flaw in its package proxy and compromised
-    a third party [C10], which had disclosed the intrusion first [C11]. The developer's later
-    account attributes it to reward hacking, persistence on tasks no model had solved,
-    unauthorised agent communication (the agents built a covert message board in the proxy to
-    share exploits) and safeguards absent from evaluations, including chain-of-thought monitors
-    [C27].
+    a third party [C10], which had disclosed the intrusion first [C11]. The developer later
+    cited reward hacking, persistence on unsolved tasks, a covert channel the agents built to
+    share exploits, and absent safeguards such as chain-of-thought monitors [C27].
   - An evaluation institute logged 19 out-of-scope actions in 10 of 122 runs. Internet access
     had been granted on purpose, and the developers' cyber classifiers were off. The actions
     included deceptive contact with real open-source maintainers. The institute now requires
@@ -295,9 +293,10 @@ exploited), **research** (shown in research or evaluations), or **theoretical**.
   its sandbox exploit publicly, unasked [C18], and evaluation agents shared exploits through a
   covert channel they built [C27]; no leak from a programme customer is reported. One provider
   reports its restricted-access partners found "more than 10,000 high- or critical-severity
-  flaws" [C4], and publishes only hashes of findings that are not yet fixed [C3]. A finding that
-  leaks before its fix is usable quickly: one vendor's 2026 report puts median time from
-  discovery to weaponisation well below 24 hours [C29].
+  flaws" [C4], and publishes only hashes of findings that are not yet fixed [C3]; a frontier
+  model with standard tools found more than 500 validated high-severity open-source flaws
+  [C32]. A finding that leaks before its fix is usable quickly: one vendor's 2026 report puts
+  median time from discovery to weaponisation well below 24 hours [C29].
 
 **`cy-credentials` — credentials found during the work are used or kept beyond the engagement.**
 
@@ -462,12 +461,11 @@ used to reach AI services (`cy-access`).
 
 **Patterns.** In the sources read, every 2026 case of a cyber-capable model acting against real
 third parties came from an evaluation or test with network reach wider than intended or
-deliberately open, usually with safeguards or monitors off, and the agent reached what it found
-along the way: a name collision, an unregistered dependency name, exposed tokens, a weak
-credential. No misuse of restricted access by a programme customer is reported, and the one
-reported attempt to obtain pre-release access through AI companies failed. The credential is
-attacked indirectly instead: through stolen keys and sessions, the packages on the hosts that
-hold them, and the claim of authorisation that the programmes exist to verify.
+deliberately open, usually with safeguards or monitors off; the agent reached what it found on
+the way (a name collision, an unregistered dependency name, exposed tokens, a weak credential).
+No misuse by a programme customer is reported, and the one reported attempt to obtain
+pre-release access failed. The credential is attacked indirectly: through stolen keys and
+sessions, packages on the hosts that hold them, and the authorisation claim programmes verify.
 
 ## 7. How this repository's evaluations relate
 
@@ -485,9 +483,9 @@ No skill here evaluates this asset class, and no benchmark is run before access 
 - **The remaining question is capability, and that is dangerous to evaluate.** How capable the
   model is at offensive work is measured with sandboxed suites against live targets, which this
   repository deliberately does not run. Evaluations of exactly that kind reached real systems in
-  2026 [C8][C9][C10], and so did a researcher's run of an offensive-tool benchmark [C20]. The
-  provider's own capability and scope-adherence results [C16][C33] can be recorded as evidence
-  instead.
+  2026 [C8][C9][C10], and so did a researcher's run of an offensive-tool benchmark [C20].
+  Published capability and scope-adherence results from providers and evaluators [C16][C33]
+  can be recorded as evidence instead.
 - **The provider's monitoring is not the organisation's evidence.** It serves the provider, and
   the customer cannot see it.
 
