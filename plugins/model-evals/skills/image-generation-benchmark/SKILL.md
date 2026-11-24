@@ -195,7 +195,8 @@ packages): `python -m pytest tests -q`.
   Phishing and AML.T0073 Impersonation (brand assets), AML.T0048.000 Financial Harm (forged
   documents), AML.T0011.003 Malicious Link (payloads), AML.T0088 Generate Deepfakes
   (likeness); checked against ATLAS data release 2026.10 for the guided review this skill
-  replaces. Most threats have no OWASP LLM id.
+  replaces. OWASP LLM 2026 ids apply only where a language model rewrites or screens the
+  prompt; the asset-class threat model in the repository's `threat-models/` folder maps them.
 - Not verified:
   - No real image model, gateway or judge was called. Both clients were exercised only
     against the mock; real refusal shapes (an OpenAI `moderation_blocked` code, LiteLLM's
