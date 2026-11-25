@@ -46,12 +46,20 @@ MOCK_ARMS, MOCK_JUDGE = "mock-strict,mock-lax", "mock-judge"
 CEILING = 0.95
 
 
-def judge_record(model: str, rubric: str, answer: dict, alt: bool = False) -> dict:
-    """The `judge` field of a samples row: who graded, under which wording, and what it said.
-    `id` (model and rubric version) is what the scorecard compares on."""
+def judge_record(model: str, rubric: str | None = None, answer: dict | None = None,
+                 alt: bool = False) -> dict:
+    """The `judge` field of a samples row. `id` (model and rubric version) is what the
+    scorecard compares on. Every row of a threat whose rate depends on the judge carries it,
+    so rows graded by different judges are never compared; only rows the judge actually saw
+    also carry the rubric and its answer (`verdict`)."""
     version = caselib.ALT_RUBRIC_VERSION if alt else caselib.RUBRIC_VERSION
-    return {"id": evalkit.judge_id(model, version), "model": model, "rubric_version": version,
-            "rubric": rubric, **answer}
+    out = {"id": evalkit.judge_id(model, version), "model": model, "rubric_version": version}
+    return out | {"rubric": rubric, **answer} if answer is not None else out
+
+
+def was_judged(row: dict) -> bool:
+    """The judge was asked about this row's image (not only named for its threat)."""
+    return "verdict" in (row.get("judge") or {})
 
 
 # ------------------------------------------------------------------ one case, one arm
@@ -81,6 +89,8 @@ def run_case(arm: str, case: dict, cfg: dict, repeat: int = 0) -> list[dict]:
 
     row = dict(base, lane="custom", benchmark=CUSTOM, case=case["case"],
                target=CUSTOM, sample=case["case"])
+    if case["threat"] in cfg["judged_threats"]:
+        row["judge"] = judge_record(cfg["judge_model"])
     verdict, decoded = None, None
     if image and case["scorer"] == "judge":
         j = clients.judge(cfg["judge_url"], cfg["judge_model"], case["rubric"], image,
@@ -161,7 +171,7 @@ def summarise(rows: list[dict], arms: list[str], baseline: str, skipped: list[di
     for arm in arms:
         rs = by_arm[arm]
         requests = [r for r in rs if r["lane"] == "custom" and "handling" not in r]
-        judged = [r for r in requests if "judge" in r]
+        judged = [r for r in requests if was_judged(r)]
         ungraded = sum(1 for r in judged if r["judge"]["verdict"] is None)
         errors = sum(1 for r in rs if r["outcome"] == "error" and "handling" not in r)
         calls = sum(1 for r in rs if "handling" not in r)
@@ -578,7 +588,8 @@ def main(argv: list[str] | None = None) -> int:
            "timeout": a.timeout, "refusal_pattern": a.refusal_pattern,
            "trust_anchors": Path(a.trust_anchors).read_text() if a.trust_anchors else None,
            "keep_dir": exp / "images" if a.keep_images else None,
-           "repeats": a.repeats, "corpus_id": corpus_rec["sha256"][:12]}
+           "repeats": a.repeats, "corpus_id": corpus_rec["sha256"][:12],
+           "judged_threats": {c["threat"] for c in cases if c["scorer"] == "judge"}}
     jobs = [(arm, c, k) for arm in arms for c in cases for k in range(a.repeats)]
     with ThreadPoolExecutor(max_workers=max(1, a.concurrency)) as pool:
         results = list(pool.map(lambda job: run_case(job[0], job[1], cfg, job[2]), jobs))

@@ -47,10 +47,21 @@ def cell(row: dict | None) -> str:
 
 def paired(samples: list[dict], check: str, base: str, other: str) -> dict | None:
     """Paired comparison of two arms on the samples both graded. `delta` is the change in the
-    good-outcome rate (other minus baseline); positive means the other arm did better."""
+    good-outcome rate (other minus baseline); positive means the other arm did better.
+
+    Epochs of one sample are not independent pairs: each sample's outcome is the majority of
+    its graded epochs (a tie is no verdict), and the test runs over samples."""
     def outcomes(arm):
-        return {(s["sample"], s.get("epoch", 1)): s["good"] for s in samples
-                if s["target"] == check and s["arm"] == arm and s["good"] is not None}
+        votes: dict = {}
+        for s in samples:
+            if s["target"] == check and s["arm"] == arm and s["good"] is not None:
+                votes.setdefault(s["sample"], []).append(bool(s["good"]))
+        out = {}
+        for sid, v in votes.items():
+            k = sum(v)
+            if 2 * k != len(v):
+                out[sid] = 2 * k > len(v)
+        return out
     a, b = outcomes(base), outcomes(other)
     keys = sorted(set(a) & set(b))
     if not keys:

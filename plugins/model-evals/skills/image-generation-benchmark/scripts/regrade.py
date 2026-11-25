@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.judge_model == meta.get("judge_model") and not a.alt_rubric:
         ap.error("that is the run's own judge: name another judge model, or pass --alt-rubric")
 
-    judged = [r for r in rows if isinstance(r.get("judge"), dict)]
+    judged = [r for r in rows if rb.was_judged(r)]
     if a.limit is not None:
         seen: Counter = Counter()
         kept = []

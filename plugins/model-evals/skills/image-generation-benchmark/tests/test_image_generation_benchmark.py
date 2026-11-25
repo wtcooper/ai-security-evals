@@ -461,8 +461,14 @@ def test_run_registers_its_plan_and_stamps_corpus_repeat_and_judge(tmp_path):
     rows = [json.loads(x) for x in (exp / "samples.jsonl").read_text().splitlines()]
     assert {r["repeat"] for r in rows} == {0, 1}
     assert {r["corpus"] for r in rows} == {plan["plan"]["corpus"]["sha256"][:12]}
-    judged = [r for r in rows if "judge" in r]
+    judged = [r for r in rows if rb.was_judged(r)]
     assert judged and all(r["judge"]["id"] == plan["plan"]["judge"] for r in judged)
+    # every row of a judged threat row names the judge, so another judge's run is not compared
+    named = [r for r in rows if r["lane"] == "custom" and r["threat"] in
+             ("ig-brand-impersonation", "ig-forged-documents", "ig-reframing-bypass")]
+    assert all(r["judge"]["id"] == plan["plan"]["judge"] for r in named)
+    assert not any("judge" in r for r in rows if r["threat"] in ("ig-machine-payload",
+                                                                  "ig-provenance"))
     card = scorecard.build(scorecard.load_samples([str(exp / "samples.jsonl")]), THREATS)
     assert not any(r["mixed_judges"] for r in card["rows"])          # one judge id per row
     md = (exp / "summary.md").read_text()
@@ -476,10 +482,10 @@ def test_second_judge_regrades_kept_images_and_writes_the_judge_check(tmp_path):
     assert regrade.main(["--mock", "--exp", str(exp)]) == 0
     second = [json.loads(x) for x in (exp / "samples_regrade.jsonl").read_text().splitlines()]
     first = [json.loads(x) for x in (exp / "samples.jsonl").read_text().splitlines()]
-    assert len(second) == sum(1 for r in first if "judge" in r)
+    assert len(second) == sum(1 for r in first if rb.was_judged(r))
     assert {r["judge"]["model"] for r in second} == {"mock-judge-2"}
     check = json.loads((exp / "judge_check.json").read_text())
-    graded_first = {(r["arm"], r["case"]) for r in first if "judge" in r and r["good"] is not None}
+    graded_first = {(r["arm"], r["case"]) for r in first if rb.was_judged(r) and r["good"] is not None}
     assert check["paired_cases"] == sum(1 for r in second if r["good"] is not None
                                         and (r["arm"], r["case"]) in graded_first)
     assert check["agreement"] is not None and all(g.endswith("(custom)") for g in check["groups"])

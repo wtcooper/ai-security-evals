@@ -358,3 +358,51 @@ def plan_section(doc: dict | None, observed: dict) -> list[str]:
         lines += ["", f"The organisation's criteria file `{crit.get('path')}` was fingerprinted "
                   f"at registration (sha256 `{str(crit.get('sha256'))[:12]}`)."]
     return lines
+
+
+# --- command line, for skills whose runs are driven from the shell (promptfoo) ----------------
+def main(argv: list[str] | None = None) -> int:
+    """python evalkit.py plan <exp> --arms a,b --measures x,y [--baseline a] [--depth N]
+                              [--seed S] [--repeats N] [--judge J] [--corpus FILE ...]
+                              [--bundled] [--reason TEXT]
+    python evalkit.py power <n> [--comparisons M]
+    python evalkit.py show-plan <exp>"""
+    import argparse
+    ap = argparse.ArgumentParser(prog="evalkit.py", description="plan registration and power")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    pl = sub.add_parser("plan", help="register the analysis plan for an experiment folder")
+    pl.add_argument("exp")
+    pl.add_argument("--arms", required=True)
+    pl.add_argument("--measures", required=True)
+    pl.add_argument("--baseline")
+    pl.add_argument("--depth")
+    pl.add_argument("--seed")
+    pl.add_argument("--repeats", type=int, default=1)
+    pl.add_argument("--judge")
+    pl.add_argument("--corpus", nargs="*", default=[])
+    pl.add_argument("--bundled", action="store_true", help="the corpus ships with the skill")
+    pl.add_argument("--reason")
+    pw = sub.add_parser("power", help="precision and smallest separable difference at n")
+    pw.add_argument("n", type=int)
+    pw.add_argument("--comparisons", type=int, default=1)
+    sp = sub.add_parser("show-plan", help="print the registered plan section")
+    sp.add_argument("exp")
+    a = ap.parse_args(argv)
+    if a.cmd == "power":
+        print(power_note(a.n, a.comparisons))
+        return 0
+    if a.cmd == "show-plan":
+        print("\n".join(plan_section(load_plan(a.exp), {})))
+        return 0
+    plan = {"arms": [x for x in a.arms.split(",") if x], "measures": [x for x in a.measures.split(",") if x],
+            "baseline": a.baseline, "depth": a.depth, "seed": a.seed, "repeats": a.repeats,
+            "judge": a.judge, "corpus": corpus_record(a.corpus, a.bundled) if a.corpus else None,
+            "criteria": criteria_record()}
+    doc = register_plan(a.exp, plan, a.reason)
+    print(Path(a.exp) / PLAN_FILE, "registered", doc["registered_at"],
+          f"({len(doc.get('amendments', []))} amendment(s))")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

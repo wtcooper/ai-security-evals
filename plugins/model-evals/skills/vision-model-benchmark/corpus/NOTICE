@@ -13,7 +13,7 @@ prompts.json
     8 of them the contrast twins of the unsafe ones.
   - AdvBench (Zou et al., 2023, "Universal and Transferable Adversarial Attacks on Aligned
     Language Models"), MIT: 8 harmful behaviours.
-  Each entry records its source, licence and original id (source_id).
+  Each entry records its source benchmark, licence and original id in `source`.
 
 manifest.json
   Pixel and file hashes of the images render.py draws from the two files above, for checking

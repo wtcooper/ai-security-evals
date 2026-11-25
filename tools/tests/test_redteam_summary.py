@@ -34,3 +34,12 @@ def test_an_all_error_run_is_not_reported_as_clean():
 def test_single_attempt_runs_carry_a_noise_note():
     text = rs.render(rs.summarize({"results": {"results": [_res("a", False), _res("b", True)]}}))
     assert "Attack success rate: 0.50" in text and "--repeat 3" in text
+
+
+def test_flip_rate_over_repeated_objectives():
+    import redteam_summary as R
+    def r(goal, ok):
+        return {"success": ok, "testCase": {"metadata": {"goal": goal}, "vars": {"goal": goal}}}
+    doc = {"results": {"results": [r("a", True), r("a", False), r("b", True), r("b", True)]}}
+    m = R.summarize(doc)
+    assert m["flip_rate"] == 0.5 and "flip rate 50%" in R.render(m)

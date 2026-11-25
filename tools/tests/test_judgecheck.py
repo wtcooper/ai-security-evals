@@ -22,7 +22,7 @@ def test_agreement_kappa_and_order_change():
     assert res["paired_cases"] == 20 and g["primary_only_good"] == 3 and g["secondary_only_good"] == 0
     assert g["order_primary"] == ["a", "b"] and g["order_secondary"] == ["b", "a"]
     assert g["order_changes"] and g["leader_changes"]
-    assert "order of arms changes" in jc.render(res)
+    assert "order of arms reverses" in jc.render(res) and g["reversed_pairs"] == [("a", "b")]
 
 
 def test_kappa_values():
@@ -48,3 +48,9 @@ def test_cli_refuses_the_same_judge(tmp_path):
     b.write_text("\n".join(json.dumps(r) for r in rows("j2", "a", [True, True])))
     assert jc.main(["--primary", str(a), "--secondary", str(b), "--out", str(tmp_path)]) == 0
     assert "Second-judge check" in (tmp_path / "judge_check.md").read_text()
+
+
+def test_a_tie_under_one_judge_is_not_a_reversal():
+    prim = rows("j1", "a", [True] * 6 + [False] * 4) + rows("j1", "b", [True] * 8 + [False] * 2)
+    sec = rows("j2", "a", [True] * 7 + [False] * 3) + rows("j2", "b", [True] * 7 + [False] * 3)
+    assert jc.check(prim, sec)["groups"]["t"]["order_changes"] is False

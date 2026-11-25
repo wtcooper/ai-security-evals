@@ -89,6 +89,13 @@ Propose a short label (target + attack, e.g. `acme-prod-crescendo`), confirm it,
 
 ---
 
+Register the analysis plan before the eval runs (arms are the target labels, measures the
+objective pack, repeats the `--repeat` you will use):
+```
+python3 lib/evalkit.py plan "<EXP>" --arms <label1>[,<label2>] --measures redteam-objectives \
+  --repeats 3 --judge <grader-model> --corpus objectives/redteam_objectives.json --bundled
+```
+
 ## RUN — step 1: generate (once; caches the attack objectives)
 ```
 set -a; . .env; set +a
@@ -184,16 +191,17 @@ scored: that is the correct reading of a run with no working attacker.
 ## Notes
 - Execution tier **T0**. The arm that varies is the target (or a guardrail or system prompt
   in a two-arm run); objectives, attacker and grader are held fixed.
-- **Not verified:** the adaptive eval was not run against a real attacker or target where
-  this was last changed; validation, generation and the summary were.
 - Only run against apps the user is authorized to test; prompts appear in the target's logs.
 - The grader is promptfoo's own red-team grader: it is given the attack goal and the
   `purpose`, so it knows it is grading an attack. That cannot be hidden without replacing
   promptfoo's grader; compare arms graded by the same grader model only.
-- This skill does not write a registered analysis plan (`plan.json`) yet. Record the
-  objectives file, repeats, turns and grader in `<EXP>/manifest.json` before the eval.
+- The analysis plan is registered with `lib/evalkit.py plan` before the run (see PLAN); the
+  report should include `lib/evalkit.py show-plan` output.
 - Crescendo needs the attacker model configured and `metadata.purpose` (carried from
   `redteam.purpose`).
 - Single-turn strategies (basic/jailbreak:tree/prompt-injection) inject a *string*, which
   is invalid for an OpenAI `messages[]` body — they're suppressed here (`basic enabled:false`).
   Use app-benchmark for single-turn coverage.
+- **Not verified:** the adaptive eval was not run against a real attacker or target where
+  this was last changed; validation, generation (promptfoo 0.126) and the summary were. The
+  two-arm power figures are arithmetic from exact McNemar, not a run.

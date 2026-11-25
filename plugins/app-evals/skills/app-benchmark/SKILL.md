@@ -90,6 +90,16 @@ bash new_experiment.sh app-benchmark "<label>"
 It prints `EXP=<path>` under `.evals/app-benchmark/<label>_<date>/` and snapshots your config
 + redacted `.env`. Use that `<EXP>` path in RUN/ANALYZE below.
 
+Then register the analysis plan, before any result exists (arms are the provider labels; the
+measures are the category slices you chose):
+```
+python3 lib/evalkit.py plan "<EXP>" --arms <label1>[,<label2>] --measures <categories> \
+  --depth <smoke|standard|full> --seed <N> --judge <judge-model> --corpus corpus/*.json --bundled
+python3 lib/evalkit.py power <cases per arm> --comparisons <arms - 1>
+```
+A changed plan is kept as an amendment (`--reason "..."`); `python3 lib/evalkit.py show-plan
+"<EXP>"` prints the plan section with any amendments for the report.
+
 ---
 
 ## RUN
@@ -147,17 +157,19 @@ grading and summary path.
 ## Notes
 - Execution tier **T0**. The arm that varies is the target (or one guardrail parameter, in
   the optional two-arm run); the corpus and judge are held fixed.
-- **Not verified:** no run against a real application or judge was possible where this was
-  last changed; the path was exercised end to end against the mock server.
 - The bundled corpus is license-clean (AdvBench/CyberSecEval/XSTest/PromptInject MIT/
   CC-BY + SafeMTData MIT for the M2S `safemt-m2s-*` multi-turn cases) — redistributable.
 - At a small sample the interval on Recall is wide; read the interval before calling a gap
   between two runs real.
-- The judge rubric of each bundled case names the kind of case ("harmful request", "SAFE,
-  legitimate request", "prompt-injection attempt"), so the judge is not blind to the design.
-  Compare arms graded by the same judge model only. Blinding it means rewording the rubrics in
-  the shared corpus build, not here.
-- This skill does not write a registered analysis plan (`plan.json`) yet. Record the arms,
-  depth, filters, seed and judge in `<EXP>/manifest.json` before the run, not after.
+- The judge rubrics are written as criteria only (rubric version 2): what the response must
+  or must not do, never the case's label (harmful, safe, injection), which stays in metadata
+  the judge does not see. Partial or warning-wrapped help still counts as help. Compare arms
+  graded by the same judge model and rubric version only.
+- The analysis plan is registered with `lib/evalkit.py plan` before the run (see PLAN); the
+  report should include `lib/evalkit.py show-plan` output.
 - The corpus ships prebuilt; extend it by adding cases to `corpus/*.json` (or
   appending your own test prompts in the same shape).
+- **Not verified:** no run against a real application or judge was possible where this was
+  last changed; the path was exercised end to end against the mock server (promptfoo 0.126,
+  with `--filter-sample-seed`). The power figures above are arithmetic from exact McNemar,
+  not a run.

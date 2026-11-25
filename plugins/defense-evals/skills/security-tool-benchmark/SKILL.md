@@ -139,7 +139,7 @@ Score against the known answers, then compute the statistics:
 python3 code/match.py "$EXP/findings.jsonl" <ground_truth.jsonl> --out "$EXP/matched.jsonl" \
   --report "$EXP/match.md" --adjudicate "$EXP/adjudicate.csv" --group-by arm --runs "$EXP/runs.jsonl"
 python3 lib/evalstats.py "$EXP/matched.jsonl" --samples "$EXP/samples.jsonl" --pair-on target \
-  --baseline <tool1> --out "$EXP/summary.md" --json "$EXP/summary.json"
+  --baseline <tool1> --runs "$EXP/runs.jsonl" --out "$EXP/summary.md" --json "$EXP/summary.json"
 # extension
 python3 extension/score_assets.py "$EXP/verdicts.jsonl" --findings "$EXP/findings.jsonl" \
   --labels <labels.jsonl> --runs "$EXP/runs.jsonl" --by config,stratum \
@@ -148,7 +148,8 @@ python3 extension/score_assets.py "$EXP/verdicts.jsonl" --findings "$EXP/finding
 python3 pentest/validate.py "$EXP" <target-id> --arm <tool> --oracle <oracle.sh> --base-url <url>
 python3 pentest/score.py "$EXP" --out "$EXP/pentest.md" --json "$EXP/pentest.json"
 python3 lib/evalstats.py "$EXP/findings.jsonl" --samples "$EXP/samples.jsonl" --pair-on target \
-  --baseline <tool1> [--majority <agentic-tool>=2/3] --out "$EXP/summary.md" --json "$EXP/summary.json"
+  --baseline <tool1> [--majority <agentic-tool>=2/3] --runs "$EXP/runs.jsonl" \
+  --out "$EXP/summary.md" --json "$EXP/summary.json"
 ```
 The kind reports (`match.md`, the extension `summary.md`, `pentest.md`) open with **Read
 first**: what did not run, the share of cases whose outcome changed between runs of the same
@@ -159,8 +160,8 @@ tool run once on the per-run figure shown beside it, or majority-vote it in `eva
 Present to the user:
 1. **What did not run**: tools that failed, timed out or were stopped on targets (the
    reports list them and the `failed runs` column counts them), targets excluded as
-   recognised by the model, sets that could not be fetched. Do not compare a tool that failed on some targets with one that
-   scanned all of them until it is fixed and re-run.
+   recognised by the model, sets that could not be fetched. Do not compare a tool that
+   failed on some targets with one that scanned all of them until it is fixed and re-run.
 2. **Recall and precision (or true- and false-positive rate) per tool, with intervals.**
    Never recall alone: a tool that flags everything has perfect recall.
 3. **The complement**: found by tool A only, tool B only, both, and the union. This is

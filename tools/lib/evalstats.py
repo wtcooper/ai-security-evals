@@ -76,17 +76,28 @@ def majority_vote(findings: list[dict], tool: str, min_k: int, of_k: int) -> lis
     return keep
 
 
-def flip_rate(findings: list[dict], tool: str) -> tuple[float | None, int]:
+def flip_rate(findings: list[dict], tool: str,
+              runs: list[dict] | None = None) -> tuple[float | None, int]:
     """Fraction of (arm,target,sample,cwe_family,file) cells that are NOT unanimous across
-    tool_runs (present in some runs, absent in others). Returns (rate, n_cells)."""
+    tool_runs (present in some runs, absent in others). Returns (rate, n_cells).
+
+    Without `runs`, a repeat that found nothing at all is invisible, which understates the
+    flip rate. Pass the run log (rows with arm or tool, target, tool_run, status) so every
+    successful run counts, findings or not."""
     runs_seen = defaultdict(set)
     all_runs = defaultdict(set)
+    ok_runs = defaultdict(set)
+    for r in runs or []:
+        if r.get("status", "ok") == "ok" and r.get("tool", r.get("arm")) == tool:
+            ok_runs[(r.get("arm"), r.get("target"))].add(r.get("tool_run", 1))
     for f in findings:
         if f.get("tool") != tool:
             continue
         s = (f.get("arm"), f.get("target"), f.get("sample"))
         all_runs[s].add(f.get("tool_run", 1))
         runs_seen[(s, f.get("cwe_family"), f.get("file"))].add(f.get("tool_run", 1))
+    for s in all_runs:
+        all_runs[s] |= ok_runs.get((s[0], s[1]), set())
     cells = [(s, r) for (s, _, _), r in runs_seen.items() if len(all_runs[s]) > 1]
     if not cells:
         return None, 0
@@ -456,17 +467,28 @@ def cost_section(samples: list[dict], arms: list[str]) -> tuple[list[str], dict]
     return L, J
 
 
-def repeat_section(raw_findings: list[dict], majority: dict) -> tuple[list[str], dict]:
+def repeat_section(raw_findings: list[dict], majority: dict,
+                   min_kappa: float = 0.6, runs: list[dict] | None = None) -> tuple[list[str], dict]:
+    """Run-to-run stability of each repeated tool. A Fleiss kappa below `min_kappa` raises
+    the `unstable_verdicts` validity flag: a statement about the measurement, not a verdict on
+    the tool, and the limit is configurable (--min-kappa)."""
     L, J = [], {}
     tools = set(majority) | {f.get("tool") for f in raw_findings if (f.get("tool_run") or 1) > 1}
     for tool in sorted(t for t in tools if t):
-        fr, n_cells = flip_rate(raw_findings, tool)
+        fr, n_cells = flip_rate(raw_findings, tool, runs)
         kap, n_k = scanner_kappa(raw_findings, tool)
         J[tool] = {"flip_rate": fr, "cells": n_cells, "fleiss_kappa": kap, "kappa_cells": n_k}
         if not L:
-            L += ["## LLM-scanner run-to-run stability", "", "| tool | cells | flip rate | Fleiss κ | verdict |", "|---|---|---|---|---|"]
-        verdict = "–" if kap is None else ("usable for gating" if kap >= 0.6 else "**unstable (κ<0.6) — not for CI gating**")
-        L.append(f"| {tool} | {n_cells} | {_fmt(fr, 3)} | {_fmt(kap, 3)} | {verdict} |")
+            L += ["## Run-to-run stability", "",
+                  "How often a repeated tool changes its verdict on identical input. A validity "
+                  f"flag is raised when Fleiss κ is below {min_kappa} (configurable with "
+                  "--min-kappa): that tool's numbers then vary between runs as much as between "
+                  "arms, so read them with that in mind.", "",
+                  "| tool | cells | flip rate | Fleiss κ | validity |", "|---|---|---|---|---|"]
+        flagged = kap is not None and kap < min_kappa
+        J[tool]["validity_flag"] = "unstable_verdicts" if flagged else None
+        note = "–" if kap is None else (f"flag `unstable_verdicts` (κ < {min_kappa})" if flagged else "no flag")
+        L.append(f"| {tool} | {n_cells} | {_fmt(fr, 3)} | {_fmt(kap, 3)} | {note} |")
     if L:
         L.append("")
     return L, J
@@ -491,6 +513,10 @@ def main() -> int:
     ap.add_argument("--severity-min", default="high", choices=list(SEV_ORDER))
     ap.add_argument("--tools", default=None, help="comma list of tools to count (default all)")
     ap.add_argument("--majority", action="append", default=[], help="tool=k/n, e.g. scan-code=2/3")
+    ap.add_argument("--runs", type=Path, default=None,
+                    help="run log (runs.jsonl): repeats that found nothing still count in flip rates")
+    ap.add_argument("--min-kappa", type=float, default=0.6,
+                    help="validity limit: flag a repeated tool whose Fleiss kappa is below this")
     ap.add_argument("--boot", type=int, default=10000)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--label", default="")
@@ -513,7 +539,7 @@ def main() -> int:
     md, J, _ = summarize(findings, samples, pair_on=pair_on, baseline=a.baseline, arms=arms,
                          sev_min=a.severity_min, tools=tools, majority=majority, B=a.boot, seed=a.seed,
                          run_label=a.label or a.findings.parent.name)
-    rl, rj = repeat_section(findings, majority)
+    rl, rj = repeat_section(findings, majority, a.min_kappa, load_jsonl(a.runs) if a.runs else None)
     cl, cj = cost_section(samples, J["arms"])
     J["scanner_repeats"], J["cost"] = rj, cj
     md = md + "\n" + "\n".join(rl + cl)

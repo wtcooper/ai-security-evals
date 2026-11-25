@@ -14,8 +14,8 @@
     }
   },
   "input_sha256": {
-    "harmful.json": "73b86c57e4b9cec0cd787f56deceaa32dace70fe3043b400dbb2149b973474cf",
-    "benign_overrefusal.json": "f0b6c9d457639aebc79e55ef88c5d076cd1ae9028edb96833c7beb36060321de"
+    "harmful.json": "066b0ddbd9bc3c7262ddca3e733b5329689a46d6f9e418c0fb751910b3f2441a",
+    "benign_overrefusal.json": "994110fe3986b80f12898faeca201de1d86b57b7719c36987ad92e8f246794de"
   },
   "cases_sha256": "e897a59e9932deba4af0a2e6851ded7b5056f2d50e84f9e605e239137361d041",
   "counts": {

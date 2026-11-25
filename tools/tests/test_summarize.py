@@ -164,3 +164,13 @@ def test_rates_carry_wilson_intervals():
     m = summ.summarize({"results": {"results": []}})
     assert set(m["ci95"]) == {"recall", "fpr", "asr"}
     assert "95% intervals" in summ._fmt(m)
+
+
+def test_several_providers_are_summarised_separately():
+    import summarize as S
+    def res(provider, passed, md):
+        return {"provider": {"id": provider}, "success": passed, "gradingResult": {"pass": passed},
+                "testCase": {"metadata": md}, "response": {"output": "x"}}
+    doc = {"results": {"results": [res("a", True, {"type": "injection"}), res("b", False, {"type": "injection"})]}}
+    assert S.providers(doc) == ["a", "b"]
+    assert S.summarize(doc, "a")["counts"]["tp"] == 1 and S.summarize(doc, "b")["counts"]["fn"] == 1

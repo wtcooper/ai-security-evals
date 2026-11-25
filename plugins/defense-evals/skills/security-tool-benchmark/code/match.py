@@ -96,7 +96,7 @@ def match_one(f: dict, gts: list[dict], window: int) -> tuple[dict | None, str |
     return (best, best_level) if best else (None, None)
 
 
-def read_first_section(F, G, runs, groups, J, gt_for, label_key, ceiling) -> list[str]:
+def read_first_section(F, runs, groups, J, gt_for, label_key, ceiling) -> list[str]:
     """Validity notes for a per-tool report: near-ceiling recall, and run-to-run flips.
 
     A tool run several times is scored here on the union of its runs (a vulnerability found in
@@ -125,7 +125,7 @@ def read_first_section(F, G, runs, groups, J, gt_for, label_key, ceiling) -> lis
     extra = []
     if flips:
         extra.append("- A tool run more than once is scored on the union of its runs in the "
-                     "table below; read its per-run recall (next line) beside a tool run once.")
+                     "table below; set its per-run recall (listed here) beside a tool run once.")
     return planlib.read_first(rates, ceiling, flips, extra, unit="known vulnerabilities")
 
 
@@ -208,7 +208,7 @@ def main() -> int:
                               "ground_truth_scanned": n_grp, **{f"recall_{k}": v for k, v in rec.items()}}
         L.append(f"| {' · '.join(grp)} | {n} | {tp[grp]} | {fp[grp]} | {prec:.2f} | {rec['file']:.2f} | {rec['function']:.2f} | {rec['line']:.2f} |")
     if label_key and keys == [label_key]:
-        L[4:4] = read_first_section(F, G, runs, sorted(groups), J, gt_for, label_key, a.ceiling)
+        L[4:4] = read_first_section(F, runs, sorted(groups), J, gt_for, label_key, a.ceiling)
     for arm, targets in sorted(failed_only.items()):
         L += ["", f"**{arm}** did not complete on {len(targets)} target(s) and is not scored on them: "
               + ", ".join(targets[:10]) + (" …" if len(targets) > 10 else "") + ". Fix the tool and "

@@ -16,6 +16,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -36,6 +37,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -56,6 +58,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -76,6 +79,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -96,6 +100,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -116,6 +121,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -136,6 +142,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -156,6 +163,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -176,6 +184,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -196,6 +205,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -216,6 +226,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -236,6 +247,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "goal_hijacking",
+      "rubric_version": "2",
       "category": "prompt_injection"
     }
   },
@@ -256,6 +268,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -277,6 +290,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -298,6 +312,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -319,6 +334,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -340,6 +356,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -361,6 +378,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -382,6 +400,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -403,6 +422,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -424,6 +444,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -445,6 +466,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -466,6 +488,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -487,6 +510,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -508,6 +532,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -529,6 +554,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -550,6 +576,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -571,6 +598,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -592,6 +620,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -613,6 +642,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -634,6 +664,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -655,6 +686,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -676,6 +708,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -697,6 +730,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -718,6 +752,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -739,6 +774,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -760,6 +796,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -781,6 +818,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -802,6 +840,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -823,6 +862,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -844,6 +884,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -865,6 +906,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -886,6 +928,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -907,6 +950,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -928,6 +972,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -949,6 +994,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -970,6 +1016,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -991,6 +1038,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1012,6 +1060,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1033,6 +1082,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1054,6 +1104,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1075,6 +1126,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1096,6 +1148,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1117,6 +1170,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1138,6 +1192,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1159,6 +1214,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1180,6 +1236,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1201,6 +1258,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1222,6 +1280,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1243,6 +1302,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1264,6 +1324,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1285,6 +1346,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1306,6 +1368,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1327,6 +1390,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1348,6 +1412,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1369,6 +1434,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1390,6 +1456,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1411,6 +1478,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1432,6 +1500,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1453,6 +1522,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1474,6 +1544,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1495,6 +1566,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1516,6 +1588,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1537,6 +1610,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1558,6 +1632,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1579,6 +1654,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1600,6 +1676,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1621,6 +1698,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1642,6 +1720,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1663,6 +1742,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1684,6 +1764,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1705,6 +1786,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1726,6 +1808,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1747,6 +1830,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1768,6 +1852,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1789,6 +1874,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1810,6 +1896,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1831,6 +1918,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1852,6 +1940,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1873,6 +1962,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1894,6 +1984,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1915,6 +2006,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1936,6 +2028,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -1957,6 +2050,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1978,6 +2072,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -1999,6 +2094,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2020,6 +2116,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2041,6 +2138,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2062,6 +2160,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2083,6 +2182,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2104,6 +2204,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2125,6 +2226,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2146,6 +2248,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2167,6 +2270,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2188,6 +2292,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2209,6 +2314,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2230,6 +2336,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2251,6 +2358,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2272,6 +2380,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2293,6 +2402,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2314,6 +2424,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2335,6 +2446,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2356,6 +2468,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2377,6 +2490,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2398,6 +2512,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2419,6 +2534,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2440,6 +2556,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2461,6 +2578,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2482,6 +2600,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2503,6 +2622,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2524,6 +2644,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2545,6 +2666,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2566,6 +2688,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2587,6 +2710,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2608,6 +2732,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2629,6 +2754,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2650,6 +2776,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2671,6 +2798,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2692,6 +2820,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2713,6 +2842,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2734,6 +2864,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2755,6 +2886,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2776,6 +2908,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2797,6 +2930,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2818,6 +2952,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2839,6 +2974,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2860,6 +2996,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2881,6 +3018,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -2902,6 +3040,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2923,6 +3062,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2944,6 +3084,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2965,6 +3106,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -2986,6 +3128,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3007,6 +3150,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3028,6 +3172,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3049,6 +3194,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -3070,6 +3216,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -3091,6 +3238,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3112,6 +3260,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3133,6 +3282,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3154,6 +3304,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3175,6 +3326,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3196,6 +3348,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3217,6 +3370,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3238,6 +3392,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3259,6 +3414,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3280,6 +3436,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3301,6 +3458,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3322,6 +3480,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3343,6 +3502,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3364,6 +3524,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3385,6 +3546,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -3406,6 +3568,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -3427,6 +3590,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3448,6 +3612,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3469,6 +3634,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -3490,6 +3656,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3511,6 +3678,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3532,6 +3700,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3553,6 +3722,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -3574,6 +3744,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3595,6 +3766,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3616,6 +3788,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3637,6 +3810,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3658,6 +3832,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3679,6 +3854,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3700,6 +3876,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3721,6 +3898,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3742,6 +3920,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3763,6 +3942,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3784,6 +3964,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3805,6 +3986,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3826,6 +4008,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3847,6 +4030,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3868,6 +4052,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3889,6 +4074,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3910,6 +4096,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3931,6 +4118,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3952,6 +4140,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3973,6 +4162,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -3994,6 +4184,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -4015,6 +4206,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -4036,6 +4228,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4057,6 +4250,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4078,6 +4272,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4099,6 +4294,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4120,6 +4316,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4141,6 +4338,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4162,6 +4360,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -4183,6 +4382,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -4204,6 +4404,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -4225,6 +4426,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "direct",
+      "rubric_version": "2",
       "risk": "logic-violating",
       "category": "prompt_injection"
     }
@@ -4246,6 +4448,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4267,6 +4470,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4288,6 +4492,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4309,6 +4514,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4330,6 +4536,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4351,6 +4558,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4372,6 +4580,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4393,6 +4602,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4414,6 +4624,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4435,6 +4646,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4456,6 +4668,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4477,6 +4690,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4498,6 +4712,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4519,6 +4734,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4540,6 +4756,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4561,6 +4778,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4582,6 +4800,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4603,6 +4822,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4624,6 +4844,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4645,6 +4866,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4666,6 +4888,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4687,6 +4910,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4708,6 +4932,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4729,6 +4954,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4750,6 +4976,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4771,6 +4998,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4792,6 +5020,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4813,6 +5042,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4834,6 +5064,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4855,6 +5086,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4876,6 +5108,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4897,6 +5130,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4918,6 +5152,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4939,6 +5174,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4960,6 +5196,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -4981,6 +5218,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5002,6 +5240,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5023,6 +5262,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5044,6 +5284,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5065,6 +5306,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5086,6 +5328,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5107,6 +5350,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5128,6 +5372,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5149,6 +5394,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5170,6 +5416,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5191,6 +5438,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5212,6 +5460,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5233,6 +5482,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5254,6 +5504,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5275,6 +5526,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5296,6 +5548,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5317,6 +5570,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5338,6 +5592,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5359,6 +5614,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5380,6 +5636,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "indirect",
+      "rubric_version": "2",
       "risk": "security-violating",
       "category": "prompt_injection"
     }
@@ -5401,6 +5658,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_payload_split",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "payload_split",
       "n_turns": 4,
@@ -5426,6 +5684,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_payload_split",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "payload_split",
       "n_turns": 4,
@@ -5451,6 +5710,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_payload_split",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "payload_split",
       "n_turns": 4,
@@ -5476,6 +5736,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_payload_split",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "payload_split",
       "n_turns": 4,
@@ -5501,6 +5762,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_payload_split",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "payload_split",
       "n_turns": 4,
@@ -5526,6 +5788,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_payload_split",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "payload_split",
       "n_turns": 4,
@@ -5551,6 +5814,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_cipher",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "cipher",
       "n_turns": 3,
@@ -5576,6 +5840,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_cipher",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "cipher",
       "n_turns": 3,
@@ -5601,6 +5866,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_cipher",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "cipher",
       "n_turns": 3,
@@ -5626,6 +5892,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_cipher",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "cipher",
       "n_turns": 3,
@@ -5651,6 +5918,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_cipher",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "cipher",
       "n_turns": 3,
@@ -5676,6 +5944,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_cipher",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "cipher",
       "n_turns": 3,
@@ -5701,6 +5970,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_trust_override",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "trust_override",
       "n_turns": 4,
@@ -5726,6 +5996,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_trust_override",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "trust_override",
       "n_turns": 4,
@@ -5751,6 +6022,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_trust_override",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "trust_override",
       "n_turns": 4,
@@ -5776,6 +6048,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_trust_override",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "trust_override",
       "n_turns": 4,
@@ -5801,6 +6074,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_trust_override",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "trust_override",
       "n_turns": 4,
@@ -5826,6 +6100,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_trust_override",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "trust_override",
       "n_turns": 4,
@@ -5851,6 +6126,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_injection_smuggle",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "injection_smuggle",
       "n_turns": 3,
@@ -5876,6 +6152,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_injection_smuggle",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "injection_smuggle",
       "n_turns": 3,
@@ -5901,6 +6178,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_injection_smuggle",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "injection_smuggle",
       "n_turns": 3,
@@ -5926,6 +6204,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_injection_smuggle",
+      "rubric_version": "2",
       "m2s_template": "hyphenize",
       "strategy": "injection_smuggle",
       "n_turns": 3,
@@ -5951,6 +6230,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_injection_smuggle",
+      "rubric_version": "2",
       "m2s_template": "numberize",
       "strategy": "injection_smuggle",
       "n_turns": 3,
@@ -5976,6 +6256,7 @@
       "license": "MIT",
       "delivery": "user_input",
       "technique_family": "m2s_injection_smuggle",
+      "rubric_version": "2",
       "m2s_template": "pythonize",
       "strategy": "injection_smuggle",
       "n_turns": 3,

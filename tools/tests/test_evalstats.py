@@ -130,7 +130,7 @@ def test_end_to_end_summary(tmp_path):
     assert J["scanner_repeats"]["scan-code"]["flip_rate"] == 0.5
     assert abs(J["cost"]["A"]["usd_total"] - 11.0) < 1e-9
     md = out.read_text()
-    assert "## Paired deltas vs A" in md and "CWE-22" in md and "CWE-918" in md and "not for CI gating" in md
+    assert "## Paired deltas vs A" in md and "CWE-22" in md and "CWE-918" in md and "unstable_verdicts" in md
 
 
 def test_derive_samples_when_missing(tmp_path):
@@ -146,3 +146,11 @@ def test_holm_in_evalstats_matches_evalkit():
     import evalkit
     ps = [0.01, 0.2, None, 0.03, 0.04]
     assert es.holm(ps) == evalkit.holm(ps)
+
+
+def test_flip_rate_counts_a_repeat_that_found_nothing_when_the_run_log_is_given():
+    f = [{"tool": "t", "arm": "t", "target": "x", "sample": "1", "tool_run": 1, "cwe_family": "79", "file": "a"},
+         {"tool": "t", "arm": "t", "target": "x", "sample": "1", "tool_run": 2, "cwe_family": "79", "file": "a"}]
+    assert es.flip_rate(f, "t")[0] == 0.0
+    runs = [{"arm": "t", "target": "x", "tool_run": k, "status": "ok"} for k in (1, 2, 3)]
+    assert es.flip_rate(f, "t", runs)[0] == 1.0       # run 3 found nothing: the cell flipped

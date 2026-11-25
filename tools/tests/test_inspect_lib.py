@@ -227,3 +227,13 @@ def test_arm_roles_default_to_none():
     assert all(c.arm_roles == () for c in suite.CHECKS)
     c = suite.Check("x", "d", "m", "f", "", suite.HIGHER, "r", arm_roles=("target",))
     assert c.arm_roles == ("target",) and not c.needs_judge
+
+
+def test_epochs_are_collapsed_to_one_verdict_per_sample_before_pairing():
+    samples = []
+    for i in range(6):
+        for e in (1, 2, 3):
+            samples += [{"arm": "a", "target": "c", "sample": str(i), "epoch": e, "good": True},
+                        {"arm": "b", "target": "c", "sample": str(i), "epoch": e, "good": e == 1}]
+    result = report.paired(samples, "c", "a", "b")
+    assert result["n"] == 6 and result["worse"] == 6       # six samples, not eighteen pairs

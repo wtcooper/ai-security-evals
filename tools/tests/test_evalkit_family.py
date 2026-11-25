@@ -62,3 +62,13 @@ def test_fingerprints_and_records(tmp_path):
     assert evalkit.corpus_record(f, bundled=False)["visibility"] == "private"
     assert evalkit.criteria_record(f)["sha256"] == rec["sha256"]
     assert evalkit.judge_id("m", "2") == "m|rubric:2" and evalkit.judge_id(None) is None
+
+
+def test_command_line_registers_a_plan_and_prints_power(tmp_path, capsys):
+    corpus = tmp_path / "c.json"
+    corpus.write_text("[]")
+    assert evalkit.main(["plan", str(tmp_path / "exp"), "--arms", "a,b", "--measures", "x",
+                         "--corpus", str(corpus), "--bundled"]) == 0
+    doc = evalkit.load_plan(tmp_path / "exp")
+    assert doc["plan"]["arms"] == ["a", "b"] and doc["plan"]["corpus"]["visibility"] == "public"
+    assert evalkit.main(["power", "100"]) == 0 and "at least 6 cases" in capsys.readouterr().out

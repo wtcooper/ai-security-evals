@@ -80,7 +80,8 @@ def _reply_chars(sample) -> int | None:
     return len(text) if isinstance(text, str) else None
 
 
-def sample_rows(check: suite.Check, arm: str, samples, judge: str | None = None) -> list[dict]:
+def sample_rows(check: suite.Check, arm: str, samples, judge: str | None = None,
+                corpus: str | None = None) -> list[dict]:
     """One samples.jsonl row per sample and epoch: was the outcome good for the defender?"""
     rows = []
     reader = _resolve(check.good_from) if check.good_from else None
@@ -88,18 +89,21 @@ def sample_rows(check: suite.Check, arm: str, samples, judge: str | None = None)
     for sample in samples or []:
         scores = getattr(sample, "scores", None) or {}
         meta = getattr(sample, "metadata", None) or {}
-        criteria = None
+        criteria = chars = None
         if reader:
             takes_sample = len(inspect.signature(reader).parameters) >= 3
             good = reader(scores, meta, sample) if takes_sample else reader(scores, meta)
             if isinstance(good, dict):
+                chars = good.get("response_chars")
                 good, criteria = good.get("good"), good.get("criteria")
         else:
             first = list(scores.values())
             good = check.sample_good(getattr(first[0], "value", None)) if first else None
         sid, epoch = str(getattr(sample, "id", "")), getattr(sample, "epoch", 1)
         row = {"arm": arm, "target": check.id, "sample": sid, "epoch": epoch, "good": good,
-               "judge": jid, "response_chars": _reply_chars(sample)}
+               "judge": jid, "response_chars": chars if chars is not None else _reply_chars(sample)}
+        if corpus:
+            row["corpus"] = corpus
         if criteria is not None:
             row["criteria"] = criteria
         if isinstance(meta.get("factors"), dict):
@@ -266,7 +270,7 @@ def run(arms: list[dict], checks: list[suite.Check], *, depth: int | None, seed:
 
 
 def regrade(results_json: str, judge: str, out: str | None = None, limit: int | None = None,
-            keep_provider_env: bool = False) -> Path:
+            keep_provider_env: bool = False, checks: list | None = None) -> Path:
     """Re-score the saved logs of a run with a second judge, without re-running the models.
 
     Writes samples_regrade.jsonl beside results.json (or to `out`): the same rows as
@@ -283,8 +287,9 @@ def regrade(results_json: str, judge: str, out: str | None = None, limit: int | 
     res = json.loads(Path(results_json).read_text())
     dest = Path(out) if out else Path(results_json).with_name("samples_regrade.jsonl")
     dest.write_text("")
+    known = {**suite.BY_ID, **{c.id: c for c in (checks or [])}}
     for row in res.get("rows", []):
-        check = suite.BY_ID.get(row["check"])
+        check = known.get(row["check"])
         if not check or not check.needs_judge or not row.get("log") or row.get("status") != "ok":
             continue
         if judge == row.get("model"):

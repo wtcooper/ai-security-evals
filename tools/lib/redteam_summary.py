@@ -77,6 +77,11 @@ def summarize(doc):
         "ci95": wilson_ci(successes, attempts) if attempts else None,
         "objectives_broken_at_least_once": sum(1 for v in per.values() if any(v)),
         "objectives_with_mixed_outcomes": sum(1 for v in per.values() if any(v) and not all(v)),
+        # Flip rate: among objectives attempted more than once, the share whose outcome
+        # changed between repeats. The same measure the other skills report.
+        "flip_rate": (round(sum(1 for v in per.values() if len(v) > 1 and any(v) and not all(v))
+                            / sum(1 for v in per.values() if len(v) > 1), 4)
+                      if any(len(v) > 1 for v in per.values()) else None),
         "by_objective": {k: {"succeeded": sum(v), "attempts": len(v)}
                          for k, v in sorted(per.items(), key=lambda kv: (-sum(kv[1]), kv[0]))},
     }
@@ -94,7 +99,9 @@ def render(m):
               f"Objectives broken at least once: {m['objectives_broken_at_least_once']} of "
               f"{m['objectives']}",
               f"Objectives with different outcomes across repeats: "
-              f"{m['objectives_with_mixed_outcomes']}"]
+              f"{m['objectives_with_mixed_outcomes']}"
+              + (f" (flip rate {m['flip_rate']:.0%} of repeated objectives)"
+                 if m.get("flip_rate") is not None else "")]
     if m["max_repeats"] < 2:
         lines.append("NOTE: one attempt per objective. Adaptive attacks are noisy; re-run with "
                      "--repeat 3 before quoting the rate.")

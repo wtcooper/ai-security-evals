@@ -33,7 +33,7 @@ Skill names are `<subject>-<method>`: `benchmark` (a fixed labelled test set), `
 | | `review-threat-model` | Threats for this subject type and a test plan sorted by the benchmark catalogue |
 | | `review-criteria` | Walk the organisation through writing **its own** acceptance criteria; never proposes a value |
 | | `review-report` | Compile evidence, results (validity flags first), uncovered threats; decision fields left blank |
-| [`model-evals`](plugins/model-evals/) | `model-benchmark` | A fixed suite of Inspect benchmarks, one per risk dimension, on the same seeded samples for every model |
+| [`model-evals`](plugins/model-evals/) | `model-benchmark` | A fixed suite of Inspect benchmarks, one per risk dimension, on the same seeded samples for every model, plus a multi-turn lane on Inspect Petri graded on the appropriate response |
 | | `vision-model-benchmark` | Models that read images: instructions hidden in images, secret extraction, tool hijack, harmful requests written as images, over-refusal; CyberSecEval 3 and FigStep plus a rendered core set |
 | | `decision-model-benchmark` | Decision / classification endpoints: fail-open and fail-closed rates, decision flips under attack against the re-run noise floor |
 | | `voice-model-benchmark` | Realtime voice models: spoken harmful requests, audio distortions, a second voice giving instructions, talking the agent into a tool call, secret leakage, over-refusal; AdvBench and XSTest spoken plus a 48-case core set |

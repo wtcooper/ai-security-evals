@@ -31,8 +31,8 @@ root_copy() {  # root_copy <file> <skill>...   (copies a tools/ file into each s
 }
 
 # --- promptfoo runtime: response classification, transcript extraction, metrics ---
-vendor app-benchmark       status_policy.js transform_response.js summarize.py extract_transcript.js
-vendor app-redteam         status_policy.js transform_response.js extract_transcript.js redteam_summary.py
+vendor app-benchmark       status_policy.js transform_response.js summarize.py extract_transcript.js evalkit.py
+vendor app-redteam         status_policy.js transform_response.js extract_transcript.js redteam_summary.py evalkit.py
 
 # --- guardrail-benchmark: promptfoo runtime (direct mode) + shim classifier and the
 #     shared Inspect suite/runner/report (in-line mode) ---

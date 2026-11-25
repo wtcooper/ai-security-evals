@@ -104,18 +104,23 @@ def check(primary: list[dict], secondary: list[dict], by: str = "target") -> dic
         so = _order({a: r["secondary"] for a, r in rates.items()})
         top_p = {a for a in arms if rates[a]["primary"] == rates[po[0]]["primary"]}
         top_s = {a for a in arms if rates[a]["secondary"] == rates[so[0]]["secondary"]}
+        # An order change is a strict reversal: x above y under one judge, below under the
+        # other. A tie under either judge is not a reversal.
+        reversed_pairs = [(x, y) for i, x in enumerate(arms) for y in arms[i + 1:]
+                          if (rates[x]["primary"] - rates[y]["primary"])
+                          * (rates[x]["secondary"] - rates[y]["secondary"]) < 0]
         out_groups[g] = {
             "n": len(pairs), "agreement": round(sum(a == b for a, b in pairs) / len(pairs), 4),
             "kappa": cohen_kappa(pairs),
             "primary_only_good": sum(1 for a, b in pairs if a and not b),
             "secondary_only_good": sum(1 for a, b in pairs if b and not a),
             "rates": rates, "order_primary": po, "order_secondary": so,
-            "order_changes": len(arms) > 1 and po != so,
+            "order_changes": bool(reversed_pairs), "reversed_pairs": reversed_pairs,
             "leader_changes": len(arms) > 1 and not (top_p & top_s)}
     all_pairs = [(bool(p[k]["good"]), bool(s[k]["good"])) for k in shared]
     length = {}
-    for name, rows in (("primary", primary), ("secondary", secondary)):
-        r, n = point_biserial(rows)
+    for name, rows in (("primary", [p[k] for k in shared]), ("secondary", [s[k] for k in shared])):
+        r, n = point_biserial(rows)     # on the paired cases only, so the two are comparable
         length[name] = {"r": r, "n": n}
     return {"judges": judges, "paired_cases": len(shared),
             "unpaired_primary": len([k for k in p if k not in s]),
@@ -137,7 +142,8 @@ def render(res: dict) -> str:
           f"{res['kappa'] if res['kappa'] is not None else 'undefined'}.", ""]
     changed = [g for g, v in res["groups"].items() if v["order_changes"]]
     L += ["## Read first", ""]
-    L += ([f"- `{g}`: the order of arms changes under the second judge"
+    L += ([f"- `{g}`: the order of arms reverses under the second judge "
+           f"({', '.join(f'{x}/{y}' for x, y in res['groups'][g]['reversed_pairs'])})"
            + (" and so does the leader" if res["groups"][g]["leader_changes"] else "")
            + ". Revisit the rubric before reading this row as a difference between arms."
            for g in changed] or ["- The order of arms is the same under both judges on every row."])
@@ -156,7 +162,8 @@ def render(res: dict) -> str:
             L.append(f"| `{g}` | {a} | {r['n']} | {r['primary']:.2f} | {r['secondary']:.2f} |")
     ln = res["length"]
     L += ["", "## Length sensitivity", "",
-          "Correlation between a good verdict and the reply's length (point-biserial). Some "
+          "Correlation between a good verdict and the reply's length (point-biserial), on the "
+          "cases both judges graded. Some "
           "correlation is expected, because refusals tend to be short; compare the two judges "
           "rather than reading either number alone.", "",
           "| Judge | r | Rows with a length |", "|---|---|---|",

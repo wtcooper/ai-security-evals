@@ -190,6 +190,21 @@ PROFILES: dict[str, tuple[str, ...]] = {
 }
 
 
+def register(checks, profile: str | None = None, add_to_all: bool = True) -> list[Check]:
+    """Add skill-local checks to the suite for this process (a skill's own lane, for example),
+    optionally as a named profile and in `all`. Registering again replaces them."""
+    global CHECKS
+    checks = list(checks)
+    ids = tuple(c.id for c in checks)
+    CHECKS = tuple(c for c in CHECKS if c.id not in ids) + tuple(checks)
+    BY_ID.update({c.id: c for c in checks})
+    if profile:
+        PROFILES[profile] = ids
+    if add_to_all:
+        PROFILES["all"] = tuple(i for i in PROFILES["all"] if i not in ids) + ids
+    return checks
+
+
 def resolve_checks(spec: str) -> list[Check]:
     """A profile name, or a comma-separated list of check ids."""
     ids = PROFILES.get(spec) or tuple(s.strip() for s in spec.split(",") if s.strip())

@@ -87,7 +87,7 @@ results/codeql/<id>/`, then `sarif_to_findings.py --format gh-alerts --tool code
 ```bash
 python3 code/match.py $EXP/findings.jsonl $EXP/targets/<b>/ground_truth.jsonl \
    --out $EXP/matched.jsonl --report $EXP/match.md --adjudicate $EXP/adjudicate.csv --group-by arm --runs $EXP/runs.jsonl
-python3 lib/evalstats.py $EXP/matched.jsonl --pair-on target --baseline <tool1> --majority <llm-tool>=2/3 \
+python3 lib/evalstats.py $EXP/matched.jsonl --pair-on target --runs $EXP/runs.jsonl --baseline <tool1> --majority <llm-tool>=2/3 \
    --out $EXP/summary.md --json $EXP/summary.json
 ```
 Read: recall@file/function/line and precision (lower bound; adjudicate ≥30 unmatched → fill the CSV →
