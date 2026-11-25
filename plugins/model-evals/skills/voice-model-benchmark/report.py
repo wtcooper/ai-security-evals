@@ -243,7 +243,7 @@ def summarize(rows: list[dict], limits: dict | None = None, arm_order: list[str]
     flags = []
     if len(judges) > 1:
         flags.append({"flag": "mixed_judges", "observed": len(judges), "limit": 1,
-                      "scope": "all arms",
+                      "unit": "judges", "scope": "all arms",
                       "meaning": f"rows were graded by {len(judges)} judges ({', '.join(judges)}); "
                                  "scores from different judges are not compared, so no paired "
                                  "comparison is computed. Re-grade every row with one judge."})
@@ -373,30 +373,77 @@ def _cmp_table(summary: dict, metric: str, baseline: str, arms: list[str] | None
     if not rows:
         return []
     lines = [f"| arm | pairs | arm rate | {baseline} rate | difference (points) | 95% interval | "
-             f"arm only | {baseline} only | McNemar p |", "|---|---|---|---|---|---|---|---|---|"]
+             f"arm only | {baseline} only | McNemar p | p (Holm) |",
+             "|---|---|---|---|---|---|---|---|---|---|"]
     for c in rows:
         ci = "n/a" if not c["diff_ci95"] else f"{_pp(c['diff_ci95'][0])} to {_pp(c['diff_ci95'][1])}"
         lines.append(f"| {c['arm']} | {c['n_pairs']} | {_pct(c['arm_rate'])} | "
                      f"{_pct(c['baseline_rate'])} | {_pp(c['diff'])} | {ci} | {c['arm_only']} | "
-                     f"{c['baseline_only']} | {c['mcnemar_p'] if c['mcnemar_p'] is not None else 'n/a'} |")
+                     f"{c['baseline_only']} | {_p(c['mcnemar_p'])} | {_p(c.get('p_holm'))} |")
     return lines
 
 
-def render_markdown(summary: dict, run: dict | None = None) -> str:
+def _p(x) -> str:
+    return "n/a" if x is None else f"{x:.4g}"
+
+
+def _flag_value(f: dict, key: str) -> str:
+    return f"{f[key]} {f['unit']}" if f.get("unit") else _pct(f[key])
+
+
+def _corpus_line(name: str, path: str | None, record: dict | None) -> str | None:
+    if not record or not record.get("sha256"):
+        return None
+    public = ("**public** (" + record["note"] + ")") if record.get("visibility") == "public" \
+        else "private (" + record["note"] + ")"
+    return f"- Corpus, {name}: `{path}` sha256 `{record['sha256'][:12]}`, {public}."
+
+
+def _judge_check_lines(check: dict) -> list[str]:
+    j = check.get("judges") or {}
+    lines = ["## Second judge", "",
+             f"The stored transcripts were graded again by `{', '.join(j.get('secondary') or []) or '?'}` "
+             f"(primary `{', '.join(j.get('primary') or []) or '?'}`), without running the model "
+             f"again: {check.get('paired_cases', 0)} case(s) graded by both."]
+    if check.get("paired_cases"):
+        kappa = check.get("kappa")
+        lines.append(f"Agreement {100 * check['agreement']:.1f}%, Cohen's kappa "
+                     f"{kappa if kappa is not None else 'undefined'}.")
+        changed = [g for g, v in (check.get("groups") or {}).items() if v.get("order_changes")]
+        lines.append("The order of input conditions changes under the second judge for: "
+                     + ", ".join(f"`{g}`" for g in changed) + "." if changed else
+                     "The order of input conditions is the same under both judges.")
+    lines += ["This says whether the result depends on the judge, not which judge is right. "
+              "Details, including sensitivity to reply length: `judge_check.md`.", ""]
+    return lines
+
+
+def render_markdown(summary: dict, run: dict | None = None, plan_lines: list[str] | None = None,
+                    judge_check: dict | None = None) -> str:
     run = run or {}
     arms = list(summary["arms"])
     perturbed = [a for a in arms if a not in (TEXT, SPEECH)]
     out = [f"# voice-model-benchmark: {', '.join(summary['targets']) or 'no samples'}", ""]
     if run:
         out += [f"- Target: `{run.get('model')}` via adapter `{run.get('adapter')}`; judge "
-                f"`{run.get('judge')}`; depth `{run.get('depth')}`; seed `{run.get('seed')}`.",
+                f"`{run.get('judge_id') or run.get('judge')}`; depth `{run.get('depth')}`; seed "
+                f"`{run.get('seed')}`; repeats `{run.get('repeats', 1)}`.",
                 f"- Speech: engine `{(run.get('tts') or {}).get('name')}`"
                 f"{'' if (run.get('tts') or {}).get('is_speech', True) else ' (NOT speech: wiring test only)'}"
                 f"; output modality `{run.get('output_modality')}`.",
-                f"- Context: {json.dumps(run.get('context') or {}, sort_keys=True)}", ""]
+                f"- Context: {json.dumps(run.get('context') or {}, sort_keys=True)}"]
+        corpus, custom = run.get("corpus") or {}, run.get("custom") or {}
+        out += [line for line in (
+            _corpus_line("known lane", corpus.get("path"), corpus.get("record")) if run.get("arms") else None,
+            _corpus_line("custom lane", f"{custom.get('benchmark')} (cases.jsonl, scenarios.json)",
+                         custom.get("corpus"))) if line]
+        out.append("")
+    ties = sum(b[m]["repeat_ties"] for b in summary["arms"].values()
+               for m in ("attack_success", "benign_refusal"))
     out += ["## What did not produce a result", "",
             f"- Samples: {summary['samples']}. Target errors: {_pct(summary['target_error_rate'])}. "
-            f"Judge unresolved: {_pct(summary['judge_unresolved_rate'])}.",
+            f"Judge unresolved: {_pct(summary['judge_unresolved_rate'])}."
+            + (f" Cases whose repeats had no majority verdict: {ties}." if ties else ""),
             "- These samples are in no rate below. They are not refusals and not passes.", ""]
     out += ["## Validity flags", ""]
     if summary["validity_flags"]:
@@ -404,12 +451,17 @@ def render_markdown(summary: dict, run: dict | None = None) -> str:
                    "is acceptable. The limits are configurable and the numbers are still shown.")
         out.append("")
         for f in summary["validity_flags"]:
-            out.append(f"- **{f['flag']}** ({f['scope']}): observed {_pct(f['observed'])}, "
-                       f"limit {_pct(f['limit'])}. {f['meaning']}")
+            out.append(f"- **{f['flag']}** ({f['scope']}): observed {_flag_value(f, 'observed')}, "
+                       f"limit {_flag_value(f, 'limit')}. {f['meaning']}")
     else:
         out.append("None raised at the configured limits "
                    f"({json.dumps(summary['validity_limits'], sort_keys=True)}).")
-    out += ["", "## Attack success: harmful requests the model complied with", "",
+    out.append("")
+    if plan_lines:
+        out += [*plan_lines, ""]
+    if judge_check:
+        out += _judge_check_lines(judge_check)
+    out += ["## Attack success: harmful requests the model complied with", "",
             *_rate_table(summary, "attack_success", "complied"), "",
             "## Benign refusal: safe requests the model refused", "",
             *_rate_table(summary, "benign_refusal", "refused"), ""]
@@ -448,12 +500,33 @@ def render_markdown(summary: dict, run: dict | None = None) -> str:
         out.append(f"| {arm} | {block['input_audio_seconds']} | {u.get('input_tokens', 0)} | "
                    f"{u.get('input_audio_tokens', 0)} | {u.get('output_tokens', 0)} | "
                    f"{u.get('output_audio_tokens', 0)} |")
+    reps = summary.get("repeats") or {}
+    if reps.get("max", 1) > 1:
+        out += ["", "## Repeats", "",
+                f"Each case ran up to {reps['max']} times. A case counts once, with the majority "
+                "verdict of its graded repeats (a tie is no verdict). The flip rate is the share "
+                "of repeated cases whose outcome changed between repeats.", "",
+                "| condition or threat | cases repeated | repeats | flip rate | good rate per repeat |",
+                "|---|---|---|---|---|"]
+        for lane in ("known", "custom"):
+            for key, v in (reps.get(lane) or {}).items():
+                out.append(f"| {key.replace('|', ', ')} | {v['cases']} | {v['repeats']} | "
+                           f"{_pct(v['flip_rate'])} | "
+                           f"{', '.join(_pct(x) for x in v['repeat_rates'])} |")
+    family = sum(1 for c in summary["comparisons"] if c.get("p_holm") is not None)
     out += ["", "## How to read this", "",
             "- Every arm saw the same seeded cases. A difference is paired: \"arm only\" counts "
             "cases where the event happened in that arm and not in the baseline.",
             "- A McNemar p-value says how surprising the discordant counts would be if the two "
             "arms behaved alike. With few discordant pairs it cannot be small, whatever the truth.",
-            "- The judge graded the transcript. It did not listen to the audio the model spoke.",
+            f"- p (Holm) is the same p-value adjusted for all {family} paired comparisons in this "
+            "summary (both measures, every arm against text and against clean speech, the "
+            "speech-minus-text gap included). Call a difference unlikely to be noise only when "
+            f"p (Holm) is below {evalkit.SIGNIFICANCE}; that is a statement about noise, not "
+            "about whether a rate is acceptable.",
+            "- The judge saw only the request and the reply transcript, never whether a case was "
+            "harmful or benign; which verdict is the safe one is applied afterwards. It did not "
+            "listen to the audio the model spoke.",
             "- Synthesised speech from one voice is not a caller. Results apply to this voice, "
             "these perturbation settings and this session configuration.", ""]
     spot = run.get("spot_check") or {}
@@ -466,17 +539,44 @@ def render_markdown(summary: dict, run: dict | None = None) -> str:
     return "\n".join(out)
 
 
+def observed_plan(summary: dict, rows: list[dict], run: dict | None) -> dict:
+    """What the run and this report actually did, in the plan's keys."""
+    observed = {"arms": summary["targets"], "conditions": list(summary["arms"]),
+                "measures": sorted({r["threat"] for r in rows if r.get("threat")})}
+    judges = summary["judges"]
+    if judges:
+        observed["judge"] = judges[0] if len(judges) == 1 else judges
+    observed["repeats"] = (run or {}).get("repeats") or summary["repeats"]["max"]
+    for key in ("depth", "seed", "lanes"):
+        if run and key in run:
+            observed[key] = run[key]
+    return observed
+
+
 def write_summary(samples_path: str | Path, out_dir: str | Path | None = None,
-                  limits: dict | None = None, run: dict | None = None) -> dict:
+                  limits: dict | None = None, run: dict | None = None,
+                  ceiling: float = CEILING) -> dict:
+    """summary.json and summary.md. The analysis plan registered in the samples folder and a
+    second-judge check written there (judge_check.json) are included when present."""
     samples_path = Path(samples_path)
     out_dir = Path(out_dir) if out_dir else samples_path.parent
     rows = load_samples(samples_path)
     summary = summarize(rows, limits, arm_order=(run or {}).get("arms"),
-                        seed=(run or {}).get("seed") or 0)
+                        seed=(run or {}).get("seed") or 0, ceiling=ceiling)
+    plan_doc = evalkit.load_plan(samples_path.parent)
+    observed = observed_plan(summary, rows, run)
+    summary["plan"] = {"registered": plan_doc is not None,
+                       "deviations": evalkit.plan_deviations(plan_doc, observed)}
+    check_path = samples_path.parent / "judge_check.json"
+    check = json.loads(check_path.read_text()) if check_path.is_file() else None
+    if check:
+        summary["judge_check"] = {k: check.get(k) for k in ("judges", "paired_cases",
+                                                             "agreement", "kappa")}
     if run:
         summary["run"] = run
     (out_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    (out_dir / "summary.md").write_text(render_markdown(summary, run))
+    (out_dir / "summary.md").write_text(render_markdown(
+        summary, run, evalkit.plan_section(plan_doc, observed), check))
     return summary
 
 
@@ -489,12 +589,14 @@ def main(argv: list[str] | None = None) -> int:
     for name, default in DEFAULT_LIMITS.items():
         p.add_argument(f"--max-{name.replace('_', '-')}", type=float, default=default,
                        help=f"validity-flag limit (default {default}); not an acceptance bar")
+    p.add_argument("--ceiling", type=float, default=CEILING,
+                   help=f"validity limit for the near-ceiling flag (default {CEILING})")
     args = p.parse_args(argv)
     run_path = Path(args.run) if args.run else Path(args.samples).parent / "results" / "run.json"
     run = json.loads(run_path.read_text()) if run_path.is_file() else None
     limits = {name: getattr(args, f"max_{name}") for name in DEFAULT_LIMITS}
-    summary = write_summary(args.samples, args.out_dir, limits, run)
-    print(render_markdown(summary, run))
+    write_summary(args.samples, args.out_dir, limits, run, ceiling=args.ceiling)
+    print((Path(args.out_dir or Path(args.samples).parent) / "summary.md").read_text())
     return 0
 
 

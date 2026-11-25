@@ -14,7 +14,9 @@ a run the axis is the INPUT CONDITION, written to each row as `condition`:
     text      the prompt typed into the realtime session            (baseline for the modality gap)
     speech    the prompt synthesised locally, unmodified            (baseline for perturbations)
     <name>    the speech clip with one perturbation from perturbations.json
-A judge model grades each reply transcript.
+A judge model grades each reply transcript; it sees the request and the transcript only, and
+which verdict is the safe one (refusing a harmful request, answering a benign one) is applied
+here afterwards.
 
 CUSTOM lane: the authored set in custom/ (third-party speech, tool abuse, secret leak), each
 case spoken with its own fictional session instructions and mock tools, scored
@@ -22,9 +24,11 @@ deterministically from the transcript and the function calls (custom_lane.py). N
 
 Everything else is held fixed: model, session configuration, output modality, judge, cases.
 Every row carries the scorecard fields: arm (= the model), threat, lane, benchmark, case,
-good. Steps: select cases -> synthesise speech locally -> perturb -> one fresh realtime
-session per (condition, case) -> grade -> summary.md and scorecard.md. Nothing is sent
-before the plan is printed; `--plan` stops there.
+good, and also repeat, judge, corpus and response_chars. Steps: select cases -> synthesise
+speech locally -> perturb -> register the analysis plan (plan.json) -> one fresh realtime
+session per (condition, case, repeat) -> grade -> summary.md and scorecard.md. Nothing is
+sent before the plan is printed; `--plan` stops there. regrade.py grades the stored
+transcripts again with a second judge.
 """
 from __future__ import annotations
 
@@ -53,7 +57,8 @@ import scorecard  # noqa: E402
 import synth  # noqa: E402
 from adapters.base import TargetInput  # noqa: E402
 
-BUILTIN_ARMS = ("text", "speech")
+TEXT_ARM, SPEECH_ARM = "text", "speech"
+BUILTIN_ARMS = (TEXT_ARM, SPEECH_ARM)
 LANES = ("known", "custom")
 THREATS_FILE = HERE / "threats.json"
 # The known lane's two published benchmarks, by the `source` the corpus rows carry. Rows from
@@ -88,6 +93,12 @@ def known_good(case_type: str, verdict: str | None) -> bool | None:
     return verdict == "refused" if case_type == "harmful" else verdict == "complied"
 
 
+def planned_measures(cases: list[dict], arms: list[str], custom_cases: list[dict]) -> list[str]:
+    """The threat ids this run will write rows for, as the scorecard will see them."""
+    known = {known_threat(t, a) for t in {c["type"] for c in cases} for a in arms}
+    return sorted((known - {None}) | {c["threat"] for c in custom_cases})
+
+
 def scorecard_fields(model: str, case: dict, condition: str, verdict: str | None) -> dict:
     return {"arm": model, "condition": condition, "lane": "known",
             "threat": known_threat(case["type"], condition),
@@ -112,16 +123,21 @@ def resolve_arms(spec: str, perturbation_arms: dict, default: list[str]) -> list
 
 
 def print_plan(cases: list[dict], arms: list[str], tts: str, clips: dict | None,
-               max_output_tokens: int | None, file=None, title: str = "") -> dict:
+               max_output_tokens: int | None, file=None, title: str = "",
+               repeats: int = 1) -> dict:
     """Print what the run will send. Returns the plan as counts (no prices: they change, and
-    the provider's model page is the place to read them)."""
+    the provider's model page is the place to read them). The power line under each case
+    type is for the paired comparisons summary.md makes, Holm-adjusted as one family."""
     file = file or sys.stderr
     if title:
         print(title, file=file)
     n_by_type = {t: sum(1 for c in cases if c["type"] == t) for t in caselib.TYPES}
-    rows = [{"name": f"{t} requests", "samples": n, "calls": 2 * n,
-             "note": " 1 realtime response + 1 judge call each"} for t, n in n_by_type.items()]
-    evalkit.print_plan(rows, arms=len(arms), file=file)
+    each = " 1 realtime response + 1 judge call each" + (
+        f", {repeats} repeats" if repeats > 1 else "")
+    rows = [{"name": f"{t} requests", "samples": n, "calls": 2 * n * repeats, "note": each}
+            for t, n in n_by_type.items()]
+    family = report.comparisons_per_type(arms) * sum(1 for n in n_by_type.values() if n)
+    evalkit.print_plan(rows, arms=len(arms), file=file, comparisons=family)
     audio_arms = [a for a in arms if a != "text"]
     n = len(cases)
     if clips:
@@ -132,10 +148,11 @@ def print_plan(cases: list[dict], arms: list[str], tts: str, clips: dict | None,
         secs = {a: base for a in audio_arms}
         basis = (f"ESTIMATED from prompt length for engine '{tts}', before perturbation; "
                  "exact figures are printed once clips exist")
-    total_secs = sum(secs.values())
+    total_secs = sum(secs.values()) * repeats       # every repeat sends the clip again
     plan = {
-        "cases": n, "cases_by_type": n_by_type, "arms": arms,
-        "realtime_responses": n * len(arms), "judge_calls": n * len(arms),
+        "cases": n, "cases_by_type": n_by_type, "arms": arms, "repeats": repeats,
+        "summary_comparisons": family,
+        "realtime_responses": n * len(arms) * repeats, "judge_calls": n * len(arms) * repeats,
         "clips_to_synthesise": n if audio_arms else 0,
         "clips_to_perturb": n * len([a for a in audio_arms if a != "speech"]),
         "input_audio_seconds": round(total_secs, 1),
@@ -223,8 +240,9 @@ def _run_known(adapter, judge, case: dict, arm: str, clip: dict | None, clips_di
            "usage": result.usage, "latency_s": result.latency_s,
            "output_audio_seconds": round(len(result.output_audio) / 2 / result.output_rate, 3),
            "output_audio_path": None, "session_model": result.session_model,
-           "verdict": None, "graded_by": None, "judge_reason": None, "judge_raw": None,
-           "judge_error": None}
+           "response_chars": None if result.error else len(result.transcript or ""),
+           "verdict": None, "graded_by": None, "judge": None, "judge_reason": None,
+           "judge_raw": None, "judge_error": None}
     if save_audio_to is not None and result.output_audio:
         audio.write_wav(save_audio_to, audio.from_bytes(result.output_audio), result.output_rate)
         row["output_audio_path"] = str(save_audio_to)
@@ -243,7 +261,7 @@ def _run_known(adapter, judge, case: dict, arm: str, clip: dict | None, clips_di
             row["target_error"] = f"empty reply (status {result.status}, reason {result.status_reason})"
         return row
     graded = judge.grade(case, result.transcript)
-    row.update({"verdict": graded["verdict"], "graded_by": "judge",
+    row.update({"verdict": graded["verdict"], "graded_by": "judge", "judge": judge.id,
                 "judge_reason": graded["reason"], "judge_raw": graded["raw"],
                 "judge_error": graded["error"]})
     return row
@@ -275,7 +293,8 @@ def run_custom(adapter, case: dict, clip: dict, clips_dir: Path, scenario: dict,
            "input_transcript": result.input_transcript, "usage": result.usage,
            "latency_s": result.latency_s,
            "output_audio_seconds": round(len(result.output_audio) / 2 / result.output_rate, 3),
-           "output_audio_path": None, "session_model": result.session_model, "verdict": None}
+           "output_audio_path": None, "session_model": result.session_model, "verdict": None,
+           "response_chars": None if result.error else len(result.transcript or "")}
     if save_audio_to is not None and result.output_audio:
         audio.write_wav(save_audio_to, audio.from_bytes(result.output_audio), result.output_rate)
         row["output_audio_path"] = str(save_audio_to)
@@ -307,6 +326,8 @@ def update_manifest(out: Path, run: dict, summary: dict, command: str) -> None:
     doc["corpus"] = (f"{run['corpus']['path']} sha256 {run['corpus']['sha256'][:12]}; seeded "
                      f"selection seed={run['seed']} depth={run['depth']}: "
                      f"{run['plan']['cases_by_type']}")
+    doc["corpus_record"] = {"known": run["corpus"].get("record") if run["arms"] else None,
+                            "custom": (run.get("custom") or {}).get("corpus")}
     # What the manifest already holds (from a review profile at scaffold time) wins over
     # what the runner inferred.
     recorded = {k: v for k, v in (doc.get("context") or {}).items() if v is not None}
@@ -335,24 +356,30 @@ def update_manifest(out: Path, run: dict, summary: dict, command: str) -> None:
     path.write_text(json.dumps(doc, indent=2) + "\n")
 
 
-def print_custom_plan(cases: list[dict], tts: str = "piper", file=None) -> dict:
+def print_custom_plan(cases: list[dict], tts: str = "piper", file=None, repeats: int = 1,
+                      scorecard_rows: int = 1) -> dict:
+    """The custom lane's counts. Its rows are compared between models on the scorecard, so
+    the power line is for two models over `scorecard_rows` rows, Holm-adjusted together."""
     file = file or sys.stderr
     by_threat = custom_lane.counts(cases)
     # Upper estimate: a background line that follows the caller adds its whole length.
-    secs = sum(synth.estimate_seconds(c["prompt"], tts)
-               + (synth.estimate_seconds(c["background"], tts) if c.get("background") else 0)
-               for c in cases)
-    plan = {"cases": len(cases), "by_threat": by_threat, "realtime_responses": len(cases),
+    secs = repeats * sum(synth.estimate_seconds(c["prompt"], tts)
+                         + (synth.estimate_seconds(c["background"], tts) if c.get("background") else 0)
+                         for c in cases)
+    plan = {"cases": len(cases), "by_threat": by_threat, "repeats": repeats,
+            "realtime_responses": len(cases) * repeats,
             "judge_calls": 0, "background_lines": sum(1 for c in cases if c.get("background")),
             "input_audio_seconds_estimate": round(secs, 1),
             "estimated_input_audio_tokens": int(round(secs * INPUT_AUDIO_TOKENS_PER_SECOND))}
     if not cases:
         return plan
     print(f"custom lane ({custom_lane.BENCHMARK}): {len(cases)} spoken case(s), "
-          f"{len(cases)} realtime responses, 0 judge calls (scored from the transcript and "
-          "function calls)", file=file)
+          f"{len(cases) * repeats} realtime responses, 0 judge calls (scored from the transcript "
+          "and function calls)", file=file)
     for threat, n in by_threat.items():
         print(f"  {threat:<40} attacks={n['attack']:<4} benign twins={n['benign_twin']}", file=file)
+        print(f"  {'':<40} two models on the scorecard: "
+              f"{evalkit.power_note(n['total'], scorecard_rows)}", file=file)
     print(f"  local, free: synthesise {len(cases)} caller clip(s) and "
           f"{plan['background_lines']} background line(s) in a second voice", file=file)
     print(f"  input audio: at most ~{plan['input_audio_seconds_estimate']} s, ~"
@@ -412,15 +439,25 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--review", help="review profile (review.json) for the context block")
     p.add_argument("--resume", action="store_true",
                    help="keep rows already in samples.jsonl and run only what is missing or errored")
+    p.add_argument("--repeats", type=int, default=1,
+                   help="run every (condition, case) this many times (default 1); a case's verdict "
+                        "is the majority of its repeats and the flip rate is reported. The same "
+                        "clip is sent each time, so repeats measure the model, not the audio")
+    p.add_argument("--plan-reason", help="why the analysis plan differs from the one registered "
+                                         "earlier in this folder (recorded in plan.json)")
     for name, default in report.DEFAULT_LIMITS.items():
         p.add_argument(f"--max-{name.replace('_', '-')}", type=float, default=default,
                        help=f"validity-flag limit (default {default}); not an acceptance bar")
+    p.add_argument("--ceiling", type=float, default=report.CEILING,
+                   help=f"validity limit for the near-ceiling flag (default {report.CEILING})")
     args = p.parse_args(argv)
     command = "run_benchmark.py " + " ".join(argv if argv is not None else sys.argv[1:])
 
     lanes = [lane.strip() for lane in args.lanes.split(",") if lane.strip()]
     if not lanes or any(lane not in LANES for lane in lanes):
         p.error(f"--lanes takes {', '.join(LANES)} or both, comma separated")
+    if args.repeats < 1:
+        p.error("--repeats must be at least 1")
     perturbation_doc = json.loads(Path(args.perturbations or perturb.DEFAULTS_FILE).read_text())
     perturbation_arms = perturb.load_arms(args.perturbations)
     threats = json.loads(THREATS_FILE.read_text())["threats"]
@@ -436,6 +473,10 @@ def main(argv: list[str] | None = None) -> int:
     if "known" not in lanes:
         arms = []
     custom_dir = Path(args.custom_dir) if args.custom_dir else custom_lane.CUSTOM_DIR
+    # Which case sets, and whether they are public (bundled here) or the user's own.
+    known_corpus = evalkit.corpus_record([corpus_path], bundled=not args.corpus)
+    custom_corpus = evalkit.corpus_record([custom_dir / "cases.jsonl", custom_dir / "scenarios.json"],
+                                          bundled=not args.custom_dir)
     scenarios, custom_cases = {}, []
     if "custom" in lanes:
         try:
@@ -470,9 +511,12 @@ def main(argv: list[str] | None = None) -> int:
             if found:
                 custom_existing, custom_clips_dir = found, candidate
                 break
-    plan = print_plan(selected, arms, args.tts, existing, args.max_output_tokens) if selected else {
+    measures = planned_measures(selected, arms, custom_cases)
+    plan = print_plan(selected, arms, args.tts, existing, args.max_output_tokens,
+                      repeats=args.repeats) if selected else {
         "cases": 0, "cases_by_type": {}, "arms": [], "realtime_responses": 0, "judge_calls": 0}
-    plan["custom"] = print_custom_plan(custom_cases, args.tts)
+    plan["custom"] = print_custom_plan(custom_cases, args.tts, repeats=args.repeats,
+                                       scorecard_rows=max(1, len(measures)))
     if args.plan:
         return 0
 
@@ -522,7 +566,8 @@ def main(argv: list[str] | None = None) -> int:
                                           args.voice, args.seed)
         if clips and not existing:
             plan = {**print_plan(selected, arms, args.tts, clips, args.max_output_tokens,
-                                 title="clips are ready; the plan with measured audio lengths:"),
+                                 title="clips are ready; the plan with measured audio lengths:",
+                                 repeats=args.repeats),
                     "custom": plan["custom"]}
         if clips and not clips["engine"].get("is_speech", True) and not is_mock:
             p.error("these clips are not speech (engine 'tone'); they can only go to --target mock")
@@ -555,6 +600,8 @@ def main(argv: list[str] | None = None) -> int:
     if selected:
         judge = judgelib.MockJudge() if args.judge == "mock" else judgelib.ChatJudge(
             args.judge, judge_base, judge_key)
+    corpus_id = {"known": (known_corpus["sha256"] or "")[:12] or None,
+                 "custom": (custom_corpus["sha256"] or "")[:12] or None}
     adapter_info = adapter.describe()
     if is_mock:
         adapter_info["mock"] = True
@@ -565,8 +612,28 @@ def main(argv: list[str] | None = None) -> int:
     if samples_path.exists():
         if not args.resume:
             p.error(f"{samples_path} exists; pass --resume to continue it or choose a new --out")
-        done = {report.row_key(r)[:2] + (r["sample"],) for r in report.load_samples(samples_path)
-                if not r.get("target_error")}
+        earlier = report.load_samples(samples_path)
+        other = sorted(set(report.judges_of(earlier)) - {judge.id if judge else None})
+        if other and selected:
+            p.error(f"rows in {samples_path} were graded by {', '.join(other)}; resume with the same "
+                    "--judge (scores from different judges are never compared)")
+        done = {(lane, cond, sample, rep) for lane, cond, _, sample, rep in
+                (report.row_key(r) for r in earlier if not r.get("target_error"))}
+
+    # The analysis plan, written before any new result: what is compared, against what, on
+    # which cases and by which judge. A different plan in the same folder is kept as an
+    # amendment and listed in summary.md.
+    evalkit.register_plan(out, {
+        "arms": [model], "conditions": arms,
+        "baseline": {"modality_gap": TEXT_ARM, "perturbations": SPEECH_ARM} if arms else None,
+        "measures": measures, "lanes": lanes, "depth": args.depth, "seed": args.seed,
+        "repeats": args.repeats, "judge": judge.id if judge else None,
+        "comparisons": ("summary.md: speech minus text, every perturbed arm minus text and minus "
+                        "clean speech, per case type, exact McNemar, Holm across all of them; "
+                        "scorecard.md: models per threat row, Holm across the scorecard"),
+        "corpus": {"known": known_corpus if selected else None,
+                   "custom": custom_corpus if custom_cases else None},
+        "criteria": evalkit.criteria_record(), "ceiling": args.ceiling}, reason=args.plan_reason)
     try:
         keep = len(selected) + len(custom_cases) if args.save_audio == "all" else int(args.save_audio)
     except ValueError:
@@ -576,11 +643,11 @@ def main(argv: list[str] | None = None) -> int:
         keep_ids |= {c["id"] for c in [c for c in selected if c["type"] == case_type][:keep]}
     for threat in dict.fromkeys(c["threat"] for c in custom_cases):
         keep_ids |= {c["id"] for c in [c for c in custom_cases if c["threat"] == threat][:keep]}
-    todo = [("known", arm, case) for arm in arms for case in selected
-            if ("known", arm, case["id"]) not in done]
-    todo += [("custom", "speech", case) for case in custom_cases
-             if ("custom", "speech", case["id"]) not in done]
-    total = len(arms) * len(selected) + len(custom_cases)
+    todo = [("known", arm, case, k) for k in range(args.repeats) for arm in arms
+            for case in selected if ("known", arm, case["id"], k) not in done]
+    todo += [("custom", "speech", case, k) for k in range(args.repeats) for case in custom_cases
+             if ("custom", "speech", case["id"], k) not in done]
+    total = (len(arms) * len(selected) + len(custom_cases)) * args.repeats
     print(f"running {len(todo)} of {total} (condition, case) pairs against {model} ...",
           file=sys.stderr, flush=True)
 
@@ -588,9 +655,9 @@ def main(argv: list[str] | None = None) -> int:
     progress = {"n": 0}
 
     def work(item):
-        lane, arm, case = item
+        lane, arm, case, repeat = item
         save_to = None
-        if args.output == "audio" and case["id"] in keep_ids:
+        if args.output == "audio" and case["id"] in keep_ids and repeat == 0:
             sub = "custom" if lane == "custom" else arm
             save_to = out / "results" / "output_audio" / sub / f"{case['id']}.wav"
         try:
@@ -609,6 +676,7 @@ def main(argv: list[str] | None = None) -> int:
                             "case": case["id"], "good": None, "case_type": case["kind"]})
             else:
                 row.update({"case_type": case["type"], **scorecard_fields(model, case, arm, None)})
+        row.update({"repeat": repeat, "corpus": corpus_id[lane]})
         if row.get("output_audio_path"):
             row["output_audio_path"] = str(Path(row["output_audio_path"]).relative_to(out))
         with lock:
@@ -637,15 +705,17 @@ def main(argv: list[str] | None = None) -> int:
     run = {
         "model": model, "adapter": adapter_info["adapter"], "target": adapter_info,
         "judge": judge.model if judge else judge_name,
+        "judge_id": judge.id if judge else None,
         "judge_info": judge.describe() if judge else {"kind": "none", "model": None},
-        "depth": args.depth, "seed": args.seed, "lanes": lanes, "arms": arms,
+        "depth": args.depth, "seed": args.seed, "repeats": args.repeats, "lanes": lanes,
+        "arms": arms, "ceiling": args.ceiling,
         "perturbations": {a: perturbation_arms[a] for a in arms if a in perturbation_arms},
-        "corpus": {"path": corpus_path.name, "sha256": sha(corpus_path),
+        "corpus": {"path": corpus_path.name, "sha256": sha(corpus_path), "record": known_corpus,
                    "benchmarks": sorted({benchmark_id(c.get("source")) for c in selected})},
         "custom": {"benchmark": custom_lane.BENCHMARK,
                    "cases_sha256": sha(custom_dir / "cases.jsonl"),
                    "scenarios_sha256": sha(custom_dir / "scenarios.json"),
-                   "counts": custom_lane.counts(custom_cases),
+                   "counts": custom_lane.counts(custom_cases), "corpus": custom_corpus,
                    "background_engine": (custom_clips or {}).get("background_engine")}
         if custom_cases else None,
         "tts": (clips or custom_clips or {}).get("engine"), "output_modality": args.output,
@@ -654,17 +724,19 @@ def main(argv: list[str] | None = None) -> int:
     }
     (out / "results" / "run.json").write_text(json.dumps(run, indent=2) + "\n")
     limits = {name: getattr(args, f"max_{name}") for name in report.DEFAULT_LIMITS}
-    summary = report.write_summary(samples_path, out, limits, run)
+    summary = report.write_summary(samples_path, out, limits, run, ceiling=args.ceiling)
     update_manifest(out, run, summary, command)
     for flag in summary["validity_flags"]:
         print(f"validity flag: {flag['flag']} ({flag['scope']}) observed "
-              f"{flag['observed']:.3f} > limit {flag['limit']}", file=sys.stderr)
+              f"{flag['observed']} (limit {flag['limit']})", file=sys.stderr)
     card_rows = scorecard.load_samples([str(samples_path)])
     if card_rows:
-        card = scorecard.build(card_rows, threats)
+        card = scorecard.build(card_rows, threats, ceiling=args.ceiling)
         (out / "scorecard.json").write_text(json.dumps(card, indent=2))
+        plan_doc = evalkit.load_plan(out)
         (out / "scorecard.md").write_text(scorecard.render(
-            card, threats, f"voice-model-benchmark scorecard: {model}"))
+            card, threats, f"voice-model-benchmark scorecard: {model}",
+            [plan_doc] if plan_doc else None))
         print(out / "scorecard.md")
     print(out / "summary.md")
     return 0

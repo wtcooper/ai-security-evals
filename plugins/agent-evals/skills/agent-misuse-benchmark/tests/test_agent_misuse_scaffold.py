@@ -160,6 +160,39 @@ def test_paired_comparison_uses_only_tasks_graded_in_both_arms():
     assert metrics.paired(rows, "base", "missing", "restricted", "declined") is None
 
 
+def test_repeats_collapse_to_the_majority_outcome_and_a_tie_is_no_verdict():
+    def rep(task_pair, outcome, k):
+        return {**_row("a", task_pair, "restricted", outcome), "repeat": k}
+    rows = ([rep("p1", "declined", k) for k in range(3)]
+            + [rep("p2", o, k) for k, o in enumerate(["declined", "carried_out", "declined"])]
+            + [rep("p3", o, k) for k, o in enumerate(["declined", "carried_out", "error"])]
+            + [rep("p4", "error", k) for k in range(2)])
+    by = {r["task"]: r["outcome"] for r in metrics.collapse(rows)}
+    assert by == {"p1.restricted": "declined", "p2.restricted": "declined",
+                  "p3.restricted": "split", "p4.restricted": "error"}
+    m = metrics.arm_metrics(metrics.collapse(rows))
+    assert m["restricted_declined"]["n"] == 2 and m["split"] == 1 and m["runs"] == 4
+    flips = metrics.repeat_flips(rows)["a|restricted"]
+    assert flips["cases"] == 3 and flips["flip_rate"] == pytest.approx(2 / 3, abs=1e-4)
+
+
+def test_every_p_value_is_holm_adjusted_and_a_saturated_measure_is_flagged():
+    rows = []
+    for arm, declined in (("base", 10), ("other", 4)):
+        for i in range(10):
+            rows.append(_row(arm, f"p{i}", "restricted",
+                             "declined" if i < declined else "carried_out"))
+            rows.append(_row(arm, f"p{i}", "permitted", "completed"))
+    s = metrics.summarize(rows)
+    by = {c["kind"]: c for c in s["comparisons"]}
+    assert by["restricted"]["p"] == pytest.approx(0.0312, abs=1e-4)          # 2 * (1/2)^6
+    assert by["restricted"]["p_holm"] == pytest.approx(0.0625, abs=2e-4)     # x 2 comparisons
+    assert by["permitted"]["p_holm"] == 1.0
+    assert [f["measure"] for f in s["ceiling_flags"]] == ["permitted_completed"]
+    text = metrics.render(s, {"depth": "full"})
+    assert "p (Holm)" in text and "none at this sample size" in text and "near_ceiling" in text
+
+
 # --- runner --------------------------------------------------------------------------
 
 def _mock_run(tmp_path, *extra):
@@ -187,7 +220,27 @@ def test_mock_smoke_run_writes_the_results_contract(tmp_path):
 def test_plan_prints_cost_and_runs_nothing(tmp_path, capsys):
     code, out = _mock_run(tmp_path, "--plan")
     assert code == 0 and not out.exists()
-    assert "3 arm(s)" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "3 arm(s)" in err and "precision:" in err and "across 4 comparisons" in err
+
+
+def test_the_plan_is_registered_before_results_and_repeats_are_reported(tmp_path):
+    code, out = _mock_run(tmp_path, "--repeats", "3")
+    assert code == 0
+    doc = json.loads((out / "plan.json").read_text())
+    assert doc["registered_before_results"] is True
+    plan = doc["plan"]
+    assert plan["arms"][0] == plan["baseline"] == "model-a/harness-x" and plan["repeats"] == 3
+    assert plan["corpus"]["visibility"] == "public" and plan["judge"] is None
+    rows = metrics.load_samples(out / "samples.jsonl")
+    assert len(rows) == 3 * 13 * 3 and {r["repeat"] for r in rows} == {0, 1, 2}
+    assert (out / "runs" / "model-a" / "harness-x" / "pair-01.restricted" / "r2" / "run.json").is_file()
+    summary = json.loads((out / "summary.json").read_text())
+    assert summary["repeats"]["model-a/harness-y|restricted"]["flip_rate"] > 0   # repeat_noise
+    assert summary["repeats"]["model-a/harness-x|restricted"]["flip_rate"] == 0
+    assert summary["per_arm"]["model-a/harness-x"]["runs"] == 13
+    text = (out / "summary.md").read_text()
+    assert "## Repeats" in text and "## Analysis plan" in text and "No departures" in text
 
 
 def test_a_placeholder_pack_is_refused_for_a_real_harness(tmp_path, capsys):

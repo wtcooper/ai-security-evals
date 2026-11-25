@@ -45,8 +45,12 @@ For each arm (a model in a harness, with safeguards on or off):
   on the first number and badly on this one.
 - **Permitted twins declined** (over-refusal).
 - The same rates by category and by how the task was framed.
-- A paired comparison of every arm against a baseline arm on the same tasks.
-- Validity flags: runs with no verdict, and low completion of the permitted twins.
+- A paired comparison of every arm against a baseline arm on the same tasks, with raw and
+  Holm-adjusted p-values.
+- With `--repeats`, how often a task's outcome changed between runs.
+- Validity flags: runs with no verdict, low completion of the permitted twins, and a measure
+  on which every arm is near the ceiling.
+- The analysis plan registered before the run, and any departure from it.
 
 It does not say whether a rate is acceptable. Execution tier: **T1** (a sandbox with no
 network), and a completed benchmark must keep it there.
@@ -69,6 +73,11 @@ network), and a completed benchmark must keep it there.
    ```
    python run_benchmark.py --scenarios <pack> --arms arms.json --depth standard --plan
    ```
+   It prints runs per arm and, for each row, the precision of a rate and the smallest
+   difference between two arms the pack can separate once the report's comparisons are
+   Holm-adjusted. Say so when that difference is larger than the one the user cares about.
+   `--repeats N` (default 1) runs every task N times per arm, multiplying the cost; use it
+   when an agent's outcome may change from one run to the next.
 5. **Safety** — confirm with the user before running:
    - it runs in a disposable environment, not on a machine holding real credentials;
    - the sandbox has no network (the runner refuses to start if the harness cannot show it);
@@ -82,20 +91,32 @@ python run_benchmark.py --scenarios <pack dir> --arms arms.json \
   --harness <name> --harness-module <your_harness.py> --scorer <your_scorer.py> \
   --depth standard --out "<EXP>/results"
 ```
-Every arm runs the same seeded selection of pairs. Written to `<EXP>/results/`:
-`samples.jsonl` (one row per arm × task, with the outcome and the evidence for it),
-`runs/<arm>/<task>/run.json`, `summary.md` and `summary.json`.
+Every arm runs the same seeded selection of pairs. Before the first task, the analysis plan
+is written to `<EXP>/results/plan.json` (arms, baseline, measures, categories and framings,
+depth, seed, repeats, pack fingerprint and whether it is public, scorer and its `JUDGE` if
+it declares one, the organisation's `criteria.json` if found). Running again into the same
+folder with a different plan records an amendment; say why with `--plan-reason "<text>"`.
+Written to `<EXP>/results/`: `samples.jsonl` (one row per arm × task × repeat, with
+`repeat`, the outcome, the evidence and any `criteria` answers), `runs/<arm>/<task>/run.json`
+(`.../<task>/r<k>/` with repeats), `summary.md` and `summary.json`.
 
 ## ANALYZE
 Read `summary.md` to the user in this order:
-1. **Read first**: validity flags. `no_verdict` means runs errored or the scorer could not
-   decide; they are in no rate. `low_permitted_completion` means the agent rarely finishes
-   the legitimate twins, so its declines may be inability or blanket refusal.
+1. **Read first**: validity flags. `no_verdict` means runs errored, the scorer could not
+   decide, or repeats had no majority outcome; they are in no rate.
+   `low_permitted_completion` means the agent rarely finishes the legitimate twins, so its
+   declines may be inability or blanket refusal. `near_ceiling` (limit `--ceiling`, default
+   0.95) means every arm is at the top on that measure, so the pack separates them poorly.
+   Then the analysis plan and any departure from it.
 2. **The per-arm table**, reading "restricted declined" and "permitted completed" together.
 3. **Framing and category tables**: where the same task gets a different answer.
-4. **The paired comparison** against the baseline arm, with its p-value. Say plainly when
-   the pack is too small to separate two arms.
-5. Spot-check a sample of `runs/` transcripts against the scorer's evidence before quoting
+4. **The paired comparison** against the baseline arm. Call a difference unlikely to be
+   noise only on the Holm-adjusted p (`p (Holm)`, across every comparison in the table); the
+   raw p is beside it. Say plainly when the pack is too small to separate two arms.
+5. **Repeats** (with `--repeats`): a task counts once, with the outcome most of its runs
+   had. A restricted task that flips was carried out on some runs, which matters when a
+   requester can simply try again.
+6. Spot-check a sample of `runs/` transcripts against the scorer's evidence before quoting
    any number: a new scorer is the likeliest thing to be wrong.
 
 Do not tell the user whether the result is acceptable.
@@ -108,8 +129,11 @@ python run_benchmark.py --scenarios scenarios.example --arms scenarios.example/a
   --harness mock --scorer mock --depth smoke --out /tmp/agent-misuse-smoke
 cat /tmp/agent-misuse-smoke/summary.md
 ```
-Expected: three arms, 13 runs each, a per-arm table, a framing table, and a paired
-comparison. The first line under "Read first" says the harness is the mock. The numbers are
+Expected: three arms, 13 runs each, a per-arm table, a framing table, a paired comparison
+with `p (Holm)` (nothing separated at this size), and `Analysis plan` with no departures
+(`/tmp/agent-misuse-smoke/plan.json`). Adding `--repeats 3` gives 39 runs per arm and a
+`Repeats` table in which only `model-a/harness-y` flips (its mock sets `repeat_noise`). The
+first line under "Read first" says the harness is the mock. The numbers are
 canned by the mock and say nothing about any agent.
 
 ## Notes
@@ -119,5 +143,13 @@ canned by the mock and say nothing about any agent.
 - **What does not ship, on purpose:** task descriptions of any kind, a harness that runs a
   real agent, and any logic for deciding whether an agent declined or complied.
 - A pack with placeholder prompts is accepted only by the mock harness.
+- **Multi-turn scenarios** and grading on atomic yes/no criteria are guidance in
+  `references/build-guide.md`, not an engine: the conversation runs inside your harness
+  module, and the criteria answers come from your scorer.
+- The plan's corpus record treats the bundled example as public and any other pack as
+  private; a pack you publish is no longer private.
 - **Not verified:** nothing beyond the mock path. No agent, model or sandbox has been run
-  through this scaffold.
+  through this scaffold. Repeats, the registered plan, Holm adjustment and the near-ceiling
+  flag were exercised only with the mock harness and scorer. Inspect Petri was not run or
+  checked against its current interface; the multi-turn guidance names it only as an
+  option.

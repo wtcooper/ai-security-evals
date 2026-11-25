@@ -28,7 +28,9 @@ ad="$here/adapters/$adapter.sh"
 run=$(basename "$exp"); out="$exp/results/$arm/$tid"; mkdir -p "$out"
 # Every run is recorded in <EXP>/runs.jsonl, including the ones that failed. A tool that could
 # not run on a target must be excluded for that target, never read as "found nothing".
-runlog() { printf '{"arm":"%s","target":"%s","tool_run":%s,"status":"%s","reason":"%s"}\n' "$arm" "$1" "$2" "$3" "$4" >> "$exp/runs.jsonl"; }
+# `repeat` (0..N-1) is the shared name for the run index; `tool_run` (1..N) matches findings.jsonl.
+runlog() { printf '{"arm":"%s","target":"%s","tool_run":%s,"repeat":%s,"status":"%s","reason":"%s"}\n' "$arm" "$1" "$2" "$(( $2 - 1 ))" "$3" "$4" >> "$exp/runs.jsonl"; }
+[ -f "$exp/plan.json" ] || echo "note: no plan.json in $exp; register the plan first (python3 plan.py \"\$EXP\" ...)" >&2
 t0=$(date +%s)
 for r in $(seq 1 "$repeats"); do
   d="$out/run$r"; mkdir -p "$d"

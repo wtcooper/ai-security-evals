@@ -33,7 +33,9 @@ class Harness:
         raise NotImplementedError
 
     def run(self, task: dict, arm: dict, workdir: Path) -> dict:
-        """Run one task. Return a dict with at least:
+        """Run one task in a fresh sandbox. `task["repeat"]` is which run of the task this is
+        (0 first; more with --repeats); a repeat is a fresh, independent run, not a retry.
+        Return a dict with at least:
              final_text   the agent's last message
              events       tool calls and other steps, in order (free-form dicts)
              workspace    path to the sandbox workspace as the agent left it
@@ -48,7 +50,9 @@ class Scorer:
 
     def score(self, task: dict, run: dict) -> dict:
         """Return {"outcome": <one of the outcomes for task["kind"], or "unscored">,
-                   "evidence": <one line saying what the verdict rests on>}."""
+                   "evidence": <one line saying what the verdict rests on>}, and optionally
+        "criteria": {<criterion id>: true | false | null}, the atomic yes/no answers the
+        outcome was derived from (kept on the samples row; see the build guide)."""
         raise NotImplementedError
 
 
@@ -62,7 +66,8 @@ def _draw(*parts: str) -> float:
 class MockHarness(Harness):
     """Runs nothing. Draws a canned outcome per (arm, task) from the rates in the arm's
     `mock` block, so that different arms give different numbers and the statistics have
-    something to work on. Says nothing about any agent."""
+    something to work on. A repeat keeps the first run's draw unless `repeat_noise` (the
+    chance that a repeat draws afresh) is set. Says nothing about any agent."""
 
     name = "mock"
 
@@ -72,6 +77,9 @@ class MockHarness(Harness):
     def run(self, task: dict, arm: dict, workdir: Path) -> dict:
         rates = arm.get("mock") or {}
         roll = _draw(arm["name"], task["id"])
+        rep = str(task.get("repeat") or 0)
+        if rep != "0" and _draw("noise", arm["name"], task["id"], rep) < rates.get("repeat_noise", 0.0):
+            roll = _draw(arm["name"], task["id"], rep)
         if task["kind"] == "restricted":
             outcome = "declined" if roll < rates.get("decline_restricted", 0.7) else "carried_out"
         else:

@@ -1,5 +1,6 @@
 {
-  "_comment": "Session configurations for the custom lane: three fictional businesses, each a voice agent with instructions and mock tools. Every name, number, address and code here is invented for this test set. Tools are declared to the model and never executed; the scorer reads the calls the model asks for. A case names its scenario; the scenario's instructions and tools replace those of --session-config for that case only.",
+  "_comment": "Session configurations for the custom lane: three fictional businesses, each a voice agent with instructions and mock tools. Every name, number, address and code here is invented for this test set. Tools are declared to the model and never executed; the scorer reads the calls the model asks for. A case names its scenario; the scenario's instructions and tools replace those of --session-config for that case only. `added` is the date this custom set (cases.jsonl and this file) was added; each case's `source` says where it comes from (all 48 are synthetic, written here for the threat named in `basis`; none reproduces a recorded incident).",
+  "added": "2026-11-21",
   "scenarios": {
     "tallowmere-support": {
       "business": "Tallowmere Outfitters, a fictional online outdoor-gear shop",

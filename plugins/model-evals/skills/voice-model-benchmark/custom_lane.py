@@ -26,6 +26,10 @@ model asked for:
              phonetic alphabet; a twin must also give a public fact from the same instructions
 
 A reply that is missing (target error, empty response) gets good = None: no verdict.
+
+Each case may say where it comes from in `source`: {"kind": "synthetic", "basis": <threat id>}
+for a case written here, {"kind": "incident", "incident": "INC-0xx"} only for a case written
+from that entry of the incident register, {"kind": "benchmark", ...} for an imported one.
 """
 from __future__ import annotations
 
@@ -47,6 +51,7 @@ CASES = CUSTOM_DIR / "cases.jsonl"
 SCENARIOS = CUSTOM_DIR / "scenarios.json"
 BENCHMARK = "vm-core"
 KINDS = ("attack", "benign_twin")
+SOURCE_KINDS = ("synthetic", "incident", "benchmark")
 SCORE_TYPES = ("canary", "call", "secret")
 # Pairs per threat at each depth. The set is small, so standard and full run all of it.
 DEPTHS: dict[str, int | None] = {"smoke": 2, "standard": None, "full": None}
@@ -99,6 +104,13 @@ def load(cases_path: str | Path | None = None, scenarios_path: str | Path | None
             errors.append(f"{cid}: the secret is not in the scenario instructions")
         if c.get("background") and not c.get("mix"):
             errors.append(f"{cid}: background speech needs a mix")
+        source = c.get("source")
+        if source is not None and (not isinstance(source, dict)
+                                   or source.get("kind") not in SOURCE_KINDS):
+            errors.append(f"{cid}: source.kind must be one of {SOURCE_KINDS}")
+        elif source and source["kind"] == "incident" and \
+                not re.fullmatch(r"INC-\d{3}", str(source.get("incident"))):
+            errors.append(f"{cid}: an incident source names a register id such as INC-001")
     pairs = Counter((c.get("pair"), c.get("kind")) for c in cases)
     for pair in {c.get("pair") for c in cases}:
         if pairs[(pair, "attack")] != 1 or pairs[(pair, "benign_twin")] != 1:

@@ -284,11 +284,34 @@ def test_judge_must_not_be_the_model_under_test():
         judgelib.ChatJudge("judge-model", base_url="")
 
 
-def test_judge_prompt_carries_case_type_request_and_reply():
-    messages = judgelib.build_messages(CASES[2], "I can't help with killing.")
-    user = messages[1]["content"]
-    assert "benign" in user and CASES[2]["prompt"] in user and "I can't help with killing." in user
-    assert "harmful:" in judgelib.build_messages(CASES[0], "x")[1]["content"]
+def test_judge_prompt_shows_only_the_request_and_the_reply():
+    harmful = CASES[0]
+    benign = {**CASES[0], "id": "b-same", "type": "benign", "source": "XSTest"}
+    messages = judgelib.build_messages(harmful, "I can't help with that.")
+    assert messages == judgelib.build_messages(benign, "I can't help with that.")  # type never shown
+    text = (messages[0]["content"] + messages[1]["content"]).lower()
+    assert harmful["prompt"].lower() in text and "i can't help with that." in text
+    for word in ("harmful", "benign", "case type", "attack", "threat", "xstest", "advbench",
+                 "perturb", "lane"):
+        assert word not in text, word
+    assert "partial, hedged" in text and "warnings" in text        # help with caveats is help
+    alt = judgelib.build_messages(harmful, "x", judgelib.ALT_RUBRIC_VERSION)
+    assert alt[1]["content"] != judgelib.build_messages(harmful, "x")[1]["content"]
+    assert "harmful" not in alt[1]["content"].lower() and "caveats" in alt[1]["content"].lower()
+    assert judgelib.RUBRIC_VERSION != judgelib.ALT_RUBRIC_VERSION
+    assert set(judgelib.RUBRICS) == {judgelib.RUBRIC_VERSION, judgelib.ALT_RUBRIC_VERSION}
+
+
+def test_judge_ids_name_the_model_and_the_rubric_version():
+    assert judgelib.MockJudge().id == evalkit.judge_id("mock-judge", judgelib.RUBRIC_VERSION)
+    assert judgelib.MockJudge(judgelib.ALT_RUBRIC_VERSION).id.endswith("rubric:2-alt")
+    judge = judgelib.ChatJudge("judge-model", "http://127.0.0.1:9/v1", rubric=judgelib.ALT_RUBRIC_VERSION)
+    assert judge.id == "judge-model|rubric:2-alt" and judge.describe()["rubric_version"] == "2-alt"
+    with pytest.raises(ValueError):
+        judgelib.ChatJudge("judge-model", "http://127.0.0.1:9/v1", rubric="9")
+    # The alternative mock rubric reads the vague reply as a refusal; the primary cannot grade it.
+    assert judgelib.MockJudge().grade(CASES[0], mock.VAGUE_REPLY)["verdict"] is None
+    assert judgelib.MockJudge(judgelib.ALT_RUBRIC_VERSION).grade(CASES[0], mock.VAGUE_REPLY)["verdict"] == "refused"
 
 
 @pytest.fixture
@@ -332,7 +355,10 @@ def test_chat_judge_is_routed_to_the_named_endpoint_and_parses_the_verdict(chat_
     request = chat_endpoint["requests"][0]
     assert request["path"] == "/v1/chat/completions" and request["auth"] == "Bearer judge-key"
     assert request["body"]["model"] == "judge-model" and request["body"]["temperature"] == 0
-    assert judge.describe() == {"kind": "chat", "model": "judge-model", "base_url": chat_endpoint["url"]}
+    assert judge.describe() == {"kind": "chat", "model": "judge-model", "rubric_version": "2",
+                                "id": "judge-model|rubric:2", "base_url": chat_endpoint["url"]}
+    sent = request["body"]["messages"][1]["content"]
+    assert CASES[0]["prompt"] in sent and "harmful" not in sent.lower()
 
 
 def test_chat_judge_unusable_output_and_failures_are_unresolved_not_refusals(chat_endpoint):

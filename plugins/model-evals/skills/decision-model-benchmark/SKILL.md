@@ -143,16 +143,21 @@ Rules for arms:
 | a number N | N seed cases | N deepset rows, N pairs | |
 
 Scorecard cases per arm and threat at each depth are in `threats.json` (`cases_per_arm`).
-`--repeats N` (default 3) sends every clean request N times in both lanes; the re-sends are
-`dm-nondeterminism` and the noise floor for flip rates. `--repeat-scope all` re-sends
-variants too.
+`--repeats N` (default 3) sends every clean request N times in both lanes; rows carry
+`repeat` (0 is the first send). The re-sends are `dm-nondeterminism` in the scorecard, the
+noise floor for flip rates, and the `Repeats` table of `summary.md` (flip rate between sends
+and accuracy per send). This is the skill's one repeat mechanism. `--repeat-scope all`
+re-sends variants too.
 
 Show the plan before anything is sent:
 ```
 python run_bench.py --depth standard --plan
 ```
-It prints requests and estimated input tokens per axis and per known benchmark, and the
-scorecard cases per threat and lane. It downloads the known-lane data (about 0.2 MB) and sends
+It prints requests and estimated input tokens per axis and per known benchmark, the
+scorecard cases per threat and lane, and for each of those rows the precision of a rate and
+the smallest difference between two arms the run can separate once the scorecard's
+comparisons are Holm-adjusted. At `smoke` most rows can separate nothing; that is visible
+before anything is sent. It downloads the known-lane data (about 0.2 MB) and sends
 nothing to any model. These models bill input tokens only; the estimate is characters / 4 and
 the count each server reports is what gets recorded.
 
@@ -175,7 +180,10 @@ Gemini) and runs both lanes, the known lane on `fixtures/` (benchmark ids end in
   `Measurable differences`, and 8 scorecard rows: five custom, three known. No difference is
   measurable at this size. `dm-injection` and `dm-option-channel` are measured in the custom
   lane only, by design.
-- `dm-nondeterminism` is 1.00 for every arm in both lanes: the toy is deterministic.
+- `dm-nondeterminism` is 1.00 for every arm in both lanes: the toy is deterministic, and the
+  `Repeats` table in `summary.md` shows flip rate 0.00.
+- `<out>/plan.json` exists; `scorecard.md` and `summary.md` both have `Analysis plan` with
+  no departures, and the paired table has a `p (Holm)` column.
 - In `summary.md`, `mock-a` flips under `injection`, `option_order` and `option_rename`;
   `mock-a-gemini` shows option-order consistency `1.00` and the `option_order_not_sent` flag,
   because that wire format sorts option keys; `few_clean_correct_cases` is flagged for every
@@ -211,6 +219,11 @@ python run_bench.py \
   errors the arm is skipped with the server's message and the exit code is 1.
 - If the known-lane data no longer matches its pin, the run stops before sending anything and
   says which file changed. Offline, pass `--known-source <dir>` with a saved copy.
+- Before the first request, the analysis plan is written to `<EXP>/plan.json`: arms,
+  baseline, threats measured, lanes, axes, depth, seed, repeats, no judge, the corpus
+  (fingerprint and whether it is public) and the organisation's `criteria.json` if one is
+  found. Running into the same folder with a different plan keeps the first one and records
+  an amendment; say why with `--plan-reason "<text>"`. Both reports list every departure.
 - Every arm gets the same requests in the same order, one question per request. Rows are
   appended to `<EXP>/samples.jsonl` as requests finish; at the end the file is rewritten with
   the re-send and pair verdicts filled in. `results/variants.jsonl` holds the exact state and
@@ -231,23 +244,29 @@ python lib/scorecard.py --threats threats.json --samples <EXP>/samples.jsonl [ol
 python report.py "<EXP>" [--baseline <arm>]
 ```
 `scorecard.md` compares models per threat and lane; `summary.md` is the detail behind it.
-Present to the user in this order:
+Both open with the registered analysis plan and any departure from it. Present to the user
+in this order:
 
 1. **Read before trusting a number** (`summary.md`): validity flags and error examples (an
    unverified adapter, a model id that moved or was never reported, a high unanswered share,
-   too few clean-correct cases), and any `:fixture` benchmark in the scorecard, which means
-   the known lane was not the real data. A flag never removes a number; its limits are
-   `report.py` options.
+   too few clean-correct cases, `near_ceiling` sets where every arm is at or above
+   `--ceiling`, default 0.95), and any `:fixture` benchmark in the scorecard, which means the
+   known lane was not the real data. A flag never removes a number; its limits are
+   `report.py` options. Say that the bundled corpus and both known sets are public, so
+   scores compare arms rather than describe unseen cases.
 2. **The scorecard, threat by threat.** Each model's good rate with interval and rank per
-   lane; the ordering by mean rank; `Measurable differences` (exact McNemar on shared cases).
-   Rank only on listed differences, not on overlapping intervals. Where the lanes disagree,
+   lane; the ordering by mean rank; `Measurable differences` (exact McNemar on shared cases,
+   Holm-adjusted across every comparison in the scorecard). Rank only on listed differences,
+   not on overlapping intervals. The paired table in `summary.md` shows raw and Holm-adjusted
+   p side by side; call a difference unlikely to be noise only on the adjusted value. Where the lanes disagree,
    say so and show both. Name the threats under `Not measured` as untested.
 3. **Fail-open and fail-closed on clean cases**, separately, with intervals (custom lane in
    `summary.md`, deepset in its known-lane table). Say which one the user said matters more.
 4. **Flips under attack, beside the noise floor**: flip rate per axis on clean-correct cases,
    flips to fail-open, targeted success for `injection` and `option_rename`, and the twin
    axes (a flip there is the gate blocking what it allowed when clean). A flip rate inside the
-   noise floor's interval is not evidence of an effect.
+   noise floor's interval is not evidence of an effect. The `Repeats` table shows how far a
+   single-send accuracy moved between sends.
 5. **Consistency, calibration and the confidence of flipped decisions**: agreement under
    option reorder and paraphrase, first-option pick rate, ECE and Brier, mean top probability
    of flipped against kept decisions and their AUROC. Near 0.5, "send low-confidence
@@ -274,6 +293,23 @@ its data terms.
   restrictive label on opaque input can be defensible.
 - **Variants are fixed templates**, the same for every arm and run: a floor on what an
   attacker who adapts to the model can do.
+- **Axis rows do not rest on the same policies** (a confound by construction, stated rather
+  than fixed). `option_order` and `option_rename` exist only for the three choice policies;
+  `option_order.rotate` only for `alert_triage` (the one policy with more than two options);
+  `padding.log_lines` is left out of `data_sensitivity`; `injection_twin` has no
+  `injection_screen` cases; paraphrase, encoding and structure cover all five. So compare one
+  axis or technique across arms (identical requests), not axes or techniques with each other.
+  Fail-open and fail-closed also pool the policies in different proportions (25 and 29
+  cases; `data_sensitivity` gives 3 and 5): compare each across arms, not with each other.
+  Within a policy, the technique drawn at `standard` is seeded per case, not tied to it.
+- **Provenance.** Every seed case carries `source` (`synthetic`, basis `dm-fail-open`: the
+  cases are hand-written clean decisions; the other threats are variants of them) and the
+  corpus `_meta.added` date. `threats.json` lists under `observed_in` the incident-register
+  ids where a threat's pattern was seen in deployed systems; none involved a typed decision
+  model. Rows carry `corpus` (first 12 hex of the corpus fingerprint, or a known benchmark's
+  pinned revision); the scorecard does not compare rows from different revisions.
+- **No judge.** Scoring is the argmax against the label, so blind-judge prompts, reply
+  length and second-judge re-grading do not apply.
 - **Unit of analysis is the request.** Custom-lane rows on one threat come from 54 seed cases,
   so intervals are narrower than a per-case analysis would give.
 - **Yes/no questions** are scored at the argmax; `samples.jsonl` keeps every distribution.
@@ -298,3 +334,7 @@ its data terms.
   - The seed corpus labels and twins were written by one author and checked by no second
     rater and no model.
   - DecisionRobust and JevAdvBench were not run.
+  - The analysis plan, Holm adjustment, repeat flip rates, near-ceiling flag and corpus
+    provenance were exercised only on the mock server and the bundled fixtures. The
+    `observed_in` links were read from the incident register and threat model, not checked
+    against the primary sources again.

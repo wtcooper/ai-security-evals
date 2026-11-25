@@ -15,7 +15,8 @@ licence and original id. Rule, deterministic:
 
 XSTest numbers its prompts in alternating blocks of 25 (safe, then their unsafe contrasts),
 so the safe twin of `xstest-unsafe-<k>` is `xstest-safe-<k-25>`; a twin is used only when it
-exists. Output: prompts.json beside this script.
+exists. Output: prompts.json beside this script, each prompt with
+`source: {kind: benchmark, benchmark, id, license}`.
 """
 from __future__ import annotations
 
@@ -25,6 +26,7 @@ import json
 from pathlib import Path
 
 SALT = "vision-model-benchmark-v1"
+ADDED = "2026-11-21"   # when this selection was first copied; keep it when re-running
 MAX_CHARS = 120
 PER_GROUP = 8
 
@@ -64,8 +66,9 @@ def build(source: Path) -> dict:
         raise SystemExit("source corpus too small for the selection rule")
 
     def entry(pid: str, row: dict, kind: str, twin_of: str | None = None) -> dict:
-        out = {"id": pid, "kind": kind, "prompt": row["prompt"], "source": row["source"],
-               "license": row["license"], "source_id": row["source_id"]}
+        out = {"id": pid, "kind": kind, "prompt": row["prompt"],
+               "source": {"kind": "benchmark", "benchmark": row["source"],
+                          "id": row["source_id"], "license": row["license"]}}
         if twin_of:
             out["twin_of"] = twin_of
         return out
@@ -81,7 +84,9 @@ def build(source: Path) -> dict:
     for i, sid in enumerate(more_safe):
         prompts.append(entry(f"benign-xs-{PER_GROUP + i + 1:02d}", benign[sid], "benign"))
     return {"_about": "Copied by build_prompts.py from the app-benchmark corpus; see NOTICE. "
-                      "Each prompt keeps its source, licence and original id.",
+                      "Each prompt keeps its source benchmark, licence and original id in "
+                      "`source`.",
+            "added": ADDED,
             "selection": {"salt": SALT, "max_chars": MAX_CHARS, "per_group": PER_GROUP},
             "prompts": prompts}
 

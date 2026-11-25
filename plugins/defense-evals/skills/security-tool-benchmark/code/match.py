@@ -5,7 +5,13 @@ benchmark provides (file -> function -> line ±N). Emits per-finding `ground_tru
 recall at each granularity, precision lower bound, and an adjudication CSV of unmatched findings.
 
   python3 match.py findings.jsonl ground_truth.jsonl --out matched.jsonl --report match.md \
-      [--line-window 5] [--adjudicate adjudicate.csv --adjudicate-n 30] [--group-by target,tool]
+      [--line-window 5] [--adjudicate adjudicate.csv --adjudicate-n 30] [--group-by target,tool] \
+      [--runs runs.jsonl] [--ceiling 0.95] [--plan <EXP>]
+
+With --group-by arm (one row per tool) the report opens with a "Read first" section: a
+`near_ceiling` validity flag when every tool's recall is at or above --ceiling, and, for a tool
+run more than once, the share of known vulnerabilities found in some runs but not others. It
+ends with the analysis plan registered for the experiment (plan.json beside the findings).
 
 ground_truth.jsonl rows: {"target": "CVE-2026-1234", "id": "gt-1", "cwe": "22", "file": "app/x.py",
                           "function": "download", "line": 42, "severity": "high"}   (function/line optional)
@@ -22,6 +28,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import evalkit  # noqa: E402
+import plan as planlib  # noqa: E402
 from cwe_map import family_of  # noqa: E402
 
 
@@ -87,6 +96,39 @@ def match_one(f: dict, gts: list[dict], window: int) -> tuple[dict | None, str |
     return (best, best_level) if best else (None, None)
 
 
+def read_first_section(F, G, runs, groups, J, gt_for, label_key, ceiling) -> list[str]:
+    """Validity notes for a per-tool report: near-ceiling recall, and run-to-run flips.
+
+    A tool run several times is scored here on the union of its runs (a vulnerability found in
+    any run counts), so its per-run recall is shown beside the flip rate; compare it with a
+    tool run once on the per-run figure, or majority-vote it in lib/evalstats.py."""
+    rates = {f"recall@{lv}": {grp[0]: J[grp[0]][f"recall_{lv}"] for grp in groups}
+             for lv in ("file", "function", "line")}
+    ok_runs = defaultdict(lambda: defaultdict(set))         # arm -> target -> {tool_run}
+    for r in runs:
+        if r.get("status") == "ok":
+            ok_runs[r["arm"]][r["target"]].add(r.get("tool_run", 1))
+    found = defaultdict(lambda: defaultdict(set))           # arm -> tool_run -> {gt id}
+    seen_runs = defaultdict(set)
+    for f in F:
+        arm, run = str(f.get(label_key)), f.get("tool_run", 1)
+        seen_runs[arm].add(run)
+        if f.get("ground_truth_id"):
+            found[arm][run].add(f["ground_truth_id"])
+    rows = []
+    for (arm,) in groups:
+        for g in gt_for((arm,)):
+            reps = ok_runs[arm][g["target"]] if runs else seen_runs[arm]
+            rows += [{"arm": arm, "case": g["id"], "repeat": r, "good": g["id"] in found[arm][r]}
+                     for r in reps]
+    flips = evalkit.repeat_consistency(rows, group=("arm",), case="case", repeat="repeat")
+    extra = []
+    if flips:
+        extra.append("- A tool run more than once is scored on the union of its runs in the "
+                     "table below; read its per-run recall (next line) beside a tool run once.")
+    return planlib.read_first(rates, ceiling, flips, extra, unit="known vulnerabilities")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("findings", type=Path); ap.add_argument("ground_truth", type=Path)
@@ -97,6 +139,11 @@ def main() -> int:
     ap.add_argument("--runs", type=Path, default=None,
                     help="<EXP>/runs.jsonl: recall for a tool is computed only over targets it "
                          "actually scanned; a target where every run failed is excluded for it")
+    ap.add_argument("--ceiling", type=float, default=0.95,
+                    help="validity limit: flag `near_ceiling` when every tool's recall is at "
+                         "or above it")
+    ap.add_argument("--plan", type=Path, default=None,
+                    help="experiment folder holding plan.json (default: beside the findings)")
     a = ap.parse_args()
     F, G = load(a.findings), load(a.ground_truth)
     by_target = defaultdict(list)
@@ -104,10 +151,11 @@ def main() -> int:
         by_target[g["target"]].append(g)
     keys = a.group_by.split(",")
     # Which targets did each tool actually scan? (None = unknown: assume all, as before.)
-    scanned, failed_only = None, {}
+    scanned, failed_only, runs = None, {}, []
     if a.runs and a.runs.exists():
         ok, any_run = defaultdict(set), defaultdict(set)
-        for r in load(a.runs):
+        runs = load(a.runs)
+        for r in runs:
             any_run[r["arm"]].add(r["target"])
             if r.get("status") == "ok":
                 ok[r["arm"]].add(r["target"])
@@ -159,6 +207,8 @@ def main() -> int:
         J[" · ".join(grp)] = {"findings": n, "tp": tp[grp], "fp_lower_bound": fp[grp], "precision_lower_bound": prec,
                               "ground_truth_scanned": n_grp, **{f"recall_{k}": v for k, v in rec.items()}}
         L.append(f"| {' · '.join(grp)} | {n} | {tp[grp]} | {fp[grp]} | {prec:.2f} | {rec['file']:.2f} | {rec['function']:.2f} | {rec['line']:.2f} |")
+    if label_key and keys == [label_key]:
+        L[4:4] = read_first_section(F, G, runs, sorted(groups), J, gt_for, label_key, a.ceiling)
     for arm, targets in sorted(failed_only.items()):
         L += ["", f"**{arm}** did not complete on {len(targets)} target(s) and is not scored on them: "
               + ", ".join(targets[:10]) + (" …" if len(targets) > 10 else "") + ". Fix the tool and "
@@ -192,6 +242,8 @@ def main() -> int:
             for f in sample:
                 w.writerow([f.get("target"), f.get("tool"), f.get("rule_id"), f.get("cwe"), f.get("file"), f.get("line"), f.get("severity"), (f.get("message") or "")[:200], "", ""])
         L += ["", f"Adjudication sample: {len(sample)} of {len(unmatched)} unmatched findings -> `{a.adjudicate.name}` (fill verdict column; rerun with --adjudicated to report adjudicated precision)."]
+    L += planlib.plan_lines(planlib.find_plan(a.plan, a.findings, a.runs),
+                            planlib.observed_from_runs(runs))
     md = "\n".join(L) + "\n"
     if a.report:
         a.report.write_text(md)

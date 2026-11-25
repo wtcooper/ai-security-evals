@@ -10,6 +10,12 @@ split by config (static-only / judge-only / combined) and by held-out mutated st
                             "yara_hit":true|false}
 A scanner "flags" an asset when it emits >=1 finding at/above a severity gate (build the rows with
 build_verdicts_from_findings() or your own glue). Wilson/κ/flip come from lib/evalstats.py.
+
+With `config` among --by (one arm per scanner configuration) the report opens with "Read first":
+a `near_ceiling` validity flag per stratum where every scanner's TPR (or every scanner's share of
+benign assets left clean) is at or above --ceiling, and the share of assets whose verdict changed
+between runs. It ends with the analysis plan registered for the experiment (plan.json, found
+beside --runs, --findings or the verdicts file, or given with --plan).
 """
 from __future__ import annotations
 
@@ -20,7 +26,9 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import evalstats as es  # noqa: E402
+import plan as planlib  # noqa: E402
 
 
 def load(p: Path) -> list[dict]:
@@ -54,7 +62,7 @@ def build_verdicts_from_findings(findings, labels, severity_gate="low", runs=Non
     def row(arm, a, meta, r, verdict):
         return {"asset": a, "label": meta["label"],
                 "config": arm if arm is not None else meta.get("config", "combined"),
-                "run": r, "verdict": verdict,
+                "run": r, "repeat": r - 1 if isinstance(r, int) else r, "verdict": verdict,
                 "severity": (sev[(arm, a)][r] or None) if verdict == "flag" else None,
                 "stratum": meta.get("stratum", "shipped"), "yara_hit": meta.get("yara_hit")}
 
@@ -78,7 +86,27 @@ def build_verdicts_from_findings(findings, labels, severity_gate="low", runs=Non
     return rows
 
 
-def summarize(rows, by):
+def read_first(J, by, ceiling) -> list[str]:
+    """Near-ceiling flags per stratum across scanner configs, and run-to-run flips."""
+    if "config" not in by:
+        return []
+    ci = by.index("config")
+    good, flips = {}, []
+    for gk, r in J.items():
+        parts = gk.split(" · ")
+        stratum = " · ".join(p for i, p in enumerate(parts) if i != ci) or "all"
+        if r["pos"]:
+            good.setdefault(f"TPR ({stratum})", {})[gk] = r["tp"] / r["pos"]
+        if r["neg"]:
+            good.setdefault(f"benign left clean, 1 − FPR ({stratum})", {})[gk] = 1 - r["fp"] / r["neg"]
+        if r["flip_rate"]:
+            flips.append(f"- `{gk}`: {r['flip_rate']:.0%} of {r['multi_run_assets']} assets got a "
+                         f"different verdict across {r['runs']} runs (per-run flag rate "
+                         + ", ".join(f"{x:.2f}" for x in r["per_run_flag_rate"]) + ").")
+    return planlib.read_first(good, ceiling, extra=flips)
+
+
+def summarize(rows, by, ceiling=0.95):
     groups = defaultdict(list)
     failed = defaultdict(int)
     for r in rows:
@@ -113,16 +141,23 @@ def summarize(rows, by):
         flip = flips / len(multi) if multi else None
         matrix = [[sum(v.values()), len(v) - sum(v.values())] for v in multi.values() if len(v) == n_runs] if n_runs else []
         kap = es.fleiss_kappa(matrix) if matrix else None
+        per_run = defaultdict(list)
+        for v in multi.values():
+            for run_id, flagged in v.items():
+                per_run[run_id].append(flagged)
         gk = " · ".join(g)
         J[gk] = {"assets": len(assets), "pos": len(pos), "neg": len(neg), "tp": tp, "fp": fp,
                  "tpr": tpr, "fpr": fpr, "flip_rate": flip, "fleiss_kappa": kap,
-                 "failed_runs": failed.get(g, 0)}
+                 "failed_runs": failed.get(g, 0), "runs": n_runs, "multi_run_assets": len(multi),
+                 "per_run_flag_rate": [round(sum(x) / len(x), 4) for _, x in
+                                       sorted(per_run.items(), key=lambda kv: str(kv[0]))]}
         def w(t):
             import math
             return "–" if not t or math.isnan(t[0]) else f"{t[0]:.2f} [{t[1]:.2f}, {t[2]:.2f}]"
         L.append(f"| {gk} | {len(assets)} | {w(tpr)} | {w(fpr)} | {es._fmt(flip, 3)} | {es._fmt(kap, 3)} | {failed.get(g, 0)} |")
     L += ["", "Flip rate and Fleiss κ say how repeatable a scanner's verdict is across identical runs. "
           "Failed runs are scanner runs that did not complete; they are in no rate above."]
+    L[4:4] = read_first(J, by, ceiling)
     return "\n".join(L) + "\n", J
 
 
@@ -138,6 +173,10 @@ def main() -> int:
                     help="<EXP>/runs.jsonl, so failed scanner runs are excluded, not read as clean")
     ap.add_argument("--severity-gate", default="low")
     ap.add_argument("--by", default="config,stratum")
+    ap.add_argument("--ceiling", type=float, default=0.95,
+                    help="validity limit: flag `near_ceiling` when every scanner is at or above it")
+    ap.add_argument("--plan", type=Path, default=None,
+                    help="experiment folder holding plan.json (default: found beside the inputs)")
     ap.add_argument("--out", type=Path, default=None); ap.add_argument("--json", type=Path, default=None)
     a = ap.parse_args()
     if a.findings:
@@ -152,7 +191,10 @@ def main() -> int:
                                              load(a.runs) if a.runs else None)
         a.verdicts.write_text("".join(json.dumps(r) + "\n" for r in built))
     rows = load(a.verdicts)
-    md, J = summarize(rows, [b for b in a.by.split(",") if b])
+    md, J = summarize(rows, [b for b in a.by.split(",") if b], a.ceiling)
+    runs = load(a.runs) if a.runs and a.runs.exists() else []
+    md += "\n".join(planlib.plan_lines(planlib.find_plan(a.plan, a.runs, a.findings, a.verdicts),
+                                       planlib.observed_from_runs(runs)))
     (a.out.write_text(md) if a.out else sys.stdout.write(md))
     if a.json:
         a.json.write_text(json.dumps(J, indent=1, default=str) + "\n")

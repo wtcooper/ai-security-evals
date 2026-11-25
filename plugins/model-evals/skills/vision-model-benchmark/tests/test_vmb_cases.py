@@ -76,8 +76,10 @@ def test_placements_vary_within_each_threat():
 
 def test_prompts_keep_provenance_and_benign_twins():
     prompts = core.load_prompts()
-    assert all(p["source"] in ("XSTest", "AdvBench") and p["license"] in ("MIT", "CC-BY-4.0")
-               and p["source_id"] for p in prompts)
+    assert all(p["source"]["kind"] == "benchmark"
+               and p["source"]["benchmark"] in ("XSTest", "AdvBench")
+               and p["source"]["license"] in ("MIT", "CC-BY-4.0") and p["source"]["id"]
+               for p in prompts)
     by_id = {p["id"]: p for p in prompts}
     twins = [p for p in prompts if p.get("twin_of")]
     assert len(twins) == 8 and all(by_id[t["twin_of"]]["kind"] == "harmful" for t in twins)
@@ -91,3 +93,31 @@ def test_render_manifest_covers_every_image_case():
     want = {c["id"] for cases in core.custom_cases().values() for c in cases}
     assert have == want
     assert all(len(i["pixel_sha256"]) == 64 for i in manifest["images"])
+
+
+def test_every_case_records_where_it_comes_from():
+    for path in ("cases.json", "prompts.json"):
+        assert re.match(r"^\d{4}-\d{2}-\d{2}$", json.loads((core.CORPUS / path).read_text())["added"])
+    for c in core.load_cases():                  # authored here, not taken from an incident
+        assert c["source"] == {"kind": "synthetic", "basis": c["threat"]}, c["id"]
+
+
+def test_threats_list_the_incidents_where_the_pattern_was_observed():
+    for t in THREATS:
+        assert isinstance(t["observed_in"], list), t["id"]
+        assert all(re.match(r"^INC-\d{3}$", i) for i in t["observed_in"]), t["id"]
+    by = {t["id"]: t["observed_in"] for t in THREATS}
+    assert "INC-084" in by["vi-image-injection"] and by["vi-adversarial-pixels"] == []
+
+
+def test_prompt_style_is_crossed_with_kind_source_and_twins():
+    """The two image styles are a rendering choice, not a property of the case: each kind and
+    each source benchmark gets both styles equally, and a benign twin shares its harmful
+    twin's style, so neither style can stand in for harmfulness or source."""
+    cases = core.custom_cases()
+    prompts = cases["vmb_harm_image"] + cases["vmb_benign_image"]
+    cells = Counter((p["kind"], p["source"]["benchmark"], p["style"]) for p in prompts)
+    for kind, src in {(p["kind"], p["source"]["benchmark"]) for p in prompts}:
+        assert cells[(kind, src, "question")] == cells[(kind, src, "list")], (kind, src)
+    style = {p["id"]: p["style"] for p in prompts}
+    assert all(style[p["id"]] == style[p["twin_of"]] for p in prompts if p.get("twin_of"))

@@ -2,7 +2,12 @@
 """Summarise one or more vision-model-benchmark runs: what to read first, every check per
 model with its interval, the image-minus-text gap, and paired differences between models.
 
-    python report.py <EXP> [<earlier EXP> ...] [--baseline <model>] [--out <dir>]
+    python report.py <EXP> [<earlier EXP> ...] [--baseline <model>] [--out <dir>] [--ceiling C]
+
+Every p-value printed here is also Holm-adjusted across the report's whole family (paired
+comparisons and image-minus-text gaps together). Checks graded by different judges or rubric
+versions are not compared. Near-ceiling checks, cases that flipped between repeats, the
+registered analysis plan and a second-judge check (judge_check.md) are listed first.
 
 Writes summary.md and summary.json (into the first EXP unless --out is given) and prints the
 markdown. The per-threat model comparison is lib/scorecard.py's job; run it after this.
@@ -61,7 +66,23 @@ def image_text_gap(samples: list[dict], arms: list[str], checks: dict) -> list[d
     return out
 
 
-def summarize(runs: list[dict], baseline: str | None = None) -> dict:
+def graders(samples: list[dict], check: str, arms: tuple, key: str) -> set:
+    """Distinct judges (or corpus revisions) behind a check's rows for these arms."""
+    return {str(s[key]) for s in samples
+            if s["target"] == check and s["arm"] in arms and s.get(key)}
+
+
+def observed(run: dict) -> dict:
+    """What one run actually measured, in the plan's terms, for its plan section."""
+    info = run.get("checks") or {}
+    return {"arms": list(dict.fromkeys(r["arm"] for r in run["rows"])),
+            "measures": sorted({v["threat"] for v in info.values()}),
+            "benchmarks": list(info), "depth": run.get("depth"), "seed": run.get("seed"),
+            "repeats": run.get("epochs") or 1, "judge": run.get("judge")}
+
+
+def summarize(runs: list[dict], baseline: str | None = None,
+              ceiling: float | None = None) -> dict:
     rows = [r for run in runs for r in run["rows"]]
     samples = [s for run in runs for s in run.get("samples", [])]
     arms = list(dict.fromkeys(r["arm"] for r in rows))
@@ -74,14 +95,35 @@ def summarize(runs: list[dict], baseline: str | None = None) -> dict:
                                           LANE_ORDER.get(checks[c]["lane"], 9), c))
     by = {(r["arm"], r["check"]): r for r in rows}
     base = baseline or (arms[0] if arms else None)
-    comparisons = []
+    comparisons, withheld = [], []
     for c in order:
         for arm in arms:
             if arm == base or not all((by.get((x, c)) or {}).get("paired_ok") for x in (base, arm)):
                 continue
+            mixed = [k for k in ("judge", "corpus") if len(graders(samples, c, (base, arm), k)) > 1]
+            if mixed:
+                withheld.append({"check": c, "arm": arm, "mixed": mixed})
+                continue
             res = inspect_report.paired(samples, c, base, arm)
             if res:
                 comparisons.append(res)
+    gaps = image_text_gap(samples, arms, checks)
+    # One family for the whole report: every paired comparison and every gap.
+    family = comparisons + gaps
+    for item, adj in zip(family, evalkit.holm([x["p"] for x in family])):
+        item["p_holm"] = adj
+    if ceiling is None:
+        ceiling = next((r["validity_limits"]["ceiling"] for r in runs
+                        if (r.get("validity_limits") or {}).get("ceiling") is not None), 0.95)
+    saturated = []
+    for c in order:
+        good = {a: by[(a, c)]["normalized"] / 100.0 for a in arms
+                if (by.get((a, c)) or {}).get("normalized") is not None}
+        flag = evalkit.ceiling_flag(good, ceiling) if len(good) == len(arms) else None
+        if flag:
+            saturated.append({"check": c, **flag})
+    repeats = evalkit.repeat_consistency(samples, group=("arm", "target"), case="sample",
+                                         repeat="repeat")
     settings = sorted({(str(r.get("depth")), str(r.get("seed")), str(r.get("known_source")))
                        for r in runs})
     prepared = [r.get("prepared") or {} for r in runs]
@@ -90,7 +132,13 @@ def summarize(runs: list[dict], baseline: str | None = None) -> dict:
             "judge": runs[0].get("judge") if runs else None,
             "context": runs[0].get("context") if runs else {},
             "cells": {f"{a}|{c}": by.get((a, c)) for a in arms for c in order},
-            "comparisons": comparisons, "gaps": image_text_gap(samples, arms, checks),
+            "comparisons": comparisons, "gaps": gaps, "withheld": withheld,
+            "family": len(family), "ceiling": ceiling, "saturated": saturated,
+            "repeats": repeats,
+            "plans": [{"exp": r.get("exp"), "doc": r["plan_doc"], "observed": observed(r)}
+                      for r in runs if r.get("plan_doc")],
+            "judge_checks": [r["judge_check"] for r in runs if r.get("judge_check")],
+            "corpus": [r.get("corpus") for r in runs if r.get("corpus")],
             "flags": [{"arm": r["arm"], "check": r["check"], **f}
                       for r in rows for f in r.get("flags", [])],
             "failures": [{"arm": r["arm"], "check": r["check"], "status": r["status"],
@@ -111,6 +159,14 @@ def render(s: dict, title: str = "vision-model-benchmark summary") -> str:
     ctx = {k: v for k, v in (s["context"] or {}).items() if v}
     if ctx:
         L += ["Context: " + " · ".join(f"{k} `{v}`" for k, v in ctx.items()), ""]
+    for rec in s["corpus"][:1]:
+        custom, known = rec.get("custom") or {}, rec.get("known") or {}
+        lane = ("the tiny test fixtures" if known.get("source") == "fixture"
+                else "public benchmark data at pinned revisions")
+        L += [f"Corpus: the custom set (sha256 `{str(custom.get('sha256'))[:12]}`) is "
+              f"{custom.get('visibility', 'public')}, bundled with this skill; the known lane is "
+              f"{lane}. Public cases may be in a model's training data: read the numbers as "
+              "comparisons between models.", ""]
 
     L += ["## Read first: what did not produce a trustworthy number", ""]
     notes = [f"- `{f['arm']}` / `{f['check']}`: **{f['status']}** — {f['error'] or 'no score'}"
@@ -134,7 +190,25 @@ def render(s: dict, title: str = "vision-model-benchmark summary") -> str:
     if s["cyse3_unclassified"]:
         notes.append(f"- {s['cyse3_unclassified']} CyberSecEval 3 case(s) matched neither "
                      "subset and were left out.")
+    for f in s["saturated"]:
+        notes.append(f"- `{f['check']}`: validity flag `near_ceiling` (lowest model "
+                     f"{f['observed']}, limit {f['limit']}) — {f['meaning']}.")
+    for key, r in s["repeats"].items():
+        if r["flip_rate"]:
+            arm, check = key.split("|", 1)
+            notes.append(f"- `{arm}` / `{check}`: {r['flip_rate']:.0%} of {r['cases']} cases "
+                         f"changed outcome across {r['repeats']} repeats (per-repeat good rates "
+                         f"{', '.join(f'{x:.2f}' for x in r['repeat_rates'])}).")
+    for w in s["withheld"]:
+        notes.append(f"- `{w['arm']}` / `{w['check']}`: no paired comparison, the rows mix "
+                     f"{' and '.join(w['mixed'])} values; scores from different judges or case "
+                     "sets are not compared.")
     L += notes or ["- Nothing: every check produced a score and raised no validity flag."]
+    for path in s["judge_checks"]:
+        L += ["", f"A second-judge check was run: see `{path}`. If the order of models changes "
+              "under the second judge, the judged rows measure the judge as much as the models."]
+    for plan in s["plans"]:
+        L += [""] + evalkit.plan_section(plan["doc"], plan["observed"])
 
     L += ["", "## Results", "",
           "Raw rate [95% Wilson interval] n. ↑ higher is better, ↓ lower is better. "
@@ -154,15 +228,17 @@ def render(s: dict, title: str = "vision-model-benchmark summary") -> str:
         L += ["The same requests sent as an image and typed, paired by case. For harmful "
               "requests a positive gap means the image route got more help than typing; for "
               "benign requests a negative gap means images were refused more often. p is "
-              "exact McNemar on the cases where the two routes disagree.", "",
-              "| Check | Model | n | helped as image | helped typed | gap | image only / typed only | p |",
-              "|---|---|---|---|---|---|---|---|"]
+              "exact McNemar on the cases where the two routes disagree; p (Holm) adjusts it "
+              f"across the {s['family']} comparisons in this report. Read a gap as unlikely "
+              "to be noise only when p (Holm) < 0.05.", "",
+              "| Check | Model | n | helped as image | helped typed | gap | image only / typed only | p | p (Holm) |",
+              "|---|---|---|---|---|---|---|---|---|"]
         for g in s["gaps"]:
             L.append(f"| `{g['check']}` | {g['arm']} | {g['n']} | {g['image_helped']:.2f} "
                      f"[{g['image_ci95'][0]:.2f}–{g['image_ci95'][1]:.2f}] | "
                      f"{g['text_helped']:.2f} [{g['text_ci95'][0]:.2f}–{g['text_ci95'][1]:.2f}]"
                      f" | {g['gap']:+.2f} | {g['image_only']} / {g['text_only']} | "
-                     f"{g['p']:.3f} |")
+                     f"{g['p']:.3f} | {g['p_holm']:.3f} |")
     else:
         L.append("- No image check ran with its typed twin.")
 
@@ -173,20 +249,23 @@ def render(s: dict, title: str = "vision-model-benchmark summary") -> str:
         L.append("- No paired comparison available.")
     else:
         L += ["Same cases for both models. Δ is the change in the share of good outcomes "
-              "(model minus baseline; positive = the model did better).", "",
-              "| Check | Model | n | Δ good outcomes | better / worse | p |",
-              "|---|---|---|---|---|---|"]
+              "(model minus baseline; positive = the model did better). p is exact McNemar; "
+              f"p (Holm) adjusts it across the {s['family']} comparisons in this report. Read a "
+              "difference as unlikely to be noise only when p (Holm) < 0.05.", "",
+              "| Check | Model | n | Δ good outcomes | better / worse | p | p (Holm) |",
+              "|---|---|---|---|---|---|---|"]
         L += [f"| `{c['check']}` | {c['arm']} | {c['n']} | {c['delta']:+.2f} | "
-              f"{c['better']} / {c['worse']} | {c['p']:.3f} |" for c in s["comparisons"]]
+              f"{c['better']} / {c['worse']} | {c['p']:.3f} | {c['p_holm']:.3f} |"
+              for c in s["comparisons"]]
     L += ["", "Next: the per-threat scorecard, `python lib/scorecard.py --threats threats.json "
           "--samples <EXP>/samples.jsonl --out <EXP>`.", ""]
     return "\n".join(L)
 
 
 def write(exp: Path, more: list[Path] | None = None, baseline: str | None = None,
-          out: Path | None = None) -> str:
+          out: Path | None = None, ceiling: float | None = None) -> str:
     runs = [load(Path(exp))] + [load(Path(m)) for m in (more or [])]
-    s = summarize(runs, baseline)
+    s = summarize(runs, baseline, ceiling)
     dest = Path(out or exp)
     dest.mkdir(parents=True, exist_ok=True)
     text = render(s)
@@ -200,8 +279,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("exp", nargs="+", type=Path)
     p.add_argument("--baseline")
     p.add_argument("--out", type=Path)
+    p.add_argument("--ceiling", type=float, help="near-ceiling validity limit (default: the "
+                   "run's --ceiling, else 0.95)")
     a = p.parse_args(argv)
-    print(write(a.exp[0], a.exp[1:], a.baseline, a.out), end="")
+    print(write(a.exp[0], a.exp[1:], a.baseline, a.out, a.ceiling), end="")
     return 0
 
 
