@@ -21,7 +21,7 @@ def test_depth_names_and_numbers():
 def test_plan_totals(capsys):
     total = evalkit.print_plan([{"name": "a", "samples": 10, "calls": 30},
                                 {"name": "b", "samples": 5, "calls": 5}], arms=2)
-    assert total == {"samples": 15, "calls": 35}
+    assert total == {"samples": 15, "calls": 35, "comparisons": 2}
     assert "2 arm(s)" in capsys.readouterr().err
 
 

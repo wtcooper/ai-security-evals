@@ -37,12 +37,13 @@ vendor app-redteam         status_policy.js transform_response.js extract_transc
 # --- guardrail-benchmark: promptfoo runtime (direct mode) + shim classifier and the
 #     shared Inspect suite/runner/report (in-line mode) ---
 vendor guardrail-benchmark status_policy.js summarize.py extract_transcript.js \
-                           status_policy.py evalkit.py inspect_suite.py inspect_runner.py inspect_report.py
+                           status_policy.py evalkit.py inspect_suite.py inspect_runner.py inspect_report.py \
+                           judgecheck.py
 
 # --- model-benchmark: the shared Inspect suite/runner/report (the arm axis is the model) ---
-vendor model-benchmark     evalkit.py inspect_suite.py inspect_runner.py inspect_report.py
+vendor model-benchmark     evalkit.py inspect_suite.py inspect_runner.py inspect_report.py judgecheck.py
 has vision-model-benchmark && vendor vision-model-benchmark evalkit.py inspect_suite.py \
-                                     inspect_runner.py inspect_report.py
+                                     inspect_runner.py inspect_report.py judgecheck.py
 
 # --- security-tool-benchmark: findings/samples contract, paired stats, SARIF normaliser,
 #     manifest editor, contamination probe, probe helpers, optional sdlc locator ---
@@ -57,9 +58,13 @@ for s in $EVALKIT_SKILLS; do has "$s" && vendor "$s" evalkit.py; done
 has voice-model-benchmark && vendor voice-model-benchmark evalkit.py manifest.py
 has image-generation-benchmark && vendor image-generation-benchmark manifest.py
 
-# --- modality benchmarks: the two-lane scorecard ---
+# --- modality benchmarks: the two-lane scorecard (it imports evalkit, vendored above) ---
 for s in decision-model-benchmark voice-model-benchmark vision-model-benchmark image-generation-benchmark; do
   has "$s" && vendor "$s" scorecard.py
+done
+# --- skills whose verdicts come from a judge: the second-judge check ---
+for s in voice-model-benchmark image-generation-benchmark; do
+  has "$s" && vendor "$s" judgecheck.py
 done
 
 # --- benchmark catalogue: the threat-model skill plans tests from its own copy ---

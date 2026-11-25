@@ -4,9 +4,14 @@ An arm is the one thing a run varies: a model (model-benchmark) or the same mode
 different guardrail (guardrail-benchmark). Every arm runs the same seeded samples.
 
 Written to <out>/:
+  plan.json      the analysis plan, registered before the first result (evalkit.register_plan)
   results.json   one row per arm x check: the headline rate, interval, validity flags
-  samples.jsonl  one row per arm x check x sample: good / not good / no verdict
+  samples.jsonl  one row per arm x check x sample x epoch: good / not good / no verdict, the
+                 judge that graded it and the length of the reply
   logs/          Inspect's .eval logs, the full transcripts
+
+`regrade` re-scores the saved logs with a second judge (samples_regrade.jsonl), for
+judgecheck.py to compare against the first.
 
 Two rules:
   * Provider credentials are stripped from the environment before any eval runs. Several
@@ -63,17 +68,35 @@ def unscored_rate(samples) -> float | None:
     return round(failed / total, 4) if total else None
 
 
-def sample_rows(check: suite.Check, arm: str, samples) -> list[dict]:
-    """One samples.jsonl row per sample: was the outcome good for the defender?"""
+def _resolve(spec: str):
+    module, _, fn = spec.partition(":")
+    return getattr(importlib.import_module(module), fn)
+
+
+def _reply_chars(sample) -> int | None:
+    out = getattr(sample, "output", None)
+    text = getattr(out, "completion", None) if out is not None else None
+    return len(text) if isinstance(text, str) else None
+
+
+def sample_rows(check: suite.Check, arm: str, samples, judge: str | None = None) -> list[dict]:
+    """One samples.jsonl row per sample and epoch: was the outcome good for the defender?"""
     rows = []
+    reader = _resolve(check.good_from) if check.good_from else None
+    jid = evalkit.judge_id(judge, check.rubric_version) if check.needs_judge else None
     for sample in samples or []:
-        scores = list((getattr(sample, "scores", None) or {}).values())
-        good = check.sample_good(getattr(scores[0], "value", None)) if scores else None
+        scores = getattr(sample, "scores", None) or {}
+        if reader:
+            good = reader(scores, getattr(sample, "metadata", None) or {})
+        else:
+            first = list(scores.values())
+            good = check.sample_good(getattr(first[0], "value", None)) if first else None
         sid, epoch = str(getattr(sample, "id", "")), getattr(sample, "epoch", 1)
-        row = {"arm": arm, "target": check.id, "sample": sid, "epoch": epoch, "good": good}
+        row = {"arm": arm, "target": check.id, "sample": sid, "epoch": epoch, "good": good,
+               "judge": jid, "response_chars": _reply_chars(sample)}
         if check.threat and check.lane:
             row.update({"threat": check.threat, "lane": check.lane, "benchmark": check.id,
-                        "case": f"{sid}#{epoch}"})
+                        "case": sid, "repeat": epoch})
         rows.append(row)
     return rows
 
@@ -114,17 +137,23 @@ def flags_for(check: suite.Check, row: dict, max_unresolved: float, min_utility:
     return [f for f in flags if f]
 
 
+def _build_task(check: suite.Check, judge: str | None):
+    kwargs, roles = dict(check.task_kwargs), {}
+    if check.needs_judge:
+        kwargs.update({arg: judge for arg in check.judge_kwargs})
+        roles = {role: judge for role in check.judge_roles}
+    return getattr(importlib.import_module(check.module), check.function)(**kwargs), roles
+
+
 def run_check(check: suite.Check, arm: dict, judge: str | None, depth: int | None,
               seed: int | None, log_dir: str, max_unresolved: float,
-              min_utility: float) -> tuple[dict, list[dict]]:
+              min_utility: float, epochs: int | None = None) -> tuple[dict, list[dict]]:
     from inspect_ai import eval as inspect_eval
 
     row = {"check": check.id, "dimension": check.dimension, "arm": arm["name"],
            "model": arm["model"], "metric": check.metric_key, "direction": check.direction,
            "reads_as": check.reads_as, "judge": None, "flags": []}
     try:
-        kwargs = dict(check.task_kwargs)
-        roles = {}
         if check.needs_judge:
             if not judge:
                 raise ValueError("needs a judge model: its scorer otherwise falls back to a "
@@ -132,9 +161,7 @@ def run_check(check: suite.Check, arm: dict, judge: str | None, depth: int | Non
             if judge == arm["model"]:
                 raise ValueError("the judge is the model under test; pick a different judge")
             row["judge"] = judge
-            kwargs.update({arg: judge for arg in check.judge_kwargs})
-            roles = {role: judge for role in check.judge_roles}
-        task = getattr(importlib.import_module(check.module), check.function)(**kwargs)
+        task, roles = _build_task(check, judge)
         log = inspect_eval(
             task, model=arm["model"],
             limit=suite.samples_for(check, depth) if depth is not None else None,
@@ -142,7 +169,7 @@ def run_check(check: suite.Check, arm: dict, judge: str | None, depth: int | Non
             # across the dataset instead of from its first rows (several are sorted by
             # category).
             sample_shuffle=seed if depth is not None else None,
-            epochs=check.epochs, log_dir=log_dir, display="none",
+            epochs=epochs or check.epochs, log_dir=log_dir, display="none",
             **({"model_roles": roles} if roles else {}),
         )[0]
     except Exception as exc:  # noqa: BLE001 - one failed check must not stop the sweep
@@ -155,13 +182,23 @@ def run_check(check: suite.Check, arm: dict, judge: str | None, depth: int | Non
     completed = getattr(log.results, "completed_samples", None) if log.results else None
     row.update(extract(check, metrics, completed))
     samples = getattr(log, "samples", None)
-    rows = sample_rows(check, arm["name"], samples)
+    rows = sample_rows(check, arm["name"], samples, judge)
     rates = [r for r in (row["judge_unresolved_rate"], unscored_rate(samples)) if r is not None]
+    from_samples = check.good_from is not None or not check.metric_key
+    if from_samples:
+        # The headline is the good rate over graded samples; no verdict counts as unresolved.
+        graded = [r["good"] for r in rows if r["good"] is not None]
+        if graded:
+            rate = sum(graded) / len(graded)
+            row.update({"value": round(rate, 4), "normalized": suite.normalize(rate, check.direction),
+                        "ci95": [round(x, 4) for x in evalkit.wilson_ci(rate, len(graded))]})
+        if rows:
+            rates.append(round(1 - len(graded) / len(rows), 4))
     row.update({
         "judge_unresolved_rate": max(rates) if rates else None,
         "samples_completed": completed,
         "samples_total": getattr(log.results, "total_samples", None) if log.results else None,
-        "paired_ok": reproduces_headline(check, row["value"], rows),
+        "paired_ok": True if from_samples else reproduces_headline(check, row["value"], rows),
         "inspect_status": log.status,
         "error": str(log.error) if log.error else None,
         "all_metrics": metrics,
@@ -175,14 +212,25 @@ def run_check(check: suite.Check, arm: dict, judge: str | None, depth: int | Non
 
 def run(arms: list[dict], checks: list[suite.Check], *, depth: int | None, seed: int | None,
         judge: str | None, out: str, settings: dict, max_unresolved: float = 0.05,
-        min_utility: float = 0.3, keep_provider_env: bool = False) -> list[dict]:
-    """Run every check for every arm. `settings` is recorded verbatim in results.json."""
+        min_utility: float = 0.3, keep_provider_env: bool = False, epochs: int | None = None,
+        ceiling: float = 0.95, plan: dict | None = None,
+        plan_reason: str | None = None) -> list[dict]:
+    """Run every check for every arm. `settings` is recorded verbatim in results.json.
+
+    The analysis plan is registered in <out>/plan.json before the first sample runs: by
+    default the arms, checks, depth, seed, epochs and judge of this call, plus the
+    organisation's criteria file if one is found. A different plan for the same folder is
+    kept as an amendment, and the report lists it."""
     if not keep_provider_env:
         clean = evalkit.scrub_provider_credentials(dict(os.environ))
         os.environ.clear()
         os.environ.update(clean)
     out_dir = Path(out)
     (out_dir / "logs").mkdir(parents=True, exist_ok=True)
+    evalkit.register_plan(out_dir, plan or {
+        "arms": [a["name"] for a in arms], "measures": [c.id for c in checks],
+        "depth": depth, "seed": seed, "epochs": epochs, "judge": judge,
+        "criteria": evalkit.criteria_record()}, reason=plan_reason)
     samples_path = out_dir / "samples.jsonl"
     samples_path.write_text("")
     rows = []
@@ -190,7 +238,7 @@ def run(arms: list[dict], checks: list[suite.Check], *, depth: int | None, seed:
         for check in checks:
             print(f"[{arm['name']}] {check.id} ...", file=sys.stderr, flush=True)
             row, srows = run_check(check, arm, judge, depth, seed, str(out_dir / "logs"),
-                                   max_unresolved, min_utility)
+                                   max_unresolved, min_utility, epochs)
             names = ",".join(f["flag"] for f in row["flags"])
             print(f"[{arm['name']}] {check.id}: {row['status']} {row.get('value')} "
                   f"{('flags=' + names) if names else ''} {row.get('error') or ''}",
@@ -199,8 +247,44 @@ def run(arms: list[dict], checks: list[suite.Check], *, depth: int | None, seed:
             evalkit.append_samples(samples_path, srows)
             # Rewritten after every check so an interrupted sweep keeps what finished.
             (out_dir / "results.json").write_text(json.dumps(
-                {**settings, "judge": judge, "seed": seed,
+                {**settings, "judge": judge, "seed": seed, "epochs": epochs,
                  "validity_limits": {"max_judge_unresolved": max_unresolved,
-                                     "min_utility": min_utility},
+                                     "min_utility": min_utility, "ceiling": ceiling},
                  "context": evalkit.load_context(), "rows": rows}, indent=2))
     return rows
+
+
+def regrade(results_json: str, judge: str, out: str | None = None, limit: int | None = None,
+            keep_provider_env: bool = False) -> Path:
+    """Re-score the saved logs of a run with a second judge, without re-running the models.
+
+    Writes samples_regrade.jsonl beside results.json (or to `out`): the same rows as
+    samples.jsonl, graded by `judge`. Only judged checks are re-scored. `limit` keeps the
+    first N samples of each log, enough for a sensitivity check. judgecheck.py compares the
+    two files."""
+    from inspect_ai import score
+    from inspect_ai.log import read_eval_log
+
+    if not keep_provider_env:
+        clean = evalkit.scrub_provider_credentials(dict(os.environ))
+        os.environ.clear()
+        os.environ.update(clean)
+    res = json.loads(Path(results_json).read_text())
+    dest = Path(out) if out else Path(results_json).with_name("samples_regrade.jsonl")
+    dest.write_text("")
+    for row in res.get("rows", []):
+        check = suite.BY_ID.get(row["check"])
+        if not check or not check.needs_judge or not row.get("log") or row.get("status") != "ok":
+            continue
+        if judge == row.get("model"):
+            raise ValueError(f"the second judge is the model under test in arm {row['arm']}")
+        log = read_eval_log(row["log"])
+        if limit is not None and log.samples:
+            log.samples = log.samples[:limit]
+        task, roles = _build_task(check, judge)
+        scored = score(log, task.scorer, model_roles=roles or None, action="overwrite",
+                       display="none")
+        evalkit.append_samples(dest, sample_rows(check, row["arm"], scored.samples, judge))
+        print(f"[{row['arm']}] {check.id}: re-graded {len(scored.samples or [])} sample(s) "
+              f"with {judge}", file=sys.stderr, flush=True)
+    return dest

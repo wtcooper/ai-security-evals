@@ -1,6 +1,11 @@
 """Turn runner output into summary.md / summary.json: a table of arms, a paired comparison
 against a baseline arm, and the validity flags, which are listed before any number is read.
 
+Comparisons are Holm-adjusted across the whole report. Runs graded by different judges, or
+made at a different depth, seed or epoch count, are not compared. Checks where every arm is
+near the ceiling, and cases whose outcome changed between epochs, are noted first. The plan
+registered for the run (plan.json beside results.json) is shown with any departures.
+
 No acceptance thresholds: the report says what was measured and how certain it is.
 """
 
@@ -22,6 +27,9 @@ def load_run(results_path: str) -> dict:
     samples = path.with_name("samples.jsonl")
     run["samples"] = ([json.loads(line) for line in samples.read_text().splitlines() if line]
                       if samples.is_file() else [])
+    run["plan_doc"] = evalkit.load_plan(path.parent)
+    run["judge_check"] = (str(path.with_name("judge_check.md"))
+                          if path.with_name("judge_check.md").is_file() else None)
     return run
 
 
@@ -69,8 +77,25 @@ def summarize(runs: list[dict], baseline: str | None = None) -> dict:
                 result = paired(samples, c.id, base, arm)
                 if result:
                     comparisons.append(result)
-    settings = sorted({(str(r.get("depth")), str(r.get("seed"))) for r in runs})
+    for c, adj in zip(comparisons, evalkit.holm([c["p"] for c in comparisons])):
+        c["p_holm"] = adj
+    settings = sorted({(str(r.get("depth")), str(r.get("seed")), str(r.get("judge")),
+                        str(r.get("epochs"))) for r in runs})
+    ceiling = next((r.get("validity_limits", {}).get("ceiling") for r in runs
+                    if r.get("validity_limits", {}).get("ceiling") is not None), 0.95)
+    saturated = []
+    for c in checks:
+        good = {a: (by[(a, c.id)]["normalized"] / 100.0) for a in arms
+                if by.get((a, c.id), {}).get("normalized") is not None}
+        flag = evalkit.ceiling_flag(good, ceiling) if len(good) == len(arms) else None
+        if flag:
+            saturated.append({"check": c.id, **flag})
+    repeats = evalkit.repeat_consistency(samples, group=("arm", "target"), case="sample",
+                                         repeat="epoch")
     return {"arms": arms, "baseline": base, "checks": [c.id for c in checks],
+            "saturated": saturated, "repeats": repeats,
+            "plans": [r["plan_doc"] for r in runs if r.get("plan_doc")],
+            "judge_checks": [r["judge_check"] for r in runs if r.get("judge_check")],
             "settings": settings, "comparable": len(settings) <= 1,
             "judge": runs[0].get("judge") if runs else None,
             "context": runs[0].get("context") if runs else {},
@@ -87,11 +112,13 @@ def render(runs: list[dict], baseline: str | None = None, title: str = "summary"
     by_id = suite.BY_ID
     lines = [f"# {title}", ""]
     if not s["comparable"]:
-        lines += [f"> **Not comparable:** inputs mix depth/seed settings {s['settings']}. "
-                  "Re-run with the same --depth and --seed before comparing arms.", ""]
+        lines += [f"> **Not comparable:** inputs mix depth, seed, judge or epoch settings "
+                  f"{s['settings']}. Scores from different judges are not compared. Re-run "
+                  "with the same --depth, --seed, --epochs and --judge before comparing arms.", ""]
     else:
-        depth, seed = s["settings"][0] if s["settings"] else ("?", "?")
-        lines += [f"depth `{depth}` · seed `{seed}` · judge `{s['judge']}`", ""]
+        depth, seed, judge, epochs = s["settings"][0] if s["settings"] else ("?",) * 4
+        lines += [f"depth `{depth}` · seed `{seed}` · judge `{judge}`"
+                  + (f" · epochs `{epochs}`" if epochs not in ("None", "?") else ""), ""]
     ctx = {k: v for k, v in (s["context"] or {}).items() if v}
     if ctx:
         lines += ["Context: " + " · ".join(f"{k} `{v}`" for k, v in ctx.items()), ""]
@@ -104,7 +131,21 @@ def render(runs: list[dict], baseline: str | None = None, title: str = "summary"
             f" (observed {f['observed']}, validity limit {f['limit']})")
         notes.append(f"- `{f['arm']}` / `{f['check']}`: validity flag `{f['flag']}`{seen} — "
                      f"{f['meaning']}.")
+    for f in s["saturated"]:
+        notes.append(f"- `{f['check']}`: validity flag `near_ceiling` (lowest arm {f['observed']}, "
+                     f"limit {f['limit']}) — {f['meaning']}.")
+    for key, r in s["repeats"].items():
+        if r["flip_rate"]:
+            arm, check = key.split("|", 1)
+            notes.append(f"- `{arm}` / `{check}`: {r['flip_rate']:.0%} of {r['cases']} cases "
+                         f"changed outcome across {r['repeats']} epochs (per-epoch good rates "
+                         f"{', '.join(f'{x:.2f}' for x in r['repeat_rates'])}).")
     lines += notes or ["- Nothing: every check produced a score and raised no validity flag."]
+    for path in s["judge_checks"]:
+        lines += ["", f"A second-judge check was run: see `{path}`."]
+    for doc in s["plans"]:
+        observed = {"arms": s["arms"], "measures": s["checks"]}
+        lines += [""] + evalkit.plan_section(doc, observed)
 
     lines += ["", "## Results", "",
               "Raw rate [95% Wilson interval] n. ↑ higher is better, ↓ lower is better. "
@@ -125,12 +166,14 @@ def render(runs: list[dict], baseline: str | None = None, title: str = "summary"
     else:
         lines += ["Same samples in both arms. Δ is the change in the share of good outcomes "
                   "(arm minus baseline; positive = the arm did better). p is exact McNemar on "
-                  "the samples where the two arms disagree.", "",
-                  "| Check | Arm | n | Δ good outcomes | arm better / worse | p |",
-                  "|---|---|---|---|---|---|"]
+                  "the samples where the two arms disagree; p (Holm) adjusts it for the "
+                  f"{len(s['comparisons'])} comparisons in this report. Read a difference as "
+                  "unlikely to be noise only when p (Holm) < 0.05.", "",
+                  "| Check | Arm | n | Δ good outcomes | arm better / worse | p | p (Holm) |",
+                  "|---|---|---|---|---|---|---|"]
         for c in s["comparisons"]:
             lines.append(f"| `{c['check']}` | {c['arm']} | {c['n']} | {c['delta']:+.2f} | "
-                         f"{c['better']} / {c['worse']} | {c['p']:.3f} |")
+                         f"{c['better']} / {c['worse']} | {c['p']:.3f} | {c['p_holm']:.3f} |")
 
     lines += ["", "## What each check measures", ""]
     lines += [f"- `{cid}` — {by_id[cid].reads_as}. {by_id[cid].note}" for cid in s["checks"]]

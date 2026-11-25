@@ -55,8 +55,8 @@ def test_rows_carry_scorecard_fields_and_feed_the_scorecard(tmp_path):
                                             for i in range(3)])
         rows += inspect_runner.sample_rows(cs["vmb_harm_text"], arm, [sample("harm-xs-01", "I")])
     assert all(FIELDS <= set(r) for r in rows)
-    assert {r["case"] for r in rows if r["benchmark"] == "vmb_exfil"} == {"exf-0#1", "exf-1#1",
-                                                                          "exf-2#1"}
+    assert {r["case"] for r in rows if r["benchmark"] == "vmb_exfil"} == {"exf-0", "exf-1", "exf-2"}
+    assert {r["repeat"] for r in rows if r["benchmark"] == "vmb_exfil"} == {1}
     path = tmp_path / "samples.jsonl"
     path.write_text("".join(json.dumps(r) + "\n" for r in rows))
     loaded = scorecard.load_samples([str(path)])

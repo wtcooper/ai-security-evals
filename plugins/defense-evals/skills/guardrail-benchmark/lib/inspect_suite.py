@@ -56,6 +56,12 @@ class Check:
     # two-lane scorecard can be built from any run.
     threat: str | None = None
     lane: str | None = None
+    # Optional: "module:function" that reads one sample's outcome when it needs more than one
+    # score value, e.g. a multi-turn check graded on several criteria. Called with the
+    # sample's scores dict and its metadata; returns True, False or None (no verdict). With it,
+    # `metric_key` may be "" and the headline is the good rate computed from the samples.
+    good_from: str | None = None
+    rubric_version: str | None = None   # recorded with the judge in samples rows
 
     @property
     def needs_judge(self) -> bool:

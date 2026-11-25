@@ -170,6 +170,16 @@ def mcnemar_exact(b: int, c: int) -> float:
     return min(1.0, 2 * p)
 
 
+def holm(pvalues: list) -> list:
+    """Holm-Bonferroni adjusted p-values in input order; None stays None (same as evalkit)."""
+    idx = [i for i, p in enumerate(pvalues) if p is not None]
+    m, out, running = len(idx), [None] * len(pvalues), 0.0
+    for rank, i in enumerate(sorted(idx, key=lambda j: pvalues[j])):
+        running = max(running, min(1.0, (m - rank) * pvalues[i]))
+        out[i] = round(running, 6)
+    return out
+
+
 def wilcoxon_signed_rank(x: list[float], y: list[float]) -> tuple[float, float, int]:
     """Two-sided Wilcoxon signed-rank on paired differences (zeros dropped, ties mid-ranked).
     Exact enumeration for n<=20 else normal approximation. Returns (W, p, n_nonzero)."""
@@ -340,8 +350,13 @@ def summarize(findings, samples, *, pair_on, baseline, arms, sev_min, tools, maj
     # --- paired comparisons vs baseline
     if baseline in arms and len(arms) > 1:
         L += [f"## Paired deltas vs {baseline} (other − baseline; negative = fewer findings)", "",
-              "| arm | pairs | Δ ≥sev findings [CI] | Wilcoxon p | Δ sev-weighted [CI] | Δ exploitable [CI] | any-exploitable McNemar (b/c, p) | correct-AND-secure McNemar (b/c, p) |",
+              "Every p-value in this table is also shown Holm-adjusted across the whole table "
+              "(in brackets): with several arms, strata and tests some p < 0.05 appear by chance "
+              "alone. Read a difference as unlikely to be noise only when the adjusted value is "
+              "below 0.05.", "",
+              "| arm | pairs | Δ ≥sev findings [CI] | Wilcoxon p [Holm] | Δ sev-weighted [CI] | Δ exploitable [CI] | any-exploitable McNemar (b/c, p [Holm]) | correct-AND-secure McNemar (b/c, p [Holm]) |",
               "|---|---|---|---|---|---|---|---|"]
+        pending = []
         for a in arms:
             if a == baseline:
                 continue
@@ -369,9 +384,18 @@ def summarize(findings, samples, *, pair_on, baseline, arms, sev_min, tools, maj
                                     "delta_sev_weighted": d_w, "delta_exploitable": d_e,
                                     "mcnemar_any_exploitable": [b_, c_, pm],
                                     "mcnemar_correct_and_secure": [b2, c2, pm2] if cs_pairs else None}
-                L.append(f"| {key} | {len(pairs)} | {_fmt(d_sev[0])} [{_fmt(d_sev[1])}, {_fmt(d_sev[2])}] | {_fmt(pw, 3)} | "
-                         f"{_fmt(d_w[0])} [{_fmt(d_w[1])}, {_fmt(d_w[2])}] | {_fmt(d_e[0])} [{_fmt(d_e[1])}, {_fmt(d_e[2])}] | "
-                         f"{b_}/{c_}, p={_fmt(pm, 3)} | " + (f"{b2}/{c2}, p={_fmt(pm2, 3)}" if cs_pairs else "–") + " |")
+                pending.append((key, len(pairs), d_sev, pw, d_w, d_e, b_, c_, pm, b2, c2, pm2, bool(cs_pairs)))
+        family = [None if x is None or (isinstance(x, float) and math.isnan(x)) else x
+                  for e in pending for x in (e[3], e[8], e[11] if e[12] else None)]
+        adjusted = iter(holm(family))
+        for (key, npairs, d_sev, pw, d_w, d_e, b_, c_, pm, b2, c2, pm2, has_cs) in pending:
+            apw, apm, apm2 = next(adjusted), next(adjusted), next(adjusted)
+            J["paired"][key]["holm"] = {"wilcoxon": apw, "mcnemar_any_exploitable": apm,
+                                        "mcnemar_correct_and_secure": apm2}
+            L.append(f"| {key} | {npairs} | {_fmt(d_sev[0])} [{_fmt(d_sev[1])}, {_fmt(d_sev[2])}] | {_fmt(pw, 3)} [{_fmt(apw, 3)}] | "
+                     f"{_fmt(d_w[0])} [{_fmt(d_w[1])}, {_fmt(d_w[2])}] | {_fmt(d_e[0])} [{_fmt(d_e[1])}, {_fmt(d_e[2])}] | "
+                     f"{b_}/{c_}, p={_fmt(pm, 3)} [{_fmt(apm, 3)}] | "
+                     + (f"{b2}/{c2}, p={_fmt(pm2, 3)} [{_fmt(apm2, 3)}]" if has_cs else "–") + " |")
         L.append("")
 
     # --- per CWE family

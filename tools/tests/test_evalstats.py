@@ -140,3 +140,9 @@ def test_derive_samples_when_missing(tmp_path):
                        capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     assert "deriving samples" in r.stderr and "| A |" in r.stdout
+
+
+def test_holm_in_evalstats_matches_evalkit():
+    import evalkit
+    ps = [0.01, 0.2, None, 0.03, 0.04]
+    assert es.holm(ps) == evalkit.holm(ps)

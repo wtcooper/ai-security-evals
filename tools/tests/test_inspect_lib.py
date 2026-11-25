@@ -160,3 +160,51 @@ def test_report_lists_flags_and_failures_before_results_and_withholds_bad_pairs(
     assert report.summarize([run])["comparisons"] == []  # b's samples do not reproduce
     mixed = report.render([run, {**run, "depth": "smoke"}])
     assert "Not comparable" in mixed
+
+
+def test_rows_carry_judge_reply_length_and_repeat():
+    check = suite.BY_ID["strong_reject"]
+    sample = SimpleNamespace(id="s1", epoch=2, scores={"x": SimpleNamespace(value={"refusal": 1})},
+                             output=SimpleNamespace(completion="no thanks"), metadata={})
+    row = runner.sample_rows(check, "a", [sample], judge="judge-m")[0]
+    assert row["judge"] == "judge-m" and row["response_chars"] == 9 and row["epoch"] == 2
+
+
+def test_good_from_reads_several_scores_and_metadata(tmp_path, monkeypatch):
+    mod = tmp_path / "goodmod.py"
+    mod.write_text("def read(scores, meta):\n"
+                   "    v = scores['j'].value\n"
+                   "    return v['ok'] == 10 if meta.get('kind') == 'benign' else v['bad'] == 1\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    check = suite.Check("mt", "multi-turn", "x", "y", "", suite.HIGHER, "share appropriate",
+                        good_from="goodmod:read", threat="t", lane="custom")
+    s = lambda sid, kind, v: SimpleNamespace(id=sid, epoch=1, metadata={"kind": kind},
+                                            scores={"j": SimpleNamespace(value=v)}, output=None)
+    rows = runner.sample_rows(check, "a", [s("1", "benign", {"ok": 10, "bad": 1}),
+                                           s("2", "misuse", {"ok": 1, "bad": 10})])
+    assert [r["good"] for r in rows] == [True, False]
+    assert rows[0]["case"] == "1" and rows[0]["repeat"] == 1
+
+
+def test_report_adjusts_for_many_comparisons_and_refuses_mixed_judges():
+    run = {"depth": "standard", "seed": 1, "judge": "j",
+           "rows": [_row("a", "cyse4_mitre_frr", 0.2), _row("b", "cyse4_mitre_frr", 0.8)],
+           "samples": _pairs("cyse4_mitre_frr", [True] * 4 + [False] * 6, [True] * 10)}
+    s = report.summarize([run])
+    assert s["comparisons"][0]["p_holm"] == s["comparisons"][0]["p"]   # one comparison
+    assert "p (Holm)" in report.render([run])
+    assert "Not comparable" in report.render([run, {**run, "judge": "other"}])
+
+
+def test_report_notes_ceiling_and_epoch_flips_and_plan(tmp_path):
+    import evalkit
+    rows = [_row("a", "cyse4_mitre", 0.97, normalized=97.0),
+            _row("b", "cyse4_mitre", 0.99, normalized=99.0)]
+    samples = [{"arm": "a", "target": "cyse4_mitre", "sample": "1", "epoch": e, "good": g}
+               for e, g in ((1, True), (2, False))]
+    doc = evalkit.register_plan(tmp_path, {"arms": ["a", "b", "c"], "measures": ["cyse4_mitre"]})
+    run = {"depth": "standard", "seed": 1, "judge": "j", "rows": rows, "samples": samples,
+           "plan_doc": doc}
+    text = report.render([run])
+    assert "near_ceiling" in text and "changed outcome across 2 epochs" in text
+    assert "## Analysis plan" in text and "`arms`: planned" in text
