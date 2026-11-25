@@ -29,6 +29,42 @@ toolkit for that whole path, as agent skills an agent runs on the reviewer's beh
 | **Safe by default** | Pure API or in-memory by default; sandboxed work has no network; suites that elicit working exploits are out of scope. |
 | **Every comparison is one axis** | Hold everything fixed and vary one arm: the model, the harness, the control, the tool, or the modality. Every arm sees the same seeded samples. |
 | **Names say what a skill is for** | `<subject>-<method>`. |
+| **A number is only as good as its measurement** | Plans are written before results, many comparisons are adjusted together, judges see only what they grade and are checked against a second judge, saturated sets and small runs are called out, and every case says where it came from. |
+
+### Measurement quality
+
+The shared library carries the measurement practices that make a comparison trustworthy, so
+each skill gets them the same way (rules 19–28 in [skill-standard.md](skill-standard.md)):
+
+- **A registered plan.** `plan.json` is written before the first result: arms, baseline, what
+  is measured, depth, seed, repeats, judge, corpus, and the organisation's criteria file if it
+  has one. Reports list every departure from it. This is the record `review-criteria` relies
+  on to show criteria were set before results were seen.
+- **One family of comparisons.** Every p-value is also reported Holm-adjusted across the
+  report, so a run with many arms and benchmarks does not call chance differences real.
+- **Power up front.** The plan step prints the smallest difference each benchmark can separate
+  at the chosen depth. "Fits in a day" stays; its statistical cost is stated, not hidden.
+- **Repeats.** Non-deterministic cases can be run again; reports give how often outcomes flip.
+- **Judges.** A judge prompt carries no design metadata; rubrics are atomic yes/no questions
+  and versioned; rows record who graded them, and scores from different judges are never
+  compared. `judgecheck.py` re-grades with a second judge or a reworded rubric and reports
+  agreement, Cohen's kappa, changes in the order of arms, and sensitivity to reply length.
+  Human labelling is not part of the toolkit.
+- **Saturation.** A `near_ceiling` validity flag says when every arm is close to perfect, so a
+  set that only catches regressions is not read as separating models.
+- **Provenance.** Cases carry a `source`; a run records whether its corpus is public or
+  private; threats list the incident-register entries where their pattern was observed.
+- **The right construct.** Refusal rates measure clearly harmful requests. For dual-use
+  security requests the measure is the appropriate response (help with the legitimate version,
+  no operational detail), next to over-refusal of legitimate twins. `model-benchmark`'s
+  multi-turn lane, built on Inspect Petri, measures it over whole conversations.
+
+### Responsible disclosure of what an evaluation finds
+
+An evaluation can find a real flaw in someone's product: a guardrail bypass, an injection that
+reaches a tool, a scanner that misses a class of issue. Tell the vendor first and give them
+time to fix it before publishing results that would let others exploit it. This repository
+has no disclosure process of its own and takes no reports.
 
 ### Validity flags are not thresholds
 

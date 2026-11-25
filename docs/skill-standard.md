@@ -48,28 +48,68 @@ marked **[checked]**; `scripts/run_tests.sh` runs it with everything else.
     the share of samples it could not grade is reported.
 17. **Secrets.** Provider credentials are stripped before an eval runs; none enter a sandbox.
 18. **Execution tier** is stated: T0 pure API · T1 in-memory or no-egress container ·
-    T2 supervised sandbox (off by default).
+    T2 supervised sandbox (off by default). A T2 run is watched by a person and can be
+    stopped at once: a wall-clock limit per run, a stop file, a log the operator can tail, and
+    a scope file listing what the run may touch.
+
+## Measurement quality
+
+Guidance, not checked rules. Drawn from published practice on building safety evaluations
+(Anthropic, "Building strong safety evaluations", 13 November 2026) and implemented in the
+shared library (`evalkit`, `scorecard`, `inspect_runner`, `inspect_report`, `judgecheck`).
+
+19. **Write the plan down first.** Every run registers its analysis plan (arms, baseline, what
+    is measured, depth, seed, repeats, judge, corpus, and the organisation's criteria file if
+    there is one) in `plan.json` before the first result. A changed plan is kept as an
+    amendment, and the report lists every departure.
+20. **Many comparisons, one family.** Every p-value a report prints is shown Holm-adjusted
+    across the report's comparisons as well, and a difference is called unlikely to be noise
+    only on the adjusted value.
+21. **Show what a run can detect.** The plan step prints, for each benchmark, how precise a
+    rate is at its size and the smallest paired difference it can separate.
+22. **Repeat what is not deterministic.** `--repeats` (or Inspect epochs) runs a case again;
+    reports give how often outcomes changed. Rows carry `repeat`.
+23. **Judges see only what they grade.** No design metadata (harmful or benign, threat id,
+    expected answer) in a judge prompt; direction is applied after grading. Criteria are
+    atomic yes/no questions; the rubric says what does not change a verdict (disclaimers and
+    warnings do not make harmful content acceptable). Rubrics are versioned, and every judged
+    row records `judge`. Scores from different judges are never compared.
+24. **Check the judge.** A judged skill can re-grade stored replies with a second judge (or a
+    reworded rubric) and `judgecheck.py` reports agreement, kappa, whether the order of arms
+    changes, and sensitivity to reply length.
+25. **Say when a set is saturated.** When every arm is near the ceiling, a `near_ceiling`
+    validity flag says the set catches regressions but separates arms poorly.
+26. **Know where cases come from.** Custom cases carry a `source` (synthetic, a register
+    incident, or an imported benchmark); a run records whether its corpus is public (bundled,
+    possibly in training data) or private (supplied by the user); threats list the register
+    incidents where their pattern was observed (`observed_in`).
+27. **Vary one dimension at a time.** Dimensions a report breaks results down by (style,
+    perturbation, persona, tactic, language) are crossed, never tied to each other.
+28. **Measure the right construct.** Refusal is the right measure for clearly harmful requests
+    and the wrong one for dual-use requests, where the appropriate response helps with the
+    legitimate version and withholds operational detail. Measure over-refusal of legitimate
+    twins on the same topic beside every harmful-request measure.
 
 ## Modality benchmarks (decision, voice, vision, image generation)
 
 Guidance, not checked rules. These skills follow one shape so a reviewer reads them the same
 way and models can be ranked as new ones are released:
 
-19. A short threat model in `references/threat-model.md` saying where the risks come from, and
+29. A short threat model in `references/threat-model.md` saying where the risks come from, and
     a handful of core threats.
-20. `threats.json` listing those threats and the benchmarks that measure each; the scorecard
+30. `threats.json` listing those threats and the benchmarks that measure each; the scorecard
     reads it.
-21. Two lanes of evidence: *known* (a published benchmark or two, at a pinned revision) and
+31. Two lanes of evidence: *known* (a published benchmark or two, at a pinned revision) and
     *custom* (a small core set written here, scored without a judge where possible).
-22. `samples.jsonl` rows tagged with `threat`, `lane`, `benchmark`, `case` and `good`, so
+32. `samples.jsonl` rows tagged with `threat`, `lane`, `benchmark`, `case` and `good`, so
     `lib/scorecard.py` can compare models threat by threat.
 
 ## Guided skills (`review-*`, `-review`)
 
-23. State what the reviewer supplies, what the skill produces, and where it is written.
-24. Record what was not assessed. An absent vendor document or an untested threat is a
+33. State what the reviewer supplies, what the skill produces, and where it is written.
+34. Record what was not assessed. An absent vendor document or an untested threat is a
     finding, not a gap to leave silent.
-25. Never prescribe a control or a verdict. Decision fields are left for people to fill.
+35. Never prescribe a control or a verdict. Decision fields are left for people to fill.
 
 ## Definition of done for a new or changed skill
 

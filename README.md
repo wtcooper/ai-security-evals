@@ -132,6 +132,11 @@ ran, and the deployment `context`), the engine's native output, `samples.jsonl`,
 `summary.md` / `summary.json`. Rates carry 95% intervals; arms are compared paired, on the
 same seeded samples, against a named baseline.
 
+Before the first result, each run registers its analysis plan in `plan.json`; reports list
+any departure from it. Every p-value is also shown Holm-adjusted across the report, the plan
+step prints the smallest difference a run of that size can separate, and judged skills can
+re-grade with a second judge (`judge_check.md`). See [measurement quality](docs/design.md#measurement-quality).
+
 **Validity flags are not thresholds.** A flag says a *measurement* may not be trustworthy
 (the judge could not grade, the agent never completed its task, a scanner disagrees with
 itself). Flags have configurable limits, are listed before any number, and never hide one.
@@ -178,6 +183,11 @@ was run against a real model, vendor API or guardrail in the environment where t
 versions were built, and each
 `SKILL.md` ends with a `Not verified` list saying exactly what was not exercised. Treat a
 first real run of any skill as part of its verification.
+
+## If an evaluation finds a real flaw
+
+Tell the vendor first and give them time to fix it before publishing results that would let
+others exploit it. This repository has no disclosure process of its own and takes no reports.
 
 ## License
 
