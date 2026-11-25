@@ -88,8 +88,10 @@ at least 2 when the user wants to know how stable a result is. Show the cost fir
 python run_benchmark.py --arms <arms dir> --harness claude_code@<version> \
   --model <model> --depth standard --repeats 2 --plan
 ```
-The plan lists agent runs and app builds per arm and for the whole run. It does **not**
-estimate tokens: token cost depends on the harness, the model and how long the agent works
+The plan lists agent runs and app builds per arm and for the whole run, and a power line:
+how precise a rate is at this many tasks, and how many tasks two arms must differ on, all in
+one direction, to be separated once the report's McNemar tests are Holm-adjusted. Say so
+when that is larger than the effect the user hopes to see. It does **not** estimate tokens: token cost depends on the harness, the model and how long the agent works
 on a task. Run `smoke` first and read the Cost table before committing to a deeper run.
 A deeper run with the same `--seed` contains every task of a shallower one.
 
@@ -101,6 +103,12 @@ bash new_experiment.sh coding-guidance-benchmark "<label>" inspect \
 ```
 It prints `EXP=<path>`. The runner fills in the manifest's command, task draw, harness
 context, arm fingerprints and token totals when `--out` is `<EXP>/results`.
+
+Before the first agent run the runner writes the analysis plan to `<out>/plan.json`: arms
+and baseline, the three metrics, depth, seed, repeats, harness/model cells, frameworks, arm
+fingerprints, no judge (scoring is BaxBench's deterministic tests), the task corpus (BaxBench
+at its commit, public) and the organisation's `criteria.json` if one is found. The report
+lists any departure from it; `--plan-reason "<text>"` records why a plan was changed.
 
 ---
 
@@ -121,7 +129,7 @@ What happens, per harness and model:
 4. BaxBench `--mode test` builds each app, runs functional tests and exploits, and writes
    `test_results.json` beside `code/`.
 
-Written to `<out>/`: `samples.jsonl` (one row per arm × task × repeat: functional pass,
+Written to `<out>/`: `plan.json`, `samples.jsonl` (one row per arm × task × repeat, with `repeat`: functional pass,
 secure, correct-and-secure, build_ok, tokens, wall time, the diagnostic), `summary.md`,
 `summary.json`, `run.json` (settings, arms and their fingerprints, the drawn tasks),
 `transcripts/` (tool calls per run), `logs/` (Inspect `.eval` logs), `baxbench/`.
@@ -148,18 +156,25 @@ python report.py "<EXP>/results" [--baseline <arm>] --json "<EXP>/summary.json" 
 ```
 Present to the user in this order:
 1. **Read first.** Failed builds, runs with no code, harness errors, exploits that could
-   not complete. These change how the rates should be read; none of them hides a number.
+   not complete, and `near_ceiling` (every arm at or above `--ceiling`, default 0.95, on a
+   metric: the tasks separate arms poorly). These change how the rates should be read; none
+   of them hides a number. Then the analysis plan and any departure from it.
 2. **Outcome per arm.** Correct and secure is the headline: every functional test passed
    and no exploit succeeded. Always read it beside the other two columns. An arm can raise
    the secure rate by producing apps that do not work, so the functional-pass rate is shown
    separately, and the secure rate only counts apps whose exploits actually ran.
 3. **Paired difference from baseline**, per metric: the difference in points with its
-   interval, how many tasks changed in each direction, and the exact McNemar p-value. Say
-   plainly when the interval includes zero: the run did not separate the arm from the
-   baseline. Compare the arm's difference with the placebo's; a difference no larger than
+   interval, how many tasks changed in each direction, and the exact McNemar p-value with
+   its Holm-adjusted value beside it (adjusted across every arm, metric and harness/model
+   cell in the report). Call a difference unlikely to be noise only on the adjusted value,
+   and say plainly when the interval includes zero: the run did not separate the arm from
+   the baseline. Compare the arm's difference with the placebo's; a difference no larger than
    the placebo's is within noise for this run.
-4. **Cost.** Tokens and wall time per run, and what the arm added.
-5. **Diagnostic.** Whether the transcript shows the agent naming a path from the arm,
+4. **Repeats** (with `--repeats` 2 or more): the flip rate per arm and metric (share of
+   tasks whose outcome changed between repeats), the rate in each repeat, and the tasks that
+   flipped. Flip rates under the baseline and the placebo are the noise floor.
+5. **Cost.** Tokens and wall time per run, and what the arm added.
+6. **Diagnostic.** Whether the transcript shows the agent naming a path from the arm,
    calling a skill tool or calling an MCP tool. It separates "the guidance did not help"
    from "the guidance was never reached". No signal is not proof of no use: a file the
    harness loads by itself, or a hook, leaves no tool call.
@@ -179,8 +194,9 @@ cat /tmp/coding-guidance-smoke/summary.md
 The `mock` harness is a plain-Python stand-in that writes fixed code; the tasks and the
 scorer are bundled fakes, not BaxBench. Expected: 32 rows in `samples.jsonl` (2 arms × 8
 tasks × 2 repeats), a `summary.md` whose "Read first" section says the harness is a mock,
-a paired-difference table for `placebo`, some failed builds, and a diagnostic row showing
-the placebo was named in some runs. The mock's draw depends on the file names in its
+a paired-difference table for `placebo` with a `p (Holm)` column, an `Analysis plan`
+section with no departures, a `Repeats` table listing the tasks that flipped, some failed
+builds, and a diagnostic row showing the placebo was named in some runs. The mock's draw depends on the file names in its
 workspace, so the two arms differ by chance alone: this is what a noise floor looks like.
 The numbers say nothing about any agent.
 
@@ -207,6 +223,8 @@ not build on this machine; fix that before a real run.
 - **Failed builds.** BaxBench records a failed build as every test raising an exception and
   an empty CWE list. The runner reads BaxBench's `test.log` to tell a failed build from an
   app that ran, counts it as not correct-and-secure, and leaves it out of the secure rate.
+- **No judge.** Scoring is BaxBench's tests and exploits, so blind-judge prompts, reply
+  length and second-judge re-grading do not apply.
 - **Repeats.** Per-arm intervals are Wilson intervals over runs. The paired difference
   resamples whole tasks, and McNemar uses one outcome per task (a strict majority of its
   repeats), so repeats are not counted as independent evidence.
@@ -242,3 +260,7 @@ not build on this machine; fix that before a real run.
   - Whether a given harness loads a given file from an arm. The benchmark copies the folder;
     it does not know what the harness does with it.
   - Hooks and MCP servers inside an arm were not exercised.
+  - The registered plan, Holm column, repeat flip rates and near-ceiling flag were exercised
+    with the mock harness and fake scorer only. They are added by `report.py` around
+    `lib/stats.py`'s report, so a change to that report's table layout needs `report.py`
+    (and `tests/test_report.py`) updated with it.

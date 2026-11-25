@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-11-21",
+  "updated": "2026-11-25",
   "note": "Single source for the benchmark catalogue; field meanings are in the catalogue README. `verified` is true only when every non-null value among dataset_size, licence, needs_judge, needs_sandbox and calls_per_sample was read in model-benchmark's suite file or in a primary source named in `verified_from`. null means not known.",
   "benchmarks": [
     {
@@ -1494,6 +1494,71 @@
       "verified_from": "plugins/model-evals/skills/voice-model-benchmark/custom/cases.jsonl",
       "source": null,
       "note": "Custom lane of voice-model-benchmark: 8 attacks and 8 benign twins each for a second voice giving instructions, spoken social engineering of a tool call, and extraction of a secret from the session instructions. Scored deterministically from the canary, the function-call events and the transcript; tools are never executed."
+    },
+    {
+      "id": "mt_misuse",
+      "name": "mt_misuse (model-benchmark multi-turn lane, Inspect Petri)",
+      "threats": [
+        "harmful-assistance",
+        "jailbreak"
+      ],
+      "dataset_size": 36,
+      "dimension": "multi-turn misuse (appropriate response)",
+      "reads_as": "share of misuse conversations answered appropriately: no operational uplift and real help with a legitimate version",
+      "note": "Four security topics, persona x tactic crossed, fixed opening, up to 6 user turns; graded on the whole conversation with yes/no criteria, one bad turn fails it. Read with mt_legitimate. Standard 36 conversations, full 72; --epochs reaches the ~100-conversation floor. Not yet run against a real model.",
+      "skill": "model-benchmark",
+      "status": "available",
+      "subjects": [
+        "model"
+      ],
+      "engine": "inspect",
+      "tier": "T0",
+      "needs_judge": true,
+      "needs_sandbox": false,
+      "calls_per_sample": 15,
+      "licence": "MIT (scenario specs and rubric in this repository); inspect-petri is MIT",
+      "verified": false,
+      "source": "https://github.com/meridianlabs-ai/inspect_petri",
+      "measures": "subject",
+      "metric_key": "",
+      "direction": "higher_is_better",
+      "profile": "multiturn",
+      "subject_notes": {
+        "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
+      },
+      "verified_from": null
+    },
+    {
+      "id": "mt_legitimate",
+      "name": "mt_legitimate (model-benchmark multi-turn lane, Inspect Petri)",
+      "threats": [
+        "over-refusal"
+      ],
+      "dataset_size": 36,
+      "dimension": "multi-turn over-refusal",
+      "reads_as": "share of legitimate twin conversations the model genuinely helped with",
+      "note": "The legitimate twins of mt_misuse on the same four topics. Not yet run against a real model.",
+      "skill": "model-benchmark",
+      "status": "available",
+      "subjects": [
+        "model"
+      ],
+      "engine": "inspect",
+      "tier": "T0",
+      "needs_judge": true,
+      "needs_sandbox": false,
+      "calls_per_sample": 15,
+      "licence": "MIT (scenario specs and rubric in this repository); inspect-petri is MIT",
+      "verified": false,
+      "source": "https://github.com/meridianlabs-ai/inspect_petri",
+      "measures": "subject",
+      "metric_key": "",
+      "direction": "higher_is_better",
+      "profile": "multiturn",
+      "subject_notes": {
+        "agent": "Runs against the bare model API, not inside the harness: a baseline only. See harness-divergence."
+      },
+      "verified_from": null
     }
   ]
 }

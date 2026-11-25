@@ -158,3 +158,31 @@ def test_plan_beside_samples_is_checked(tmp_path):
                     "--out", str(tmp_path / "o")]) == 0
     text = (tmp_path / "o" / "scorecard.md").read_text()
     assert "## Analysis plan" in text and "`arms`: planned" in text
+
+
+def test_rows_without_a_judge_beside_judged_rows_are_not_compared():
+    data = rows("a", "t-injection", "known", [True] * 20) + rows("b", "t-injection", "known", [False] * 20)
+    for r in data:
+        if r["arm"] == "a":
+            r["judge"] = "judge-v2"
+    card = sc.build(data, THREATS)
+    assert card["rows"][0]["mixed_judges"] == ["judge-v2", "unrecorded"] and card["separations"] == []
+
+
+def test_a_judged_and_a_deterministic_benchmark_in_one_lane_are_not_mixed():
+    data = (rows("a", "t-injection", "known", [True] * 20, bench="judged")
+            + rows("b", "t-injection", "known", [False] * 20, bench="judged")
+            + rows("a", "t-injection", "known", [True] * 5, bench="exact")
+            + rows("b", "t-injection", "known", [True] * 5, bench="exact"))
+    for r in data:
+        if r["benchmark"] == "judged":
+            r["judge"] = "j"
+    assert sc.build(data, THREATS)["rows"][0]["mixed_judges"] == []
+
+
+def test_a_merged_scorecard_only_reports_what_each_plan_lost(tmp_path):
+    import evalkit
+    doc = evalkit.register_plan(tmp_path, {"arms": ["a"], "measures": ["t-injection", "t-leak"]})
+    card = sc.build(rows("a", "t-injection", "known", [True] * 3) + rows("b", "t-injection", "known", [True] * 3), THREATS)
+    devs = evalkit.plan_deviations(doc, sc._observed_for(doc, card))
+    assert len(devs) == 1 and "t-leak" in devs[0]

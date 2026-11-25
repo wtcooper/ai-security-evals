@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -55,9 +56,18 @@ def test_every_suite_check_is_in_the_catalogue_with_matching_facts():
         assert got == want, f"{check.id} drifted from {rel}"
 
 
+def _skill_local_check_ids() -> set:
+    """Checks model-benchmark adds at run time from its own modules (the multi-turn lane)."""
+    path = ROOT / "plugins/model-evals/skills/model-benchmark/mt_checks.py"
+    if not path.is_file():
+        return set()
+    text = path.read_text()
+    return set(re.findall(r'id="(mt_[a-z_]+)"', text))
+
+
 def test_no_catalogue_entry_claims_a_model_benchmark_check_the_suite_lacks():
     suite, rel = _load_suite()
-    ids = {c.id for c in suite.CHECKS}
+    ids = {c.id for c in suite.CHECKS} | _skill_local_check_ids()
     stale = [e["id"] for e in ENTRIES if e["skill"] == "model-benchmark"
              and e["engine"] == "inspect" and e["status"] == "available" and e["id"] not in ids]
     assert not stale, f"available in the catalogue but not in {rel}: {stale}"

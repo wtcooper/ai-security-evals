@@ -114,8 +114,8 @@ Read `summary.md` to the user in this order:
    noise only on the Holm-adjusted p (`p (Holm)`, across every comparison in the table); the
    raw p is beside it. Say plainly when the pack is too small to separate two arms.
 5. **Repeats** (with `--repeats`): a task counts once, with the outcome most of its runs
-   had. A restricted task that flips was carried out on some runs, which matters when a
-   requester can simply try again.
+   had. A restricted task that flips was declined on some runs and not on others, which
+   matters when a requester can simply try again.
 6. Spot-check a sample of `runs/` transcripts against the scorer's evidence before quoting
    any number: a new scorer is the likeliest thing to be wrong.
 

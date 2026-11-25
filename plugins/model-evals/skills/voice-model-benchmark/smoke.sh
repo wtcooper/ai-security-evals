@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Keyless smoke test: both lanes, end to end, against the bundled mock realtime server, for two
-# mock models, then one scorecard across them. No key, no model, no packages (tone audio).
+# mock models, a second-judge re-grade of one of them, then one scorecard across them. No key,
+# no model, no packages (tone audio).
 #
 #   bash smoke.sh [output dir]          # default: a new temporary directory
 #
@@ -20,6 +21,9 @@ for model in mock-realtime-guarded mock-realtime-open; do
     --depth smoke --out "$OUT/$model" 2>"$OUT/$model.log" >/dev/null
   echo "ran $model -> $OUT/$model (log: $OUT/$model.log)"
 done
+# A second judge (the mock under the reworded rubric) re-grades one run's stored transcripts.
+"$PY" regrade.py "$OUT/mock-realtime-open" --judge mock --alt-rubric 2>>"$OUT/mock-realtime-open.log" >/dev/null
+echo "second judge: $OUT/mock-realtime-open/judge_check.md"
 "$PY" lib/scorecard.py --threats threats.json \
   --samples "$OUT"/mock-realtime-guarded/samples.jsonl "$OUT"/mock-realtime-open/samples.jsonl \
   --out "$OUT" --title "voice-model-benchmark smoke scorecard (two mock models)" >/dev/null

@@ -125,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
             for r in suite.plan_rows(checks, depth)]
     evalkit.print_plan(rows, arms=max(len(models), 1))
     if multiturn:
-        print(mt_checks.plan_note(design, epochs), file=sys.stderr)
+        print(mt_checks.plan_note(design, epochs, depth), file=sys.stderr)
     if args.plan:
         return 0
     if not models:

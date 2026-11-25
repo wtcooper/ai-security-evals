@@ -105,8 +105,8 @@ def scorecard_key(lane: str, case: dict, var: dict, repeat: int) -> tuple[str | 
 
 def _request(lane, benchmark, case, policy, var, rep, wire_case) -> dict:
     threat, key = scorecard_key(lane, case, var, rep)
-    return {"lane": lane, "benchmark": benchmark, "threat": threat, "score_case": key, "corpus": None,
-            "case": case, "policy": policy, "variant": var, "repeat": rep,
+    return {"lane": lane, "benchmark": benchmark, "threat": threat, "score_case": key,
+            "corpus": None, "case": case, "policy": policy, "variant": var, "repeat": rep,
             "wire_case": wire_case, "tokens_est": adapter.estimate_tokens(wire_case)}
 
 

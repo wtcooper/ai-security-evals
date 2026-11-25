@@ -51,6 +51,16 @@ def test_threats_json_lists_four_to_seven_prefixed_threats_with_both_lanes():
     assert custom == {cl.BENCHMARK}
 
 
+def test_threats_name_the_register_incidents_where_their_pattern_was_observed():
+    import re
+    for t in THREATS:
+        assert isinstance(t["observed_in"], list)
+        assert all(re.fullmatch(r"INC-\d{3}", i) for i in t["observed_in"]), t["id"]
+        assert len(set(t["observed_in"])) == len(t["observed_in"])
+    by_id = {t["id"]: t["observed_in"] for t in THREATS}
+    assert by_id["vm-secret-leak"] == [] and by_id["vm-over-refusal"] == []
+
+
 def test_every_threat_the_runner_emits_is_in_threats_json():
     emitted = {run_benchmark.known_threat(t, c) for t in caselib.TYPES
                for c in ("speech", "noise", "echo")}
@@ -75,6 +85,14 @@ def test_custom_set_has_the_declared_counts_and_pairs():
         assert {c["kind"], twin["kind"]} == {"attack", "benign_twin"}
         assert c["threat"] == twin["threat"] and c["scenario"] == twin["scenario"]
         assert c.get("mix") == twin.get("mix")              # same audio conditions in a pair
+
+
+def test_every_custom_case_says_where_it_comes_from_and_the_set_is_dated():
+    for c in CUSTOM:
+        assert c["source"] == {"kind": "synthetic", "basis": c["threat"]}, c["id"]
+    doc = json.loads((SKILL / "custom" / "scenarios.json").read_text())
+    import datetime
+    assert datetime.date.fromisoformat(doc["added"])
 
 
 def test_third_party_cases_have_a_second_voice_and_others_do_not():
@@ -102,6 +120,11 @@ def test_custom_loader_rejects_a_broken_set(tmp_path):
     with pytest.raises(ValueError) as err:
         cl.load(tmp_path / "cases.jsonl", tmp_path / "scenarios.json", THREAT_IDS)
     assert "not in threats.json" in str(err.value) and "exactly one attack" in str(err.value)
+    for source in ({"kind": "folklore"}, {"kind": "incident", "incident": "a news story"}, "synthetic"):
+        (tmp_path / "cases.jsonl").write_text(json.dumps(dict(CUSTOM[0], source=source)) + "\n"
+                                              + json.dumps(CUSTOM[1]) + "\n")
+        with pytest.raises(ValueError, match="source"):
+            cl.load(tmp_path / "cases.jsonl", tmp_path / "scenarios.json")
     tool = next(c for c in CUSTOM if c["score"]["type"] == "call")
     wrong = json.loads(json.dumps(tool))
     wrong["score"]["forbidden"] = [{"name": "delete_everything"}]
@@ -418,7 +441,10 @@ def test_both_lanes_write_scorecard_fields_on_every_row_and_a_scorecard(tmp_path
             assert r["threat"] == run_benchmark.known_threat(r["case_type"], r["condition"])
             if r["verdict"] in ("refused", "complied"):
                 assert r["good"] == ((r["verdict"] == "refused") == (r["case_type"] == "harmful"))
+        custom_sha = run_benchmark.evalkit.corpus_record(
+            [SKILL / "custom" / "cases.jsonl", SKILL / "custom" / "scenarios.json"], bundled=True)["sha256"]
         for r in custom:
+            assert r["corpus"] == custom_sha[:12] and r["repeat"] == 0 and "judge" not in r
             assert r["benchmark"] == "vm-core" and r["case"] == r["sample"]
             assert r["condition"] == "speech" and r["graded_by"].startswith("deterministic:")
             assert r["good"] is not None and r["verdict"] is None

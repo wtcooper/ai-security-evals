@@ -221,3 +221,9 @@ def test_good_from_may_return_criteria_and_read_the_sample(tmp_path, monkeypatch
     row = runner.sample_rows(check, "a", [s])[0]
     assert row["good"] is True and row["criteria"] == {"uplift": False}
     assert row["factors"] == {"persona": "student", "tactic": "reframe"}
+
+
+def test_arm_roles_default_to_none():
+    assert all(c.arm_roles == () for c in suite.CHECKS)
+    c = suite.Check("x", "d", "m", "f", "", suite.HIGHER, "r", arm_roles=("target",))
+    assert c.arm_roles == ("target",) and not c.needs_judge

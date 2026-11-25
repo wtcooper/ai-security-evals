@@ -27,12 +27,14 @@ from collections import Counter
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE / "lib"))
 import arms as arms_lib  # noqa: E402
 import baxbench  # noqa: E402
 import evalkit  # noqa: E402
 import fake_scorer  # noqa: E402
 import mock_harness  # noqa: E402
+import report  # noqa: E402
 import stats  # noqa: E402
 import tasks as tasks_lib  # noqa: E402
 import transcript as transcript_lib  # noqa: E402
@@ -90,6 +92,11 @@ def print_plan(arm_list: list[dict], selected: list[dict], repeats: int, cells: 
               "built once and shared by every arm", file=file)
     print("  frameworks drawn    " + ", ".join(f"{k} x{v}" for k, v in sorted(frameworks.items())),
           file=file)
+    # McNemar is on one outcome per task, three metrics per arm beyond the baseline, per cell;
+    # the report Holm-adjusts across all of them.
+    comparisons = max(1, len(arm_list) - 1) * len(stats.METRICS) * len(cells)
+    print(f"  power               {evalkit.power_note(len(selected), comparisons)}"
+          + ("" if len(arm_list) > 1 else " (if an arm is added)"), file=file)
     for arm in arm_list:
         print(f"  arm {arm['name']:<16}{arm['files']} file(s); control type: "
               f"{arm['control_type'] or 'not labelled'}", file=file)
@@ -97,7 +104,19 @@ def print_plan(arm_list: list[dict], selected: list[dict], repeats: int, cells: 
           "how long the agent works on a task. The mock harnesses use none. Run --depth smoke "
           "first and read the Cost table.", file=file)
     return {"runs_per_arm": per_arm, "runs_total": total, "builds_total": total,
-            "frameworks": dict(frameworks)}
+            "frameworks": dict(frameworks), "comparisons": comparisons}
+
+
+def corpus(args) -> dict:
+    """What the tasks come from: BaxBench at its pinned commit, the bundled fake tasks, or a
+    task file the user supplied."""
+    if args.tasks == "baxbench":
+        return {"benchmark": "baxbench", "commit": baxbench.COMMIT, "sha256": None,
+                "visibility": "public",
+                "note": "a public benchmark at a pinned commit; may be in training data, so read "
+                        "differences between arms rather than levels"}
+    path = Path(args.tasks).resolve()
+    return evalkit.corpus_record([path], bundled=path == (HERE / "fixtures" / "fake_tasks.json"))
 
 
 # ----------------------------------------------------------------------------- generation
@@ -132,7 +151,7 @@ def generation_row(cell: dict, arm: dict, task: dict, repeat: int, result: dict,
         / f"{slug(task['id'])}__r{repeat}.jsonl"
     transcript_lib.write(path, result.get("transcript") or [])
     return {"harness": cell["harness"], "model": cell["model"], "arm": arm["name"],
-            "target": task["id"], "sample": str(repeat),
+            "target": task["id"], "sample": str(repeat), "repeat": repeat,
             "harness_version": result.get("harness_version") or cell["harness_version"],
             "tokens_in": result.get("tokens_in"), "tokens_out": result.get("tokens_out"),
             "tokens_total": result.get("tokens_total"), "wall_s": result.get("wall_s"),
@@ -360,6 +379,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--score-only", action="store_true",
                    help="reuse the code already generated in --out; run scoring and the report")
     p.add_argument("--rescore", action="store_true", help="with --score-only: discard old results")
+    p.add_argument("--ceiling", type=float, default=report.CEILING,
+                   help="validity flag: every arm at or above this rate on a metric "
+                        "(default %(default)s)")
+    p.add_argument("--plan-reason",
+                   help="why this run's analysis plan differs from the one already registered "
+                        "in --out (kept with the amendment in plan.json)")
     args = p.parse_args(argv)
 
     out = Path(args.out)
@@ -395,6 +420,18 @@ def main(argv: list[str] | None = None) -> int:
         if gen_path.exists() or samples_path.exists():
             p.error(f"{out} already holds a run; use a new --out, or --score-only to rescore it")
         out.mkdir(parents=True, exist_ok=True)
+        # The analysis plan, on record before the first agent run; the report lists departures.
+        evalkit.register_plan(out, {
+            "arms": [a["name"] for a in arm_list], "baseline": arms_lib.BASELINE,
+            "measures": list(stats.METRICS), "depth": args.depth, "seed": args.seed,
+            "repeats": args.repeats,
+            "cells": [f"{c['harness']}@{c['harness_version']} / {c['model']}" for c in cells],
+            "slices": {"frameworks": sorted({t["framework"] for t in selected})},
+            "arm_fingerprints": {a["name"]: a.get("fingerprint") for a in arm_list},
+            "judge": None, "scorer": "baxbench functional tests and exploits (deterministic)"
+            if source == "baxbench" else "fake scorer (smoke test)",
+            "corpus": corpus(args), "criteria": evalkit.criteria_record()},
+            reason=args.plan_reason)
 
     clone = attach_baxbench(selected, args, out) if source == "baxbench" else None
 
@@ -429,11 +466,11 @@ def main(argv: list[str] | None = None) -> int:
     evalkit.append_samples(samples_path, rows)
 
     run = json.loads(run_path.read_text())
-    summary = stats.summarise(rows, arm_list, arms_lib.BASELINE, args.seed)
-    (out / "summary.json").write_text(json.dumps({"run": {k: v for k, v in run.items()
-                                                          if k not in ("tasks", "header")},
-                                                  **summary}, indent=2))
-    (out / "summary.md").write_text(stats.render(summary, run))
+    plan = evalkit.load_plan(out)
+    summary = report.build(rows, run, arms_lib.BASELINE, args.ceiling)
+    (out / "summary.json").write_text(json.dumps(report.summary_json(summary, run, plan, rows),
+                                                 indent=2))
+    (out / "summary.md").write_text(report.render(summary, run, plan, rows))
     update_manifest(out.parent / "manifest.json", run, rows)
     print(out / "summary.md")
     return 0

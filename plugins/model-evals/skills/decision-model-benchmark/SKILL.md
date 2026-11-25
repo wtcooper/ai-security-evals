@@ -295,13 +295,14 @@ its data terms.
   attacker who adapts to the model can do.
 - **Axis rows do not rest on the same policies** (a confound by construction, stated rather
   than fixed). `option_order` and `option_rename` exist only for the three choice policies;
-  `option_order.rotate` only for `alert_triage` (the one policy with more than two options);
-  `padding.log_lines` is left out of `data_sensitivity`; `injection_twin` has no
+  `option_order.rotate` only for `alert_triage` (the one choice policy with more than two
+  options); `padding.log_lines` is left out of `data_sensitivity`; `injection_twin` has no
   `injection_screen` cases; paraphrase, encoding and structure cover all five. So compare one
   axis or technique across arms (identical requests), not axes or techniques with each other.
   Fail-open and fail-closed also pool the policies in different proportions (25 and 29
   cases; `data_sensitivity` gives 3 and 5): compare each across arms, not with each other.
-  Within a policy, the technique drawn at `standard` is seeded per case, not tied to it.
+  At `standard` the one technique per axis is drawn per case with the seed, so within a
+  policy techniques are spread over cases rather than fixed to particular ones.
 - **Provenance.** Every seed case carries `source` (`synthetic`, basis `dm-fail-open`: the
   cases are hand-written clean decisions; the other threats are variants of them) and the
   corpus `_meta.added` date. `threats.json` lists under `observed_in` the incident-register

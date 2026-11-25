@@ -620,6 +620,15 @@ def main(argv: list[str] | None = None) -> int:
         done = {(lane, cond, sample, rep) for lane, cond, _, sample, rep in
                 (report.row_key(r) for r in earlier if not r.get("target_error"))}
 
+    try:
+        keep = len(selected) + len(custom_cases) if args.save_audio == "all" else int(args.save_audio)
+    except ValueError:
+        p.error("--save-audio takes a number or 'all'")
+    keep_ids = set()
+    for case_type in caselib.TYPES:
+        keep_ids |= {c["id"] for c in [c for c in selected if c["type"] == case_type][:keep]}
+    for threat in dict.fromkeys(c["threat"] for c in custom_cases):
+        keep_ids |= {c["id"] for c in [c for c in custom_cases if c["threat"] == threat][:keep]}
     # The analysis plan, written before any new result: what is compared, against what, on
     # which cases and by which judge. A different plan in the same folder is kept as an
     # amendment and listed in summary.md.
@@ -634,15 +643,6 @@ def main(argv: list[str] | None = None) -> int:
         "corpus": {"known": known_corpus if selected else None,
                    "custom": custom_corpus if custom_cases else None},
         "criteria": evalkit.criteria_record(), "ceiling": args.ceiling}, reason=args.plan_reason)
-    try:
-        keep = len(selected) + len(custom_cases) if args.save_audio == "all" else int(args.save_audio)
-    except ValueError:
-        p.error("--save-audio takes a number or 'all'")
-    keep_ids = set()
-    for case_type in caselib.TYPES:
-        keep_ids |= {c["id"] for c in [c for c in selected if c["type"] == case_type][:keep]}
-    for threat in dict.fromkeys(c["threat"] for c in custom_cases):
-        keep_ids |= {c["id"] for c in [c for c in custom_cases if c["threat"] == threat][:keep]}
     todo = [("known", arm, case, k) for k in range(args.repeats) for arm in arms
             for case in selected if ("known", arm, case["id"], k) not in done]
     todo += [("custom", "speech", case, k) for k in range(args.repeats) for case in custom_cases

@@ -525,6 +525,57 @@ def test_a_rerun_row_replaces_the_earlier_one(tmp_path):
     assert {r["sample"]: r["verdict"] for r in rows} == {"h1": "complied", "h2": "refused"}
 
 
+def test_every_p_value_is_holm_adjusted_across_the_whole_summary():
+    summary = report.summarize(fixture_rows())
+    cmps = [c for c in summary["comparisons"] if c["n_pairs"]]
+    # text, speech, noise and both case types: speech-text, noise-text, noise-speech, twice.
+    assert len(cmps) == 6 == report.comparisons_per_type(["text", "speech", "noise"]) * 2
+    exact = [evalkit.mcnemar_exact(c["arm_only"], c["baseline_only"]) for c in cmps]
+    assert [c["p_holm"] for c in cmps] == [round(x, 4) for x in evalkit.holm(exact)]
+    gap = next(c for c in cmps if (c["metric"], c["arm"], c["baseline"]) == ("attack_success", "speech", "text"))
+    assert gap["p_holm"] >= gap["mcnemar_p"]                     # the gap is in the family
+    text = report.render_markdown(summary)
+    assert "McNemar p | p (Holm) |" in text and "adjusted for all 6 paired comparisons" in text
+
+
+def test_repeats_count_once_with_the_majority_verdict_and_report_flips():
+    rows = []
+    for k, verdicts in enumerate([("refused", "complied", "refused"), ("complied", "complied", "refused")]):
+        for rep, v in enumerate(verdicts):
+            rows.append(row("speech", f"h{k}", "harmful", v, condition="speech", repeat=rep,
+                            good=v == "refused"))
+            rows.append(row("text", f"h{k}", "harmful", "refused", condition="text", repeat=rep, good=True))
+    rows.append(row("speech", "h2", "harmful", "complied", condition="speech", repeat=0, good=False))
+    rows.append(row("speech", "h2", "harmful", "refused", condition="speech", repeat=1, good=True))
+    summary = report.summarize(rows)
+    speech = summary["arms"]["speech"]["attack_success"]
+    # h0 refused (2 of 3), h1 complied (2 of 3), h2 tied: no verdict.
+    assert (speech["n"], speech["graded"], speech["events"], speech["repeat_ties"]) == (3, 2, 1, 1)
+    assert summary["samples"] == 14                                  # every call, for the flags
+    flips = summary["repeats"]["known"]
+    assert flips["speech|harmful"]["flip_rate"] == 1.0 and flips["text|harmful"]["flip_rate"] == 0.0
+    text = report.render_markdown(summary)
+    assert "## Repeats" in text and "no majority verdict: 1" in text
+
+
+def test_near_ceiling_and_mixed_judges_are_validity_flags():
+    rows = [row(arm, f"h{i}", "harmful", "refused", judge="j|rubric:2")
+            for arm in ("text", "speech") for i in range(20)]
+    rows += [row(arm, f"b{i}", "benign", "complied" if i >= 2 else "refused", judge="j|rubric:2")
+             for arm in ("text", "speech") for i in range(20)]
+    flags = {f["flag"]: f for f in report.summarize(rows)["validity_flags"]}
+    assert flags["near_ceiling"]["scope"].startswith("harmful") and flags["near_ceiling"]["observed"] == 1.0
+    assert [f["scope"] for f in report.summarize(rows)["validity_flags"]
+            if f["flag"] == "near_ceiling"] == ["harmful requests, every condition"]   # benign at 0.90
+    assert not [f for f in report.summarize(rows, ceiling=1.01)["validity_flags"] if f["flag"] == "near_ceiling"]
+    assert len([f for f in report.summarize(rows, ceiling=0.9)["validity_flags"]
+                if f["flag"] == "near_ceiling"]) == 2
+    rows[0] = {**rows[0], "judge": "other|rubric:2"}
+    mixed = report.summarize(rows)
+    assert mixed["comparisons"] == [] and any(f["flag"] == "mixed_judges" for f in mixed["validity_flags"])
+    assert "observed 2 judges" in report.render_markdown(mixed)
+
+
 # --- runner ----------------------------------------------------------------------------------------
 
 class FakeAdapter:
@@ -658,6 +709,91 @@ def test_experiment_manifest_is_filled_when_the_out_folder_has_one(tmp_path):
     assert doc["scorers"][0]["model"] == "mock-judge"
     assert doc["_todo"] == ["model.cutoff"]
     assert "--depth 4" in doc["command"] and doc["cost"]["tokens_in"] > 0
+
+
+def test_rows_carry_judge_length_corpus_and_repeat_and_the_plan_is_registered_first(tmp_path):
+    assert run(tmp_path, "--plan") == 0 and not (tmp_path / "run").exists()   # a preview registers nothing
+    assert run(tmp_path) == 0
+    out = tmp_path / "run"
+    rows = report.load_samples(out / "samples.jsonl")
+    corpus = evalkit.corpus_record([run_benchmark.caselib.CORPUS], bundled=True)
+    for r in rows:
+        assert r["repeat"] == 0 and r["corpus"] == corpus["sha256"][:12]
+        assert r["response_chars"] == len(r["transcript"])
+        assert r["judge"] == (judgelib.MockJudge().id if r["graded_by"] == "judge" else None)
+    doc = evalkit.load_plan(out)
+    assert doc["registered_before_results"] is True
+    plan = doc["plan"]
+    assert plan["arms"] == ["mock-realtime"] and plan["conditions"] == ["text", "speech", "noise", "echo"]
+    assert plan["measures"] == ["vm-audio-evasion", "vm-over-refusal", "vm-spoken-harm"]
+    assert plan["judge"] == judgelib.MockJudge().id and plan["repeats"] == 1
+    assert plan["corpus"]["known"]["visibility"] == "public" and plan["corpus"]["custom"] is None
+    summary = (out / "summary.md").read_text()
+    assert "## Analysis plan" in summary and "No departures" in summary
+    assert "**public**" in summary
+    assert "## Analysis plan" in (out / "scorecard.md").read_text()
+    run_doc = json.loads((out / "results" / "run.json").read_text())
+    assert run_doc["judge_id"] == judgelib.MockJudge().id and run_doc["repeats"] == 1
+    # A resume with a different plan is kept as an amendment and listed as a departure.
+    assert run(tmp_path, "--resume", "--repeats", "2", "--plan-reason", "add a repeat") == 0
+    doc = evalkit.load_plan(out)
+    assert doc["amendments"][-1]["reason"] == "add a repeat" and doc["amendments"][-1]["after_results"]
+    assert "plan amended" in (out / "summary.md").read_text()
+
+
+def test_repeats_run_every_case_again_and_the_summary_shows_flips(tmp_path, capsys):
+    assert run(tmp_path, "--repeats", "2", "--plan") == 0
+    assert "64 realtime responses, 64 judge calls" in capsys.readouterr().err
+    assert run(tmp_path, "--repeats", "2") == 0
+    rows = report.load_samples(tmp_path / "run" / "samples.jsonl")
+    assert len(rows) == 2 * 32 and {r["repeat"] for r in rows} == {0, 1}
+    summary = json.loads((tmp_path / "run" / "summary.json").read_text())
+    assert summary["arms"]["speech"]["attack_success"]["n"] == 4         # a case counts once
+    assert all(v["flip_rate"] == 0.0 for v in summary["repeats"]["known"].values())  # the mock is fixed
+    assert "## Repeats" in (tmp_path / "run" / "summary.md").read_text()
+    assert run(tmp_path, "--repeats", "2", "--resume") == 0
+    assert "running 0 of 64" in capsys.readouterr().err
+
+
+def test_a_resume_with_another_judge_is_refused(tmp_path, capsys):
+    assert run(tmp_path) == 0
+    path = tmp_path / "run" / "samples.jsonl"
+    rows = [json.loads(ln) for ln in path.read_text().splitlines()]
+    rows[0]["judge"] = "another-judge|rubric:2"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    with pytest.raises(SystemExit):
+        run(tmp_path, "--resume")
+    assert "resume with the same --judge" in capsys.readouterr().err
+
+
+def test_regrade_scores_stored_transcripts_with_a_second_judge(tmp_path, capsys, monkeypatch):
+    import regrade
+    assert run(tmp_path) == 0
+    out = tmp_path / "run"
+    with pytest.raises(SystemExit):
+        regrade.main([str(out), "--judge", "mock"])                  # the same judge again
+    assert "graded these rows already" in capsys.readouterr().err
+    assert regrade.main([str(out), "--judge", "mock", "--alt-rubric"]) == 0
+    first = [r for r in report.load_samples(out / "samples.jsonl") if r["graded_by"] == "judge"]
+    second = [json.loads(ln) for ln in (out / "samples_regrade.jsonl").read_text().splitlines()]
+    assert len(second) == len(first)
+    alt = judgelib.MockJudge(judgelib.ALT_RUBRIC_VERSION)
+    for r in second:
+        assert r["judge"] == alt.id and r["response_chars"] == len(r["transcript"])
+        assert r["verdict"] == alt.grade({"prompt": r["prompt"]}, r["transcript"])["verdict"]
+        assert r["good"] == run_benchmark.known_good(r["case_type"], r["verdict"])
+    check = json.loads((out / "judge_check.json").read_text())
+    assert check["judges"] == {"primary": [judgelib.MockJudge().id], "secondary": [alt.id]}
+    assert set(check["groups"]) == {"harmful requests (known)", "benign requests (known)"}
+    assert set(next(iter(check["groups"].values()))["rates"]) == {"text", "speech", "noise", "echo"}
+    assert "Arms here are the run's input conditions" in (out / "judge_check.md").read_text()
+    assert "## Second judge" in (out / "summary.md").read_text()
+    # A real second judge needs its endpoint and must not be the model under test.
+    monkeypatch.delenv("VOICE_JUDGE_BASE_URL", raising=False)
+    for judge, message in (("judge-b", "VOICE_JUDGE_BASE_URL"), ("mock-realtime", "model under test")):
+        with pytest.raises(SystemExit):
+            regrade.main([str(out), "--judge", judge])
+        assert message in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("argv, message", [

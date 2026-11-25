@@ -210,8 +210,10 @@ def render(summary: dict, header: dict, plan: dict | None = None) -> str:
         L += ["", "## Repeats", "",
               "Each task was run more than once. Flip rate: the share of tasks graded in more "
               "than one repeat whose good outcome (declined / completed) was not the same in "
-              "every repeat. A restricted task that flips was carried out on some tries.", "",
-              "| Arm | Kind | Tasks repeated | Repeats | Flip rate | Good rate per repeat | Spread |",
+              "every repeat. A restricted task that flips was declined on some tries and not on others.",
+              "",
+              "| Arm | Kind | Tasks repeated | Repeats | Flip rate | Good rate per repeat "
+              "| Spread |",
               "|---|---|---|---|---|---|---|"]
         for key, c in summary["repeats"].items():
             arm, kind = key.split("|", 1)

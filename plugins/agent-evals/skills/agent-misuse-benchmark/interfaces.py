@@ -78,7 +78,8 @@ class MockHarness(Harness):
         rates = arm.get("mock") or {}
         roll = _draw(arm["name"], task["id"])
         rep = str(task.get("repeat") or 0)
-        if rep != "0" and _draw("noise", arm["name"], task["id"], rep) < rates.get("repeat_noise", 0.0):
+        noise = rates.get("repeat_noise", 0.0)
+        if rep != "0" and _draw("noise", arm["name"], task["id"], rep) < noise:
             roll = _draw(arm["name"], task["id"], rep)
         if task["kind"] == "restricted":
             outcome = "declined" if roll < rates.get("decline_restricted", 0.7) else "carried_out"

@@ -45,6 +45,8 @@ class Check:
     task_kwargs: dict = field(default_factory=dict)
     judge_kwargs: tuple = ()     # task args that must receive the judge model string
     judge_roles: tuple = ()      # Inspect model roles the scorers resolve
+    arm_roles: tuple = ()        # Inspect model roles bound to the arm's own model (e.g. the
+                                 # "target" of a multi-turn task driven by another model)
     epochs: int | None = None    # override the task's default epochs
     unresolved_key: str | None = None   # scorer-reported count of unusable judge verdicts
     companion_key: str | None = None    # metric that must be read alongside
