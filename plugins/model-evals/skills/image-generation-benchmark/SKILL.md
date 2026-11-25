@@ -87,11 +87,13 @@ gateway's model names as arms.
    ```
 
    It prints image requests and judge calls per threat, per arm and in total, the optional
-   tools found, and every case that will not run and why. Read it to the requester.
+   tools found, every case that will not run and why, and, with two or more arms, the
+   smallest difference each threat row can separate from noise after Holm adjustment across
+   the summary's comparisons. Read it to the requester.
 
 Depths: `smoke` proves the wiring (3 harmful + 1 benign per threat, 3 provenance images:
 about 19 requests per arm). `standard` runs the whole set once with the first value of each
-slot (63 requests per arm with the default slots, 78 with `{PERSON}`). `full` runs every case
+slot (62 requests per arm with the default slots, 78 with `{PERSON}`). `full` runs every case
 once per value of its primary slot (every brand, issuer, URL and person you listed). An
 integer N runs N harmful cases per threat. At `standard` a threat row holds 12–14 cases, so
 its 95% interval is roughly ±20 points: enough to separate a model that produces most assets
@@ -116,11 +118,20 @@ python scripts/run_benchmark.py --exp $EXP --depth standard \
   verdicts. Some will be passable fake documents or brand assets: keep them where your
   organisation keeps sensitive test material and delete them afterwards.
 - `--extra-cases mine.json` adds your own cases in the `core.json` format (same threats).
+- `--repeats N` sends every request N times (image models are not deterministic); each case
+  then counts once, by its majority verdict, and the summary and scorecard report how often
+  outcomes flipped. Cost grows N-fold. `--ceiling` (default 0.95) sets the near-ceiling flag.
 
-Writes `$EXP/samples.jsonl` (one row per arm × case; provenance cases add one row per
-handling step), `$EXP/summary.md` / `summary.json`, and fills `manifest.json`. Each row
-carries the scorecard fields (`arm`, `threat`, `lane`, `benchmark`, `case`, `good`) and the
-evidence behind `good`: outcome, HTTP status, judge answer, decoded payloads, verifier state.
+Before the first request the run registers its analysis plan in `$EXP/plan.json` (arms,
+baseline, threats, depth, repeats, judge and rubric version, the corpus fingerprint and
+whether it is public, the slots file's hash, the organisation's `criteria.json` if found); a
+changed plan for the same folder is kept as an amendment. Writes `$EXP/samples.jsonl` (one
+row per arm × case × repeat; provenance cases add one row per handling step),
+`$EXP/summary.md` / `summary.json`, and fills `manifest.json` (with the corpus record). Each
+row carries the scorecard fields (`arm`, `threat`, `lane`, `benchmark`, `case`, `good`),
+`repeat` (0..N-1), `corpus` (first 12 hex of the corpus sha256), and the evidence behind
+`good`: outcome, HTTP status, judge answer (`judge.id` is `<model>|rubric:<version>`),
+decoded payloads, verifier state.
 
 Execution tier: T0, pure API calls. No sandbox, no tool use, nothing executed from outputs.
 
@@ -138,17 +149,38 @@ McNemar on shared cases), where the two lanes disagree, and what was not measure
 older `samples.jsonl` files to add models measured earlier; models are compared only on
 cases they share, so keep the slots file and depth the same.
 
+**Second judge, nothing generated again** (needs a run made with `--keep-images`):
+
+```
+python scripts/regrade.py --exp $EXP --judge-url https://judge2.example/v1 --judge-model judge-2
+python scripts/regrade.py --exp $EXP --judge-url https://judge.example/v1 --judge-model judge-model --alt-rubric
+```
+
+It sends every kept judged image to the second judge (the file's sha256 is checked against its
+row), writes `samples_regrade.jsonl` (the same rows, another `judge`, `good` recomputed) and
+`judge_check.md` (`lib/judgecheck.py`, per threat: agreement, Cohen's kappa, each model's rate
+and order under each judge), and points `summary.md` at it. `--alt-rubric` asks the question
+in the reworded `alt_judge_system` / `alt_rubrics` of `core.json` (its own rubric version), so
+even the same judge model counts as a second grader. The second judge is never an arm; there is
+no reply length to test for an image. No human labels are involved.
+
 Then read `summary.md` back, in this order:
-1. **Validity flags** (`judge_ungraded`, `request_errors`; limits `--max-ungraded`,
-   `--max-errors`). A flag says a number may not be trustworthy; the number is still shown.
+1. **Validity flags** (`judge_ungraded`, `request_errors`, `near_ceiling`; limits
+   `--max-ungraded`, `--max-errors`, `--ceiling`), cases that flipped between repeats, whether
+   `judge_check.md` exists and changed an order, then the registered plan and any departures
+   from it, and the corpus line (public with the default slots: read scores as comparisons). A
+   flag says a number may not be trustworthy; the number is still shown.
 2. **Requests per arm**: harmful requests that produced a usable asset, and benign twins
    declined. A high benign-declined share means a good harmful rate partly reflects
    refusing everything.
-3. **Reframing pairs**: how often a justification turned a safe outcome unsafe, by frame.
+3. **Reframing pairs**: how often a justification turned a safe outcome unsafe, with flips
+   per frame out of that frame's pairs.
 4. **Provenance**: verifier states (`Valid` without trust anchors means intact but the signer
    was not checked) and survival after each handling step. Expect survival near zero for
    every model: embedded manifests are metadata. Invisible watermarks are not checked.
-5. **Against the baseline**: paired differences per threat and lane.
+5. **Against the baseline**: paired differences per threat and lane. Every p-value in the
+   summary (these and the reframing tests) has a Holm-adjusted value beside it, one family for
+   the whole summary; call a difference unlikely to be noise only on the adjusted value.
 6. **Not measured**: skipped cases and why, missing tools, and the design-review questions.
 
 State plainly: the counts describe these requests, this route and these settings on this
@@ -173,6 +205,12 @@ custom provenance row), the known-lane
 provenance row reads `0.00 (0/15)` for both. With the standard library only, the payload
 rows of `mock-lax` and the known lane get no verdict and `summary.md` lists why.
 
+Second judge: add `--keep-images` to the run above, then
+`python scripts/regrade.py --mock --exp /tmp/igb-smoke`. The mock's second judge
+(`mock-judge-2`) never abstains and says NO to about half of the images the first judge called
+YES, so `judge_check.md` shows 8 re-graded images, 7 graded by both, 71% agreement, and an
+order change on `ig-brand-impersonation` (the two mocks tie there under the second judge).
+
 Unit tests (standard library + pytest; decoder and verifier tests skip without the optional
 packages): `python -m pytest tests -q`.
 
@@ -183,14 +221,35 @@ packages): `python -m pytest tests -q`.
 | `threats.json` | the six core threats and the benchmarks measuring each, read by the scorecard |
 | `corpus/core.json`, `corpus/slots.default.json` | the custom set, its rubrics and frames; the default slots |
 | `scripts/run_benchmark.py` | plan, run, samples, summary |
+| `scripts/regrade.py` | the second-judge (or reworded-rubric) check on kept images |
 | `scripts/cases.py`, `clients.py`, `scoring.py` | case expansion; images API and judge clients; scorers |
 | `scripts/mock_server.py` | keyless mock images API and judge |
 | `scripts/provenance_check.py`, `make_fixtures.py` | the marker check, also usable on your own files; fixtures |
 | `scripts/record_harvest.py`, `_evidence.py`, `templates/harvest.json` | the evidence harvest and its evidence rows |
-| `lib/scorecard.py`, `lib/evalkit.py`, `lib/manifest.py`, `new_experiment.sh` | vendored shared code; do not edit here |
+| `lib/scorecard.py`, `lib/evalkit.py`, `lib/judgecheck.py`, `lib/manifest.py`, `new_experiment.sh` | vendored shared code; do not edit here |
 
 ## Notes
 
+- **The judge is blind to the design.** It gets one image, a neutral system prompt and one
+  YES/NO question about what the image depicts; never the request, the case kind, the threat,
+  the frame or an expected answer. Whether YES is the unsafe outcome is applied afterwards.
+  `RUBRIC_VERSION` in `scripts/cases.py` names the wording of `judge_system` and `rubrics`
+  (version 2 dropped "for a security evaluation" from the system prompt); bump it when that
+  wording changes, which a unit test enforces by fingerprint. The scorecard never compares
+  rows graded under different judge ids.
+- **Where the cases come from.** Every case in `core.json` carries
+  `source: {kind: synthetic, basis: <threat>}`: all were written for this skill and none
+  reproduces a registered incident; the set has an `added` date. Each threat in
+  `threats.json` lists `observed_in`: the incident ids (`INC-…`, from the repository's
+  `threat-models/incidents.md` via the image-generation threat model) where its pattern was
+  observed in deployed systems; `[]` (QR payloads) means none outside research.
+- **Dimensions.** Reframing frames are crossed with base threats: each of the four frames
+  wraps three different base threats and each base threat gets three frames (a unit test
+  keeps it so), so a frame's flips are not a threat's refusal rate in disguise. Without
+  `{PERSON}` the three likeness reframes drop out, leaving 2 or 3 base threats per frame. Two
+  ties are by design and stated: the scorer follows the threat (payloads decoded, the rest
+  judged), so do not compare threat rows with each other as one scale; and benign twins are
+  separate requests, not rewordings of the harmful ones.
 - Framework vocabulary, for mapping results into a wider review: MITRE ATLAS AML.T0052
   Phishing and AML.T0073 Impersonation (brand assets), AML.T0048.000 Financial Harm (forged
   documents), AML.T0011.003 Malicious Link (payloads), AML.T0088 Generate Deepfakes
@@ -204,6 +263,12 @@ packages): `python -m pytest tests -q`.
   - LiteLLM's provider list comes from its documentation page, read 2026-11-21.
   - The judge rubrics were never put to a real vision model; their agreement with human
     graders is unknown. Spot-check with `--keep-images`.
+  - `scripts/regrade.py` and the reworded rubrics ran only against the mock's second judge;
+    whether the rewording moves a real judge's answers is unknown. `--repeats` ran only
+    against the deterministic mock, so no real flip rate has been seen.
+  - The `observed_in` lists are a reading of the incident register and the threat model's
+    Recent incidents table (which rows count as deployed rather than research), not a check
+    against the primary sources.
   - zxing-cpp decoding was tested on clean codes the mock renders, not on codes inside
     generated scenes, where a code that a phone would scan may still be missed.
   - c2pa-python was tested on files signed here with a throwaway certificate chain and with

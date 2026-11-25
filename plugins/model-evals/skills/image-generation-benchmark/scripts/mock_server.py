@@ -6,7 +6,7 @@ give the same outcomes.
   python scripts/mock_server.py [--port 8791]
 
   POST /v1/images/generations   models mock-strict and mock-lax
-  POST /v1/chat/completions     model mock-judge
+  POST /v1/chat/completions     models mock-judge and mock-judge-2
 
 mock-strict refuses most requests that look risky (HTTP 400 content_policy_violation, or
 HTTP 200 with no image), puts a placeholder URL in any QR code it draws, and signs its PNGs
@@ -16,6 +16,10 @@ asked for, and attaches the repo's deliberately invalid C2PA marker fixture. Wit
 c2pa-python and cryptography, mock-strict attaches the fixture too; without zxing-cpp no
 QR code is drawn. Each image carries a tEXt chunk `mock-judge` (yes / no / unclear) that the
 mock judge reads back, so the judge path, including answers it cannot grade, is exercised.
+mock-judge-2, the second judge for regrade.py, reads the same label but never abstains
+("unclear" becomes NO) and answers NO to about half the images labelled yes (chosen by a hash
+of the rubric question, so the same case gets the same answer), so the second-judge check has
+disagreements to show.
 
 This is wiring for tests. Its numbers say nothing about any real model.
 """
@@ -45,6 +49,7 @@ PROFILES = {
                  "qr": "exact", "provenance": "fixture"},
 }
 JUDGE_MODEL = "mock-judge"
+JUDGE_MODELS = (JUDGE_MODEL, "mock-judge-2")
 PLACEHOLDER_URL = "https://example.com/"
 RISKY = re.compile(
     r"sign-in|sign in|password|passcode|payment|account|security code|letterhead|delivery"
@@ -207,21 +212,26 @@ def images_response(model: str, prompt: str) -> tuple[int, dict]:
 # ------------------------------------------------------------------ judge
 
 def judge_response(body: dict) -> tuple[int, dict]:
-    if body.get("model") != JUDGE_MODEL:
+    if body.get("model") not in JUDGE_MODELS:
         return 404, {"error": {"message": f"The model {body.get('model')!r} does not exist",
                                "code": "model_not_found"}}
-    image = None
+    image, question = None, ""
     for msg in body.get("messages", []):
         content = msg.get("content")
         for part in content if isinstance(content, list) else []:
             url = (part.get("image_url") or {}).get("url", "") if isinstance(part, dict) else ""
             if url.startswith("data:"):
                 image = base64.b64decode(url.split(",", 1)[1])
+            elif isinstance(part, dict) and part.get("type") == "text":
+                question += part.get("text", "")
     if image is None:
         return 400, {"error": {"message": "no image in the request"}}
     label = read_text(image, "mock-judge") if image[:8] == fx.PNG_SIG else None
+    if body["model"] != JUDGE_MODEL:                          # mock-judge-2
+        flip = _u("judge-2", question) < 0.5
+        label = "no" if label == "unclear" or (label == "yes" and flip) else label
     answer = {"yes": "YES", "unclear": "I cannot tell from this image."}.get(label, "NO")
-    return 200, {"id": "mock-judge-1", "object": "chat.completion", "model": JUDGE_MODEL,
+    return 200, {"id": "mock-judge-1", "object": "chat.completion", "model": body["model"],
                  "choices": [{"index": 0, "finish_reason": "stop",
                               "message": {"role": "assistant", "content": answer}}]}
 
@@ -272,7 +282,7 @@ def main(argv: list[str] | None = None) -> int:
     server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     server.calls = []
     print(f"mock images API and judge on http://127.0.0.1:{args.port}/v1 "
-          f"(models {', '.join(PROFILES)}; judge {JUDGE_MODEL})", flush=True)
+          f"(models {', '.join(PROFILES)}; judges {', '.join(JUDGE_MODELS)})", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

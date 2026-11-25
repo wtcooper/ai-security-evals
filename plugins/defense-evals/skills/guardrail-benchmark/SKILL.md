@@ -61,7 +61,17 @@ Validate: `npx promptfoo validate -c promptfooconfig.yaml`.
 **Depth** (the labelled corpus is bundled in `corpus/`, about 2,900 cases): `smoke`
 (`--filter-sample 30`), `standard` (`--filter-sample 150`), or `full` (omit the flag).
 One request per case, no model calls. For a vendor comparison plan one run per vendor
-with the same depth.
+with the same depth **and the same `--filter-sample-seed`**, so every guardrail sees the
+same cases. After opening the experiment folder (step 3), register the plan and show the
+cost:
+```
+python direct.py plan "<EXP>" --arms vendor-a,vendor-b --baseline vendor-a --depth standard \
+  [--seed 20260809] [--channel input] [--ceiling 0.95]
+```
+It writes `<EXP>/plan.json` (arms, baseline, depth, seed, channel, the bundled corpus's
+fingerprint, the organisation's `criteria.json` if present), prints attack and benign cases
+per guardrail with the smallest paired difference they can separate, and prints the eval
+command for each arm. A changed plan is kept as an amendment (`--reason`).
 
 ### 2b. In-line mode — profile the gateway
 ```
@@ -90,9 +100,12 @@ block (refusal or 4xx), the name or gateway config is wrong.
 `cyse4_mitre_frr` (benign security questions refused — the over-block cost),
 `cyse4_multilingual_prompt_injection` and `agentdojo` (injected tool output). Any check id
 from `lib/inspect_suite.py` works. **Depth:** `smoke` (25 — wiring only), `standard`
-(100), `full`, or a number. Show the cost first:
+(100), `full`, or a number. **Repeats:** `--epochs N` runs every sample N times (default:
+each check's own; the shared checks pin judged ones to 1); the report then shows how often a
+case's outcome changed. Show the cost first; with more than one arm it also shows the
+smallest paired difference each check can separate:
 ```
-python run_inline.py --arms arms.json --checks guardrail --depth standard --plan
+python run_inline.py --arms arms.json --checks guardrail --depth standard [--epochs 3] --plan
 ```
 
 ### 3. Open an experiment folder
@@ -107,9 +120,11 @@ snapshots the config, `arms.json` and a redacted `.env`.
 ### Direct mode
 ```
 set -a; . .env; set +a
-npx promptfoo eval -c promptfooconfig.yaml --filter-sample 150 \
-  --output "<EXP>/results/results.json"
+npx promptfoo eval -c promptfooconfig.yaml --filter-sample 150 --filter-sample-seed 20260809 \
+  --output "<EXP>/results/<arm>.json"
 ```
+One output per guardrail, named after its arm, all with the same depth and seed (the
+commands `direct.py plan` printed).
 If everything errors, recheck the request schema and the block-signal mapping with a
 manual curl: the adapter only flags what it can recognise.
 
@@ -117,12 +132,30 @@ manual curl: the adapter only flags what it can recognise.
 ```
 SHIM_GATEWAY_URL=<gateway-url> SHIM_GATEWAY_KEY=<key> SHIM_CONNECTOR=litellm \
 .venv-inspect/bin/python run_inline.py --arms arms.json --model <model> --judge <judge> \
-  --checks guardrail --depth standard --out "<EXP>/results"
+  --checks guardrail --depth standard [--epochs 3] [--ceiling 0.95] --out "<EXP>/results"
 ```
+Before the first sample runs, the analysis plan (arms, baseline, checks, depth, seed, epochs,
+judge, model, each arm's guardrails, the organisation's `criteria.json` if present) is
+registered in `<EXP>/results/plan.json`. Re-running into the same folder with a different
+plan keeps it as an amendment; say why with `--plan-reason`. The judge must not be the
+model under test; the script refuses it.
 `run_inline.py` starts one injection shim per arm, which adds that arm's guardrail to every
 request and turns a guardrail block (HTTP 400/403 with a block body) into a refusal the
 benchmark can score instead of an aborted run. Every arm runs the same seeded samples.
-Written to `<EXP>/results/`: `results.json`, `samples.jsonl` and `logs/`.
+Written to `<EXP>/results/`: `plan.json`, `results.json`, `samples.jsonl` (each judged row
+records its `judge` and the reply's length) and `logs/`.
+
+**Second judge (judged checks only).** Re-grade the saved replies with a different judge
+model, without calling the arms again, and compare the two judges:
+```
+SHIM_GATEWAY_URL=<gateway-url> SHIM_GATEWAY_KEY=<key> \
+.venv-inspect/bin/python run_inline.py --regrade "<EXP>/results/results.json" \
+  --judge <second-judge> [--regrade-limit 50]
+```
+It writes `samples_regrade.jsonl` and `judge_check.md` (agreement, Cohen's kappa, whether
+the order of arms changes, sensitivity to reply length) beside `results.json`; the report
+points to it. The rubrics are the upstream benchmarks' own, so there is no reworded-rubric
+option here.
 
 Record the exact command in `<EXP>/manifest.json` in both modes.
 
@@ -132,10 +165,17 @@ Record the exact command in `<EXP>/manifest.json` in both modes.
 
 ### Direct mode
 ```
-python lib/summarize.py "<EXP>/results/results.json" --json "<EXP>/summary.json" \
-  | tee "<EXP>/summary.md"
-node lib/extract_transcript.js "<EXP>/results/results.json" > "<EXP>/transcripts/transcript.jsonl"
+python direct.py compare "<EXP>" --json "<EXP>/summary.json" | tee "<EXP>/summary.md"
+python lib/summarize.py "<EXP>/results/<arm>.json"          # one guardrail's full detail
+node lib/extract_transcript.js "<EXP>/results/<arm>.json" > "<EXP>/transcripts/<arm>.jsonl"
 ```
+`direct.py compare` scores every `<EXP>/results/<arm>.json` with `lib/summarize.py`, puts
+the guardrails side by side, and compares each with the baseline on the cases both scored
+(exact McNemar on attacks caught and on benign cases let through; every p is shown raw and
+Holm-adjusted across the report, and only the adjusted value reads as "unlikely to be
+noise"). It opens with **Read first** — summarize's warnings, errored cases, guardrails that
+did not see the same cases, and a `near_ceiling` validity flag when every guardrail is at or
+above `--ceiling` (default the plan's, else 0.95) — and ends with the registered plan.
 Present:
 - **Recall** (catch rate on attacks) and **FPR** (benign wrongly blocked), each with its
   95% interval, then precision and F1. A guardrail that blocks everything has high recall
@@ -145,7 +185,8 @@ Present:
   re-run, or the guardrail is undercounted.
 - **`by_technique_family` and `by_category`.** Name the blind spots, and flag families
   with small n as low-confidence.
-- For input-vs-output or vendor comparisons, put the tables side by side.
+- For input-vs-output or vendor comparisons, the compare report puts the guardrails side
+  by side; read the paired table on p (Holm), and say when a measure is near the ceiling.
 
 ### In-line mode
 ```
@@ -154,7 +195,10 @@ python report.py "<EXP>/results/results.json" --baseline baseline \
 ```
 Present, in this order:
 1. **The "Read first" section** — errors and validity flags (`judge_unresolved`,
-   `low_utility` on `agentdojo`). A flag does not remove the number.
+   `low_utility` on `agentdojo`, `near_ceiling`), cases whose outcome changed between
+   epochs, the registered plan and any departure, and `judge_check.md` if a second judge
+   was run. A flag does not remove the number. Runs with a different judge, depth, seed or
+   epoch count are not compared.
 2. **Risk removed:** the attack benchmarks, baseline against each guardrail, with the
    paired change on the same samples.
 3. **What it cost:** `cyse4_mitre_frr` (benign questions now refused) and, for
@@ -179,6 +223,10 @@ GUARDRAIL_URL=http://127.0.0.1:8723/guardrail GUARDRAIL_API_KEY=x \
 python lib/summarize.py /tmp/gb-direct.json
 ```
 Expected: 40 cases, 0 errors, a low recall and FPR 0 (the mock only knows a few words).
+For the comparison path, run two mock guardrails (`MOCK_BLOCK_WORDS=bomb,malware,exploit,hack`
+on a second port), write each to `<EXP>/results/<arm>.json` with the same `--filter-sample 40
+--filter-sample-seed 7`, then `python direct.py compare <EXP>`: the guardrails score the same
+cases, and the paired table shows a raw and a Holm-adjusted p for each measure.
 
 **In-line mode** — the mock gateway blocks broadly when a guardrail is requested:
 ```
@@ -190,7 +238,10 @@ python report.py /tmp/gb-inline/results.json --baseline baseline
 ```
 Expected: `baseline` refuses nothing; `mock-guard` refuses a share of the benign questions,
 and the paired table shows the guarded arm worse on those samples. That is the over-block
-cost made visible.
+cost made visible. Add `--epochs 2` to see the epoch count in the
+header and the plan section; for the second-judge path, run `--checks cyse4_mitre --depth 4
+--judge mock-judge --out /tmp/gb-judged`, then `--regrade /tmp/gb-judged/results.json --judge
+mock-judge-2`: `judge_check.md` appears beside it and the report points to it.
 
 ## Notes
 - Direct mode measures the classifier, not end-to-end risk; in-line mode measures the
@@ -205,4 +256,8 @@ cost made visible.
 - The bundled corpus is licence-clean (see `corpus/` manifest); the flattened multi-turn
   cases come from SafeMTData (MIT).
 - **Not verified:** no run against a real guardrail vendor or gateway was possible where
-  this was built. Both modes were exercised end to end against the bundled mocks.
+  this was built. Both modes were exercised end to end against the bundled mocks, and the
+  direct-mode comparison (`direct.py`) with promptfoo 0.126 against two mock guardrails, and
+  in-line `--epochs 2`, plan registration and `--regrade` with inspect_ai 0.3.292 against the
+  mock gateway (`cyse4_mitre` with a mock judge and a second mock judge). The mock judges
+  agree by construction, so `judge_check.md` has not yet shown a real disagreement.

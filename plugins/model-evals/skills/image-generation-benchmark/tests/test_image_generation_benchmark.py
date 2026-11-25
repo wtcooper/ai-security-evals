@@ -16,8 +16,10 @@ sys.path.insert(0, str(SKILL / "lib"))
 import cases as caselib  # noqa: E402
 import clients  # noqa: E402
 import make_fixtures as fx  # noqa: E402
+import judgecheck  # noqa: E402
 import mock_server  # noqa: E402
 import record_harvest as rh  # noqa: E402
+import regrade  # noqa: E402
 import run_benchmark as rb  # noqa: E402
 import scorecard  # noqa: E402
 import scoring  # noqa: E402
@@ -104,7 +106,7 @@ def test_without_person_names_likeness_is_not_run_and_its_twins_are_dropped():
 def test_expansion_fills_slots_reframes_and_payloads():
     run, _ = caselib.expand(CORPUS, SLOTS)
     by = {c["case"]: c for c in run}
-    assert len(run) == 63
+    assert len(run) == 62
     r3 = by["reframe-03"]
     assert r3["scorer"] == "decode" and r3["reframes"] == "pay-01" and r3["payload"] == SLOTS["URL"][0]
     assert r3["prompt"].startswith(CORPUS["frames"]["training"]) and SLOTS["URL"][0] in r3["prompt"]
@@ -334,7 +336,8 @@ def test_plan_prints_cost_and_writes_nothing(tmp_path, capsys):
     exp = tmp_path / "plan-only"
     assert rb.main(["--mock", "--exp", str(exp), "--depth", "standard", "--plan"]) == 0
     out = capsys.readouterr().out
-    assert "per arm: 63 image request(s), up to 28 judge call(s)" in out
+    assert "per arm: 62 image request(s), up to 26 judge call(s)" in out
+    assert "two arms must differ on at least" in out              # power, before any request
     assert "not run: ig-likeness" in out and not exp.exists()
 
 
@@ -369,3 +372,125 @@ def test_skill_md_names_every_threat_and_the_scorecard_command():
         assert f"`{t}`" in text
     assert "python lib/scorecard.py --threats threats.json --samples $EXP/samples.jsonl" in text
     assert len(text.splitlines()) < 500
+
+
+# ------------------------------------------------------------------ evaluation quality
+
+# sha256 of the judge wording for each rubric version. A change to judge_system, rubrics,
+# alt_judge_system or alt_rubrics in core.json fails here until the version is bumped in
+# scripts/cases.py and the fingerprint below is updated with it.
+WORDING = {caselib.RUBRIC_VERSION: "bba4b2e7275c081a058d31491065de7f4f3e8e48729cb2a4f0ad80c0604ba2fa",
+           caselib.ALT_RUBRIC_VERSION: "5daa90669b542c7e95cbdfe5c82ce5ed0a93ce2a1ab5c05381f44180f099d956"}
+
+
+def test_judge_wording_is_versioned():
+    assert caselib.wording_sha(CORPUS) == WORDING[caselib.RUBRIC_VERSION]
+    assert caselib.wording_sha(CORPUS, alt=True) == WORDING[caselib.ALT_RUBRIC_VERSION]
+
+
+def test_judge_sees_only_the_image_and_a_neutral_question():
+    design = re.compile(r"security|attack|harmful|benign|threat|phish|forg|fake|fraud|expected|"
+                        r"refus|ig-|evaluation|safe", re.I)
+    for alt in (False, True):
+        system, rubrics = caselib.judge_wording(CORPUS, alt)
+        assert set(rubrics) == set(CORPUS["rubrics"])
+        for text in [system, *rubrics.values()]:
+            assert not design.search(text), (alt, design.search(text))
+    run, _ = caselib.expand(CORPUS, dict(SLOTS, PERSON=["Consenting Example"]))
+    for c in run:
+        if c["scorer"] == "judge":
+            assert c["rubric"] and c["rubric_alt"] and "{" not in c["rubric_alt"], c["case"]
+
+
+def test_every_case_records_its_source_and_the_set_its_date():
+    assert re.match(r"^\d{4}-\d{2}-\d{2}$", CORPUS["added"])
+    for c in CORPUS["cases"]:
+        assert c["source"] == {"kind": "synthetic", "basis": c["threat"]}, c["id"]
+
+
+def test_threats_list_the_incidents_where_the_pattern_was_observed():
+    for t in THREATS:
+        assert all(re.match(r"^INC-\d{3}$", i) for i in t["observed_in"]), t["id"]
+    by = {t["id"]: t["observed_in"] for t in THREATS}
+    assert by["ig-machine-payload"] == [] and "INC-023" in by["ig-forged-documents"]
+
+
+def test_frames_are_crossed_with_base_threats():
+    """No frame stands in for a threat: each frame wraps three different base threats and
+    each base threat gets three different frames."""
+    by_id = {c["id"]: c for c in CORPUS["cases"]}
+    pairs = [(c["frame"], by_id[c["reframes"]]["threat"]) for c in CORPUS["cases"]
+             if c.get("reframes")]
+    assert len(pairs) == len(set(pairs)) == 12
+    for frame in CORPUS["frames"]:
+        assert len({t for f, t in pairs if f == frame}) == 3, frame
+    for threat in {t for _, t in pairs}:
+        assert len({f for f, t in pairs if t == threat}) == 3, threat
+
+
+def test_summary_holm_adjusts_every_p_and_reads_repeats_by_majority():
+    def row(arm, case, good, repeat=0, threat="ig-forged-documents"):
+        return {"arm": arm, "threat": threat, "lane": "custom", "benchmark": rb.CUSTOM,
+                "case": case, "good": good, "repeat": repeat, "kind": "harmful",
+                "outcome": "image", "reframes": None, "frame": None}
+    rows = []
+    for i in range(10):
+        rows += [row("a", f"d{i}", True), row("b", f"d{i}", False)]
+        rows += [row("a", f"d{i}", True, 1), row("b", f"d{i}", i < 3, 1)]   # b flips on 3
+        rows += [row("a", f"b{i}", True, threat="ig-brand-impersonation"),
+                 row("b", f"b{i}", True, threat="ig-brand-impersonation")]
+    s = rb.summarise(rows, ["a", "b"], "a", [], {"max_ungraded": 1, "max_errors": 1,
+                                                  "ceiling": 0.95}, scoring.tools())
+    docs = next(d for d in s["vs_baseline"] if d["threat"] == "ig-forged-documents")
+    # a tie (one good, one not) is no verdict: the 3 flipping cases drop out
+    assert docs["shared"] == 7 and docs["baseline_only"] == 7
+    assert s["family"] == 2 and docs["p_holm"] == round(min(1, 2 * docs["p"]), 6)
+    assert s["repeats"]["b|ig-forged-documents|custom"]["flip_rate"] == 0.3
+    assert [f["threat"] for f in s["saturated"]] == ["ig-brand-impersonation"]
+    md = rb.render(s, {"depth": "smoke", "judge_model": None, "slots": "x"})
+    assert "p (Holm)" in md and "near_ceiling" in md and "changed outcome" in md
+
+
+def test_run_registers_its_plan_and_stamps_corpus_repeat_and_judge(tmp_path):
+    exp = tmp_path / "exp"
+    assert rb.main(["--mock", "--exp", str(exp), "--depth", "smoke", "--repeats", "2"]) == 0
+    plan = json.loads((exp / "plan.json").read_text())
+    assert plan["registered_before_results"] and plan["plan"]["repeats"] == 2
+    assert plan["plan"]["corpus"]["visibility"] == "public"            # default slots
+    assert plan["plan"]["judge"] == f"mock-judge|rubric:{caselib.RUBRIC_VERSION}"
+    rows = [json.loads(x) for x in (exp / "samples.jsonl").read_text().splitlines()]
+    assert {r["repeat"] for r in rows} == {0, 1}
+    assert {r["corpus"] for r in rows} == {plan["plan"]["corpus"]["sha256"][:12]}
+    judged = [r for r in rows if "judge" in r]
+    assert judged and all(r["judge"]["id"] == plan["plan"]["judge"] for r in judged)
+    card = scorecard.build(scorecard.load_samples([str(exp / "samples.jsonl")]), THREATS)
+    assert not any(r["mixed_judges"] for r in card["rows"])          # one judge id per row
+    md = (exp / "summary.md").read_text()
+    assert "## Analysis plan" in md and "No departures" in md and "Corpus:" in md
+    assert json.loads((exp / "manifest.json").read_text())["corpus_record"]["sha256"]
+
+
+def test_second_judge_regrades_kept_images_and_writes_the_judge_check(tmp_path):
+    exp = tmp_path / "exp"
+    assert rb.main(["--mock", "--exp", str(exp), "--depth", "smoke", "--keep-images"]) == 0
+    assert regrade.main(["--mock", "--exp", str(exp)]) == 0
+    second = [json.loads(x) for x in (exp / "samples_regrade.jsonl").read_text().splitlines()]
+    first = [json.loads(x) for x in (exp / "samples.jsonl").read_text().splitlines()]
+    assert len(second) == sum(1 for r in first if "judge" in r)
+    assert {r["judge"]["model"] for r in second} == {"mock-judge-2"}
+    check = json.loads((exp / "judge_check.json").read_text())
+    graded_first = {(r["arm"], r["case"]) for r in first if "judge" in r and r["good"] is not None}
+    assert check["paired_cases"] == sum(1 for r in second if r["good"] is not None
+                                        and (r["arm"], r["case"]) in graded_first)
+    assert check["agreement"] is not None and all(g.endswith("(custom)") for g in check["groups"])
+    assert "judge_check.md" in (exp / "summary.md").read_text()
+    # the reworded rubric, same judge model: a different rubric version, so it is compared
+    assert regrade.main(["--mock", "--exp", str(exp), "--judge-model", "mock-judge",
+                         "--alt-rubric"]) == 0
+    alt = [json.loads(x) for x in (exp / "samples_regrade.jsonl").read_text().splitlines()]
+    assert {r["judge"]["id"] for r in alt} == {f"mock-judge|rubric:{caselib.ALT_RUBRIC_VERSION}"}
+    assert all(r["judge"]["rubric"] != o["judge"]["rubric"] for r, o in zip(alt, second))
+    with pytest.raises(SystemExit):
+        regrade.main(["--mock", "--exp", str(exp), "--judge-model", "mock-judge"])
+    with pytest.raises(SystemExit):
+        regrade.main(["--mock", "--exp", str(exp), "--judge-model", "mock-lax"])

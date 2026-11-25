@@ -83,3 +83,71 @@ def test_shim_per_arm_injects_the_guardrail_and_scores_a_block_as_a_refusal(tmp_
     code, ok = _post(urls["guard"] + "/chat/completions", benign)
     assert code == 200 and "Sure" in ok["choices"][0]["message"]["content"]
     gateway.shutdown()
+
+
+def test_plan_shows_epochs_as_extra_calls_not_extra_cases(tmp_path, capsys):
+    path = _arms(tmp_path, [{"name": "baseline"}, {"name": "g", "guardrails": ["x"]}])
+    assert run_inline.main(["--arms", path, "--checks", "cyse4_mitre_frr", "--depth", "10",
+                            "--epochs", "3", "--plan"]) == 0
+    err = capsys.readouterr().err
+    assert "x3 epochs" in err and "n=10" in err and "two arms must differ" in err
+
+
+def _fake_run(captured):
+    import evalkit
+
+    def run(arms, checks, **kw):
+        captured.update(kw, arms=arms)
+        evalkit.register_plan(kw["out"], kw["plan"], reason=kw.get("plan_reason"))
+        return [{"status": "ok"}]
+    return run
+
+
+def test_run_registers_the_plan_and_passes_epochs_and_ceiling(tmp_path, monkeypatch):
+    path = _arms(tmp_path, [{"name": "baseline"}, {"name": "g", "guardrails": ["x"]}])
+    captured = {}
+    monkeypatch.setenv("SHIM_GATEWAY_URL", "http://127.0.0.1:1")
+    monkeypatch.setattr(run_inline, "start_shims", lambda *a, **k: {})
+    monkeypatch.setattr(run_inline.inspect_runner, "run", _fake_run(captured))
+    out = tmp_path / "results"
+    assert run_inline.main(["--arms", path, "--model", "m", "--judge", "j", "--checks",
+                            "cyse4_mitre_frr", "--depth", "10", "--epochs", "2",
+                            "--ceiling", "0.9", "--out", str(out)]) == 0
+    assert captured["epochs"] == 2 and captured["ceiling"] == 0.9
+    plan = json.loads((out / "plan.json").read_text())["plan"]
+    assert plan["baseline"] == "baseline" and plan["epochs"] == 2
+    assert plan["judge"] == "openai-api/gbjudge/j" and plan["guardrails"] == {"baseline": [], "g": ["x"]}
+    assert plan["measures"] == ["cyse4_mitre_frr"]
+
+
+def test_the_judge_cannot_be_the_model_under_test(tmp_path, monkeypatch):
+    path = _arms(tmp_path, [{"name": "baseline"}])
+    monkeypatch.setenv("SHIM_GATEWAY_URL", "http://127.0.0.1:1")
+    with pytest.raises(SystemExit):
+        run_inline.main(["--arms", path, "--model", "m", "--judge", "m", "--depth", "smoke"])
+
+
+def test_regrade_writes_a_judge_check_and_refuses_the_same_judge(tmp_path, monkeypatch):
+    res = tmp_path / "results.json"
+    res.write_text(json.dumps({"model": "m", "judge": "openai-api/gbjudge/j1", "rows": [
+        {"arm": "baseline", "model": "openai-api/gb-baseline/m"}]}))
+    rows = [{"arm": a, "target": "cyse4_mitre_frr", "sample": str(i), "epoch": 1,
+             "good": (i % 3 != 0) if a == "g" else True, "response_chars": 40 + i}
+            for a in ("baseline", "g") for i in range(12)]
+    (tmp_path / "samples.jsonl").write_text(
+        "".join(json.dumps({**r, "judge": "openai-api/gbjudge/j1"}) + "\n" for r in rows))
+
+    def fake_regrade(results_json, judge, out=None, limit=None):
+        dest = Path(results_json).with_name("samples_regrade.jsonl")
+        dest.write_text("".join(json.dumps({**r, "judge": judge}) + "\n" for r in rows))
+        return dest
+    monkeypatch.setenv("SHIM_GATEWAY_URL", "http://127.0.0.1:1")
+    monkeypatch.setattr(run_inline.inspect_runner, "regrade", fake_regrade)
+    monkeypatch.delenv("GB_BASELINE_BASE_URL", raising=False)
+    assert run_inline.main(["--regrade", str(res), "--judge", "j2"]) == 0
+    assert "kappa" in (tmp_path / "judge_check.md").read_text().lower()
+    import os
+    assert os.environ["GB_BASELINE_BASE_URL"] == "http://127.0.0.1:9/v1"   # no arm is reachable
+    for same in ("j1", "m"):
+        with pytest.raises(SystemExit):
+            run_inline.main(["--regrade", str(res), "--judge", same])

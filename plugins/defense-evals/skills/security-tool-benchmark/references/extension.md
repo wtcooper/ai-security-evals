@@ -18,6 +18,8 @@ agents to drive, just scanner runs over labelled files. Drive **Plan → Run →
    Record the chosen scanners+configs as the arms (e.g. `scan-skill-combined`, `scan-skill-static`,
    `yara`). One adapter backs several arms via `--adapter` + a `--config` flag.
 2. `bash new_experiment.sh security-tool-benchmark "<label>" --benchmark <set> --arms <arm1>,<arm2>,...`.
+   Register the plan before scanning: `python3 plan.py "$EXP" --kind extension --arms <arm1>,<arm2>
+   --benchmark <set> --targets <assets> [--repeats yara=1] --corpus <labels.jsonl>`.
 3. `bash extension/fetch_sets.sh "$EXP" <scanner> <set>` — **verify availability** (unreleased sets warn).
    Build negatives (benign, high-install, no prior scanner hits) and the `ours` benign regression set.
 4. Held-out stratum: `extension/mutate_skill.py` / `extension/mutate_pickle.py` for ≥3 paraphrase/carrier forms per class,

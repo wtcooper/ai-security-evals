@@ -172,6 +172,7 @@ def run_check(check: suite.Check, arm: dict, judge: str | None, depth: int | Non
                 raise ValueError("the judge is the model under test; pick a different judge")
             row["judge"] = judge
         task, roles = _build_task(check, judge)
+        roles.update({role: arm["model"] for role in check.arm_roles})
         log = inspect_eval(
             task, model=arm["model"],
             limit=suite.samples_for(check, depth) if depth is not None else None,

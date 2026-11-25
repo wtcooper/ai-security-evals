@@ -125,8 +125,7 @@ def build(rows: list[dict], threats: list[dict], ceiling: float = CEILING) -> di
         key = (r["threat"], r["lane"])
         raw[key][r["arm"]][(r.get("benchmark", ""), r["case"])].append(r.get("good"))
         benchmarks[key].add(r.get("benchmark", ""))
-        if r.get("judge"):
-            judges[key].add(_label(r["judge"]))
+        judges[key + (r.get("benchmark", ""),)].add(_label(r["judge"]) if r.get("judge") else None)
         if r.get("corpus"):
             corpora[key].add(_label(r["corpus"]))
     outcome = {key: {m: {c: _verdict(g) for c, g in cases.items()} for m, cases in by.items()}
@@ -160,7 +159,15 @@ def build(rows: list[dict], threats: list[dict], ceiling: float = CEILING) -> di
             top = max(measured.values()) if measured else None
             leaders = [m for m, r in measured.items() if r == top]
             best = leaders[0] if leaders else None
-            mixed_judges = sorted(judges[key]) if len(judges[key]) > 1 else []
+            # Judges are compared per benchmark: a lane may hold a judged and a deterministic
+            # benchmark. Within one benchmark, rows without a recorded judge beside rows with
+            # one (an older rubric, say) count as a different judge.
+            mixed_judges = []
+            for b in sorted(benchmarks[key]):
+                seen = judges[key + (b,)]
+                if len(seen) > 1:
+                    mixed_judges += [j or "unrecorded" for j in seen]
+            mixed_judges = sorted(set(mixed_judges))
             mixed_corpus = sorted(corpora[key]) if len(corpora[key]) > 1 else []
             comparable = not mixed_judges and not mixed_corpus
             if best and len(measured) > 1 and comparable:
@@ -243,6 +250,15 @@ def _cell(c: dict) -> str:
     return text + (f" #{c['rank']}" if c.get("rank") else "")
 
 
+def _observed_for(doc: dict, card: dict) -> dict:
+    """What a plan said, restricted to what this scorecard holds. A scorecard can merge several
+    runs, each with its own plan: models and threats from other runs are not departures from
+    this plan; planned ones missing from the scorecard are."""
+    plan = doc.get("plan", {})
+    have = {"arms": set(card["models"]), "measures": {r["threat"] for r in card["rows"]}}
+    return {k: [x for x in plan[k] if x in have[k]] for k in have if isinstance(plan.get(k), list)}
+
+
 def read_first(card: dict) -> list[str]:
     """Notes about the measurement itself, listed before any number."""
     notes = []
@@ -276,8 +292,7 @@ def render(card: dict, threats: list[dict], title: str, plans: list | None = Non
     if notes:
         L += ["## Read first", ""] + notes + [""]
     for doc in plans or []:
-        observed = {"arms": models, "measures": sorted({r["threat"] for r in card["rows"]})}
-        L += evalkit.plan_section(doc, observed) + [""]
+        L += evalkit.plan_section(doc, _observed_for(doc, card)) + [""]
     L += ["## Where the risk comes from", "",
           "| Threat | Where it comes from |", "|---|---|"]
     L += [f"| `{t['id']}` {t.get('name', '')} | {t.get('risk_source', '')} |" for t in threats]
@@ -358,9 +373,8 @@ def main(argv: list[str] | None = None) -> int:
         str(Path(s).parent / evalkit.PLAN_FILE) for s in a.samples
         if (Path(s).parent / evalkit.PLAN_FILE).is_file()]
     plans = [json.loads(Path(x).read_text()) for x in dict.fromkeys(plan_paths)]
-    card["plans"] = [{"path": x, "deviations": evalkit.plan_deviations(
-        d, {"arms": card["models"], "measures": sorted({r["threat"] for r in card["rows"]})})}
-        for x, d in zip(dict.fromkeys(plan_paths), plans)]
+    card["plans"] = [{"path": x, "deviations": evalkit.plan_deviations(d, _observed_for(d, card))}
+                     for x, d in zip(dict.fromkeys(plan_paths), plans)]
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "scorecard.json").write_text(json.dumps(card, indent=2))

@@ -63,6 +63,8 @@ by `category` (cyber / prompt_injection / data_leakage / content_safety). Pick:
 - **Depth:** `smoke` (`--filter-sample 30` — proves the wiring; the interval on recall is
   about ±15 points), `standard` (`--filter-sample 150`), or `full` (omit the flag). Each case
   is one call to the target and one to the judge: tell the user the totals before running.
+  Add `--filter-sample-seed <N>` and keep it for every run you will compare (another model,
+  version or control), so each run sees the same cases.
 - **Scope:** the whole corpus, or a **category slice** for a focused audience — e.g. a cyber team:
   `--filter-metadata category=cyber` (also `prompt_injection`, `data_leakage`).
 - Combine them (`--filter-metadata category=cyber --filter-sample 60`).
@@ -72,7 +74,11 @@ cyber + injection + data_leakage, app teams the full spread.
 ### 5. (Optional) A/B/C a control
 If the app toggles a guardrail by a body param, duplicate `providers[0]` with a second
 `label` and set that param in its `body` — promptfoo runs every case against both and
-the report compares them per case.
+the report compares them per case. Tell the user what the run can detect before it starts:
+the arms are paired on the same cases, and two arms must disagree on at least 6 cases, all
+in the same direction, before exact McNemar can separate them (7 with a third arm): 20% of
+a 30-case smoke run, 4% of a standard run. A smaller real difference is invisible at that
+depth.
 
 ### 6. Open an experiment folder (captures this run)
 If a `review.json` exists (from `review-scope`), the deployment context is recorded with the
@@ -147,5 +153,11 @@ grading and summary path.
   CC-BY + SafeMTData MIT for the M2S `safemt-m2s-*` multi-turn cases) — redistributable.
 - At a small sample the interval on Recall is wide; read the interval before calling a gap
   between two runs real.
+- The judge rubric of each bundled case names the kind of case ("harmful request", "SAFE,
+  legitimate request", "prompt-injection attempt"), so the judge is not blind to the design.
+  Compare arms graded by the same judge model only. Blinding it means rewording the rubrics in
+  the shared corpus build, not here.
+- This skill does not write a registered analysis plan (`plan.json`) yet. Record the arms,
+  depth, filters, seed and judge in `<EXP>/manifest.json` before the run, not after.
 - The corpus ships prebuilt; extend it by adding cases to `corpus/*.json` (or
   appending your own test prompts in the same shape).

@@ -1,5 +1,5 @@
 {
-  "_observed_in": "INC ids from the repository's incident register (threat-models/incidents.md) whose pattern was observed in deployed systems, mapped through the vision-input threat model's Recent incidents table. Research-only entries (INC-111, INC-115, INC-120) are left out; [] means no such entry.",
+  "_observed_in": "INC ids from the repository's incident register (threat-models/incidents.md) whose pattern the vision-input threat model records as observed or disclosed in deployed systems (its Recent incidents table and evidence column). Entries it marks as research only are left out (INC-111, INC-115, INC-120); [] means none.",
   "threats": [
     {
       "id": "vi-image-injection",

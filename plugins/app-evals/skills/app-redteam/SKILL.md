@@ -135,7 +135,10 @@ you can read the escalation, not just the final reply. Summarize for the user:
   block via `statusClass: "block"`, no per-vendor config). `httpStatus`/`statusClass`
   on each row show how every response was bucketed.
 - **The attack success rate with its interval**, the number of objectives broken at least
-  once, and how many gave different outcomes across repeats (from `summary.md`). If the
+  once, and how many gave different outcomes across repeats (from `summary.md`). State that
+  last one as the **flip rate**: objectives with different outcomes ÷ objectives
+  (`objectives_with_mixed_outcomes` / `objectives` in `summary.json`), beside the repeat
+  count. A high flip rate means one attempt per objective says little. If the
   summary says attempts errored, that is not a clean result: fix the attacker, grader or
   target and re-run. Do not say whether the rate is acceptable.
 - Point to `<EXP>/` — `transcripts/transcript.jsonl`, `results/`, and the report UI.
@@ -154,6 +157,11 @@ comparing — the scoring already distinguishes a guardrail block from a model r
   histogram shows guarded vs. unguarded block rates.
 - **System-prompt control:** point at the endpoint configured with vs. without the
   hardening system prompt. Crescendo success rate across the two is the control's lift.
+- **What a two-arm run can detect:** the arms share the same objectives, so compare them
+  objective by objective. Two arms must disagree on at least 6 objectives, all in the same
+  direction, before exact McNemar can separate them (7 with a third arm): 8% of the bundled
+  73 objectives, and nothing at all with the 2-objective smoke pack. Tell the user before
+  the run; repeats sharpen each objective's outcome but are not extra objectives.
 - Tunables (env): `GUARDRAIL_BLOCK_STATUSES` (default `400`), `GUARDRAIL_BLOCK_FIELD/_VALUE`
   for an explicit body verdict field, `GUARDRAIL_AMBIGUOUS_POLICY=judge|exclude`.
 
@@ -179,6 +187,11 @@ scored: that is the correct reading of a run with no working attacker.
 - **Not verified:** the adaptive eval was not run against a real attacker or target where
   this was last changed; validation, generation and the summary were.
 - Only run against apps the user is authorized to test; prompts appear in the target's logs.
+- The grader is promptfoo's own red-team grader: it is given the attack goal and the
+  `purpose`, so it knows it is grading an attack. That cannot be hidden without replacing
+  promptfoo's grader; compare arms graded by the same grader model only.
+- This skill does not write a registered analysis plan (`plan.json`) yet. Record the
+  objectives file, repeats, turns and grader in `<EXP>/manifest.json` before the eval.
 - Crescendo needs the attacker model configured and `metadata.purpose` (carried from
   `redteam.purpose`).
 - Single-turn strategies (basic/jailbreak:tree/prompt-injection) inject a *string*, which

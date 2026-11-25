@@ -31,6 +31,8 @@ the target set + matching rule are held constant, the scanner is the independent
    GitHub code-scanning path), gateway env for any LLM reviewer.
 3. Pick benchmark(s) (`AskUserQuestion`);
    `bash new_experiment.sh security-tool-benchmark "<label>" --benchmark <b> --arms <tool1>,<tool2>,...`.
+   Register the plan before scanning: `python3 plan.py "$EXP" --kind code --arms <tool1>,<tool2>
+   --benchmark <b> --targets <N> [--repeats sdlc-scan-code=3] --corpus <ground_truth.jsonl>`.
 4. `bash code/fetch_targets.sh "$EXP" <b> --cutoff <YYYY-MM-DD> [--limit 30]` — inspect
    `targets/<b>/ground_truth.jsonl`; **verify availability** (several sets are new/rolling; the
    parser warns when it finds nothing — fix the parser, don't skip silently).
