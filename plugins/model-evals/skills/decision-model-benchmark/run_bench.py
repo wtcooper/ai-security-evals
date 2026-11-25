@@ -105,7 +105,7 @@ def scorecard_key(lane: str, case: dict, var: dict, repeat: int) -> tuple[str | 
 
 def _request(lane, benchmark, case, policy, var, rep, wire_case) -> dict:
     threat, key = scorecard_key(lane, case, var, rep)
-    return {"lane": lane, "benchmark": benchmark, "threat": threat, "score_case": key,
+    return {"lane": lane, "benchmark": benchmark, "threat": threat, "score_case": key, "corpus": None,
             "case": case, "policy": policy, "variant": var, "repeat": rep,
             "wire_case": wire_case, "tokens_est": adapter.estimate_tokens(wire_case)}
 
@@ -175,6 +175,14 @@ def plan(requests: list[dict], n_arms: int, file=None) -> dict:
               f"tokens~{row['tokens']}", file=file)
     print("  scorecard cases per arm: " + ", ".join(f"{k} {v}" for k, v in total["scored"].items()),
           file=file)
+    # The scorecard compares every other model with each row's best one, Holm-adjusted across
+    # all of its rows, so the family is (arms - 1) x rows; with one arm, as if one more is added.
+    family = max(1, n_arms - 1) * len(total["scored"])
+    print(f"  power ({family} scorecard comparison(s)"
+          + (", if a second arm is added" if n_arms < 2 else "") + "):", file=file)
+    for key, n in total["scored"].items():
+        print(f"    {key:<26} {evalkit.power_note(n, family)}", file=file)
+    total["comparisons"] = family
     print(f"  all arms: {total['requests'] * n_arms} requests / "
           f"~{total['input_tokens_est'] * n_arms} input tokens; these models bill input tokens "
           "only, so cost is that figure times the arm's price per token", file=file)
@@ -196,7 +204,7 @@ def score_row(arm: dict, req: dict, result: dict) -> dict:
         and case.get("pair_role") != "paraphrase"
     return {
         "arm": arm["name"], "threat": req["threat"], "lane": req["lane"],
-        "benchmark": req["benchmark"], "case": req["score_case"],
+        "benchmark": req["benchmark"], "case": req["score_case"], "corpus": req["corpus"],
         "good": correct if direct else None,
         "target": case["policy"], "seed_case": case["id"],
         "sample": f"{case['id']}/{var['id']}#r{req['repeat']}",
@@ -288,10 +296,25 @@ def recorded_command(argv: list[str], arms: list[dict]) -> str:
 
 
 def corpus_hash(paths: list[Path]) -> str:
+    """The content hash an own corpus's benchmark id (`own-<8 hex>`) is derived from. Kept
+    as it was so a corpus keeps its id across versions of this skill; provenance (plan,
+    manifest, the `corpus` field of rows) uses evalkit.corpus_record."""
     digest = hashlib.sha256()
     for path in paths:
         digest.update(path.read_bytes())
     return digest.hexdigest()
+
+
+def tag_corpus(requests: list[dict], custom_sha: str | None, known_prov: dict | None) -> None:
+    """Set the `corpus` each row will carry: the first 12 hex of the custom corpus fingerprint,
+    or a known benchmark's pinned revision (its content is hash-checked against that pin)."""
+    known = {info["id"]: info["revision"][:12]
+             for info in ((known_prov or {}).get("benchmarks") or {}).values()}
+    for req in requests:
+        if req["lane"] == "custom":
+            req["corpus"] = custom_sha[:12] if custom_sha else None
+        else:
+            req["corpus"] = known.get(req["benchmark"])
 
 
 def update_manifest(out: Path, run: dict, rows: list[dict]) -> bool:
@@ -309,6 +332,7 @@ def update_manifest(out: Path, run: dict, rows: list[dict]) -> bool:
         "arms": [{"name": a["name"], "condition": f"{a['format']} {a['model']} @ {a['url']}"}
                  for a in arms],
         "k": run["corpus"]["cases_run"],
+        "corpus_record": run["corpus"]["record"],
         "scorers": [{"name": "argmax-vs-label", "judge": None}],
         "pair_on": ["case", "variant"],
     })
@@ -367,6 +391,9 @@ def main(argv: list[str] | None = None) -> int:
                    help="keep sending an arm's requests even if its first one errors")
     p.add_argument("--force", action="store_true", help="overwrite an existing samples.jsonl")
     p.add_argument("--plan", action="store_true", help="print the cost plan and exit")
+    p.add_argument("--plan-reason",
+                   help="why this run's analysis plan differs from the one already registered "
+                        "in --out (recorded with the amendment in plan.json)")
     p.add_argument("--mock", action="store_true",
                    help="keyless smoke test: start the bundled mock server in this process, "
                         "add three mock arms (two mock models, all three wire formats) and use "
@@ -409,6 +436,7 @@ def _run(p, args, argv) -> int:
     policies_path = Path(args.policies) if args.policies else variants.CORPUS_DIR / "policies.json"
     digest = corpus_hash([cases_path, policies_path])
     benchmark = CUSTOM_BENCHMARK if not args.cases else f"own-{digest[:8]}"
+    record = evalkit.corpus_record([cases_path, policies_path], bundled=not args.cases)
     chosen = variants.select_cases(cases, depth["cases"], args.seed) if "custom" in lanes else []
     requests = build_requests(chosen, policies, args.seed, depth["mode"], axes, args.repeats,
                               args.repeat_scope, benchmark)
@@ -423,6 +451,7 @@ def _run(p, args, argv) -> int:
             p.error(f"{exc}\n  (keyless: --known-source fixture; offline: --known-source <dir>; "
                     "or --lanes custom)")
         requests += build_known_requests(known_cases, args.repeats)
+    tag_corpus(requests, record["sha256"], known_prov)
 
     specs = [parse_arm(a) for a in args.arm]
     if args.arms_file:
@@ -452,6 +481,19 @@ def _run(p, args, argv) -> int:
         if not args.force:
             p.error(f"{samples_path} exists; use a new --out or pass --force")
         samples_path.unlink()
+    # The analysis plan, on record before any request is sent. The scorecard and report.py
+    # list every departure from it.
+    evalkit.register_plan(out, {
+        "arms": [a["name"] for a in arms], "baseline": arms[0]["name"],
+        "measures": sorted({r["threat"] for r in requests if r["threat"]}),
+        "lanes": list(lanes), "axes": list(axes), "depth": args.depth, "seed": args.seed,
+        "repeats": args.repeats, "repeat_scope": args.repeat_scope,
+        "judge": None, "scorer": "argmax decision against the label (deterministic)",
+        "corpus": {"custom": record if "custom" in lanes else None,
+                   "custom_benchmark": benchmark if "custom" in lanes else None,
+                   "known": {b["id"]: {"revision": b["revision"], "visibility": "public"}
+                             for b in ((known_prov or {}).get("benchmarks") or {}).values()}},
+        "criteria": evalkit.criteria_record()}, reason=args.plan_reason)
     with open(out / "results" / "variants.jsonl", "w") as fh:
         for req in requests:
             if req["repeat"] == 0:
@@ -474,7 +516,8 @@ def _run(p, args, argv) -> int:
         "lanes": list(lanes),
         "corpus": {"benchmark": benchmark, "cases_file": cases_path.name,
                    "policies_file": policies_path.name, "bundled": not args.cases,
-                   "sha256": digest, "cases_total": len(cases), "cases_run": len(chosen),
+                   "sha256": record["sha256"], "record": record,
+                   "cases_total": len(cases), "cases_run": len(chosen),
                    "case_ids": [c["id"] for c in chosen]},
         "known": known_prov,
         "arms": [adapter.public_arm(a) for a in arms],

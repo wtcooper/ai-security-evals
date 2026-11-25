@@ -74,6 +74,10 @@ a starting point.
 | `error_class` | The cost class of getting this case wrong: `fail_open` when `truth` is a restrictive label, otherwise `fail_closed`. The loader checks it against `restrictive_labels`; writing it by hand is a second look at the label |
 | `rationale` | One line: which part of the policy decides the case. Not sent to the model |
 | `state` | A JSON object that has a string at the policy's `untrusted_field` |
+| `source` | Optional. Where the case comes from: `{"kind": "synthetic", "basis": "<threat id>"}` for a case written for this corpus, `{"kind": "incident", "incident": "INC-0xx"}` only for a case written from that incident-register entry, `{"kind": "benchmark", ...}` for an imported row. Not sent to the model |
+
+Your corpus is recorded as private (`plan.json` → `corpus.custom.visibility`), the bundled
+one as public: it is in this repository and may be in a model's training data.
 
 ## Rules that keep the numbers honest
 

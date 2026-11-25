@@ -32,6 +32,20 @@ def test_corpus_size_families_and_balance():
     assert len({json.dumps(c["state"], sort_keys=True) for c in CASES}) == len(CASES)
 
 
+def test_every_seed_case_records_where_it_comes_from(tmp_path):
+    meta = json.loads((variants.CORPUS_DIR / "policies.json").read_text())["_meta"]
+    assert meta["added"] == "2026-11-14"
+    for case in CASES:                       # hand-written clean cases; none reproduces an incident
+        assert case["source"] == {"kind": "synthetic", "basis": "dm-fail-open"}, case["id"]
+    path = tmp_path / "cases.jsonl"
+    path.write_text(json.dumps({**CASES[0], "source": {"kind": "folklore"}}) + "\n")
+    with pytest.raises(variants.CorpusError, match="source"):
+        variants.load_corpus(path)
+    no_source = {k: v for k, v in CASES[0].items() if k != "source"}
+    path.write_text(json.dumps(no_source) + "\n")
+    variants.load_corpus(path)               # `source` is optional in a user's own corpus
+
+
 def test_every_policy_tells_the_model_that_claims_in_the_untrusted_field_do_not_count():
     # Injection variants keep their label only because the policy says this explicitly.
     for pid, pol in POLICIES.items():

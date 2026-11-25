@@ -445,7 +445,11 @@ def paired(rows_base: list[dict], rows_other: list[dict], attacked: bool) -> dic
 
 def summarise(rows: list[dict], arms: list[dict] | None = None, baseline: str | None = None,
               limits: dict | None = None, bins: int = 10) -> dict:
-    """The whole summary: one block per arm, then each arm paired against the baseline."""
+    """The whole summary: one block per arm, then each arm paired against the baseline.
+
+    Every McNemar p in the summary also gets a Holm-adjusted value across the whole family
+    (every arm against the baseline, clean and under attack), so a difference is read as
+    unlikely to be noise only on the adjusted value."""
     names = list(dict.fromkeys(r["arm"] for r in rows))
     arm_info = {a["name"]: a for a in (arms or [])}
     by_arm = {n: [r for r in rows if r["arm"] == n] for n in names}
@@ -459,4 +463,49 @@ def summarise(rows: list[dict], arms: list[dict] | None = None, baseline: str | 
             out["comparisons"][name] = {
                 "clean": paired(by_arm[baseline], by_arm[name], attacked=False),
                 "attacked": paired(by_arm[baseline], by_arm[name], attacked=True)}
+    family = [c for comp in out["comparisons"].values() for c in comp.values()]
+    for c, adj in zip(family, evalkit.holm([c["mcnemar_p"] for c in family])):
+        c["mcnemar_p_holm"] = adj
+    out["comparison_family"] = sum(c["mcnemar_p"] is not None for c in family)
+    return out
+
+
+# --------------------------------------------------------------------------------------
+# Repeats and saturation
+# --------------------------------------------------------------------------------------
+
+def repeat_flips(rows: list[dict]) -> dict:
+    """`--repeats` re-sends identical requests; `repeat` is the send (0 = first). Per arm and
+    lane, over the requests sent more than once: the share whose correctness changed between
+    sends (flip rate) and the accuracy of each send (evalkit.repeat_consistency). The
+    dm-nondeterminism scorecard rows compare decisions with the first send instead."""
+    view = [{"arm": r["arm"], "target": r.get("lane", "custom"),
+             "sample": f"{r.get('benchmark')}|{seed(r)}|{r['variant']}",
+             "repeat": r["repeat"], "good": r.get("correct")} for r in rows]
+    return evalkit.repeat_consistency(view)
+
+
+def accuracy_sets(rows: list[dict]) -> dict:
+    """Per set the report compares arms on, each arm's share of correct first sends: custom
+    `clean` and `attacked`, and each known benchmark."""
+    first = [r for r in rows if r["repeat"] == 0 and r["outcome"] == "answered"
+             and r.get("correct") is not None]
+    sets: dict = {}
+    for r in first:
+        if r.get("lane", "custom") == "custom":
+            name = "custom: clean" if r["variant"] == "clean" else "custom: under attack"
+        else:
+            name = f"known: {r['benchmark']}"
+        sets.setdefault(name, {}).setdefault(r["arm"], []).append(bool(r["correct"]))
+    return {name: {arm: round(sum(v) / len(v), 4) for arm, v in by.items()}
+            for name, by in sets.items()}
+
+
+def ceiling_flags(rows: list[dict], limit: float) -> list[dict]:
+    """A near-ceiling validity flag for each set on which every arm is at or above `limit`."""
+    out = []
+    for name, rates in accuracy_sets(rows).items():
+        flag = evalkit.ceiling_flag(rates, limit)
+        if flag:
+            out.append({"set": name, **flag})
     return out

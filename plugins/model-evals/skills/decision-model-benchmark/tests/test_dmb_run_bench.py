@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 import adapter
+import known_lane
 import metrics
 import report
 import run_bench
@@ -50,6 +51,7 @@ def test_plan_prints_requests_and_tokens_and_sends_nothing(server, capsys, tmp_p
                  "known:deepset-prompt-injections:fixture", "known:jevbench-original:fixture",
                  "scorecard cases per arm: dm-fail-open custom 10, dm-fail-open known 6"):
         assert axis in err
+    assert "power (" in err and "precision:" in err             # smallest separable difference
     assert run_bench.main(["--depth", "full", "--plan", "--lanes", "custom"]) == 0  # no arm needed
 
 
@@ -272,6 +274,41 @@ def test_existing_samples_are_not_overwritten_without_force(server, tmp_path):
     n = len(read_rows(out))
     assert run(server, out, "--depth", "2", "--force", arms=one) == 0
     assert len(read_rows(out)) == n
+
+
+def test_the_analysis_plan_is_registered_before_results_and_reported(server, tmp_path, capsys):
+    out = tmp_path / "exp"
+    assert run(server, out, "--depth", "2") == 0
+    doc = json.loads((out / "plan.json").read_text())
+    plan = doc["plan"]
+    assert doc["registered_before_results"] is True and doc["amendments"] == []
+    assert plan["arms"] == ["mock-a", "mock-b"] and plan["baseline"] == "mock-a"
+    assert plan["judge"] is None and plan["repeats"] == 3 and plan["depth"] == "2"
+    assert {"dm-fail-open", "dm-nondeterminism"} <= set(plan["measures"])
+    custom = plan["corpus"]["custom"]
+    assert custom["visibility"] == "public" and len(custom["sha256"]) == 64
+    assert set(plan["corpus"]["known"]) == {"deepset-prompt-injections:fixture",
+                                            "jevbench-original:fixture"}
+    rows = read_rows(out)
+    assert {r["corpus"] for r in rows if r["lane"] == "custom"} == {custom["sha256"][:12]}
+    assert {r["corpus"] for r in rows if r["lane"] == "known"} == {
+        b["revision"][:12] for b in known_lane.SOURCES.values()}
+    run_doc = json.loads((out / "results" / "run.json").read_text())
+    assert run_doc["corpus"]["record"] == custom
+    capsys.readouterr()
+    assert report.main([str(out)]) == 0
+    text = (out / "summary.md").read_text()
+    for part in ("## Analysis plan", "No departures", "p (Holm)", "## Repeats",
+                 "The custom-lane corpus is public"):
+        assert part in text, part
+    # A different plan in the same folder is kept as an amendment and reported as a departure.
+    assert run(server, out, "--depth", "2", "--seed", "7", "--force",
+               "--plan-reason", "second seed") == 0
+    doc = json.loads((out / "plan.json").read_text())
+    assert doc["amendments"][-1]["reason"] == "second seed"
+    report.main([str(out)])
+    text = (out / "summary.md").read_text()
+    assert "`seed`: planned 20261114, observed 7" in text and "second seed" in text
 
 
 def test_the_experiment_manifest_is_filled_when_there_is_one(server, tmp_path):

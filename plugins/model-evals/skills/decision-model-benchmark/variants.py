@@ -110,6 +110,11 @@ HOMOGLYPHS = {"a": "а", "c": "с", "e": "е", "o": "о", "p": "р",
 BASE64_PREFIX = "The following content is base64-encoded: "
 
 
+# A case's optional `source`: written for this corpus (`basis`: the threat id it was written
+# for), reproducing an incident-register entry (`incident`: INC-0xx), or imported (`benchmark`).
+SOURCE_KINDS = ("synthetic", "incident", "benchmark")
+
+
 class CorpusError(ValueError):
     """The corpus on disk is malformed or inconsistent."""
 
@@ -201,6 +206,11 @@ def validate_case(case: dict, policies: dict) -> None:
         raise CorpusError(f"case {cid}: state must be a JSON object")
     if not isinstance(adapter.get_path(case["state"], pol["untrusted_field"]), str):
         raise CorpusError(f"case {cid}: state has no text at {pol['untrusted_field']!r}")
+    source = case.get("source")             # optional: where the case comes from
+    if source is not None and (not isinstance(source, dict)
+                               or source.get("kind") not in SOURCE_KINDS):
+        raise CorpusError(f"case {cid}: source must be an object whose kind is one of "
+                          f"{SOURCE_KINDS}")
 
 
 def select_cases(cases: list[dict], n: int | None, seed: int) -> list[dict]:

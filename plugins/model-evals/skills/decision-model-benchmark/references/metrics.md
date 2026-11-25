@@ -21,6 +21,10 @@ is `seed_case`.
 | `dm-perturbation` | padding, option order, paraphrase, encoding, structure variants; JevBench `-1` rows | decision = truth; for a JevBench pair, both phrasings decided correctly |
 | `dm-nondeterminism` | every re-send (repeat ≥ 1), both lanes | decision = the first send's decision |
 
+Rows also carry `repeat` (the send, 0 first) and `corpus`: the first 12 hex of the custom
+corpus fingerprint (`plan.json` → `corpus.custom.sha256`), or a known benchmark's pinned
+revision. The scorecard does not compare rows from different corpus revisions.
+
 `good` is null when either request involved was refused or failed; the scorecard counts those
 as no verdict. A JevBench `-0` (anchor) row has `threat: null`: its verdict is on the pair's
 `-1` row. Calibration and the confidence of flipped decisions are in `summary.md` only.
@@ -137,7 +141,25 @@ same case and variant at repeat 0. Two sets are reported: `clean` (clean request
 `under attack` (all variant requests). Pairs in which either arm did not answer are left out
 and counted. The table shows the two discordant counts, both accuracies on the shared pairs
 and the two-sided p-value. The p-value treats pairs as independent; under attack, several
-pairs share a case.
+pairs share a case. Every p-value is also Holm-adjusted across the whole table (each arm
+against the baseline, clean and under attack: 2 × (arms − 1) tests); a difference is read as
+unlikely to be noise only when the adjusted value is below 0.05. The scorecard does the same
+across all of its rows.
+
+## Repeats
+
+`--repeats N` sends identical requests N times (clean requests only, or every request with
+`--repeat-scope all`); `repeat` is the send, 0 the first. Over the requests sent more than
+once, per arm and lane, `summary.md` reports the flip rate (share whose correctness was not
+the same on every answered send), the accuracy of each send, and the spread between them.
+The scorecard's `dm-nondeterminism` rows are the same re-sends compared with the first
+send's decision; every other row is scored on the first send.
+
+## Saturation
+
+`near_ceiling` (limit `--ceiling`, default 0.95) is raised for a set (custom clean, custom
+under attack, each known benchmark) when every arm's accuracy on its first sends is at or
+above the limit: the set still catches a regression but separates arms poorly.
 
 ## Known lane
 
@@ -163,3 +185,4 @@ A flag says a measurement may not be trustworthy. It never removes or changes a 
 | `unverified_adapter` | the provider preset is marked `verified: false` | — |
 | `option_order_not_sent` | the arm uses the Gemini format, which sorts option keys | — |
 | `vendor_choice_differs_from_argmax` | the server's `choice` field names a different option from the argmax of its own probabilities | — |
+| `near_ceiling` | every arm is at or above the limit on a set (see Saturation) | `--ceiling` (0.95) |

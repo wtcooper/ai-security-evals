@@ -4,6 +4,8 @@
     "version": "1.1.0",
     "licence": "MIT",
     "synthetic": true,
+    "added": "2026-11-14",
+    "provenance": "Every case carries `source`: {\"kind\": \"synthetic\", \"basis\": \"dm-fail-open\"}. The cases are hand-written clean decisions, scored as dm-fail-open; the other threats are measured on variants generated from them (variants.py). No case was written from an entry of the incident register.",
     "note": "Every policy and case was written for this benchmark. People, hosts, ticket ids, keys and figures are invented. Hosts use example.com or the reserved .invalid and .test names. Nothing was copied from another dataset.",
     "note_twins": "injection_twins is false for injection_screen: text appended to a document that has no instruction for an AI would itself be one, so the label would change. Every other policy gets benign twins on the injection and option_rename axes."
   },

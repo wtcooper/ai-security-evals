@@ -270,6 +270,32 @@ def test_mcnemar_exact_value():
     assert evalkit.mcnemar_exact(0, 0) == 1.0
 
 
+def test_every_p_value_in_the_summary_is_holm_adjusted_across_the_family():
+    s = metrics.summarise(arm_a() + arm_b())
+    comp = s["comparisons"]["B"]
+    assert s["comparison_family"] == 2                   # one arm x (clean, under attack)
+    assert comp["attacked"]["mcnemar_p"] == 0.25 and comp["attacked"]["mcnemar_p_holm"] == 0.5
+    assert comp["clean"]["mcnemar_p"] == 1.0 and comp["clean"]["mcnemar_p_holm"] == 1.0
+
+
+def test_repeats_give_a_flip_rate_per_arm_and_lane():
+    rep = metrics.repeat_flips(arm_a())["A|custom"]
+    # Sent more than once with at least two answers: c1 c2 c3 c4 c5 c7 (c6 was refused first).
+    # c2 (wrong, wrong, right) and c3 (right, right, wrong) changed between sends.
+    assert rep["cases"] == 6 and rep["repeats"] == 3
+    assert rep["flip_rate"] == pytest.approx(2 / 6, abs=1e-4)
+    assert rep["repeat_rates"] == [0.6667, 0.6667, 0.6]
+
+
+def test_a_set_is_flagged_near_ceiling_only_when_every_arm_reaches_the_limit():
+    rows = arm_a() + arm_b()
+    sets = metrics.accuracy_sets(rows)
+    assert sets["custom: under attack"] == {"A": 0.5, "B": 1.0}
+    assert metrics.ceiling_flags(rows, 0.95) == []
+    flags = metrics.ceiling_flags(rows, 0.6)
+    assert [f["set"] for f in flags] == ["custom: clean"] and flags[0]["flag"] == "near_ceiling"
+
+
 def test_summary_has_every_block_and_names_the_baseline():
     s = metrics.summarise(arm_a() + arm_b(), baseline="A")
     assert list(s["arms"]) == ["A", "B"] and s["baseline"] == "A"

@@ -56,6 +56,16 @@ def test_threats_json_lists_four_to_seven_threats_with_both_lanes_named():
     assert custom == {run_bench.CUSTOM_BENCHMARK}
 
 
+def test_every_threat_names_the_incidents_where_its_pattern_was_observed():
+    import re
+    for t in THREATS["threats"]:
+        assert isinstance(t["observed_in"], list), t["id"]
+        assert all(re.fullmatch(r"INC-\d{3}", i) for i in t["observed_in"]), t["id"]
+    observed = {t["id"]: t["observed_in"] for t in THREATS["threats"]}
+    assert observed["dm-injection"] == ["INC-005", "INC-007"]
+    assert observed["dm-nondeterminism"] == []        # documented vendor behaviour, no incident
+
+
 def test_the_custom_set_has_the_declared_counts_per_threat_at_every_depth():
     for depth in ("smoke", "standard", "full"):
         declared = THREATS["cases_per_arm"][depth]["custom"]

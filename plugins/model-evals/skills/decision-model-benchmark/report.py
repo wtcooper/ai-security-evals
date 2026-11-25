@@ -22,6 +22,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE / "lib"))
+import evalkit  # noqa: E402
 import metrics  # noqa: E402
 
 
@@ -46,7 +48,8 @@ def num(x, digits: int = 2) -> str:
     return "n/a" if x is None else f"{x:.{digits}f}"
 
 
-def render(summary: dict, runs: list[dict]) -> str:
+def render(summary: dict, runs: list[dict], plans: list[dict] | None = None) -> str:
+    """plans: one {"label", "doc", "observed"} per run folder (doc None when no plan.json)."""
     arms = summary["arms"]
     names = list(arms)
     lines = ["# decision-model-benchmark summary", "",
@@ -71,8 +74,16 @@ def render(summary: dict, runs: list[dict]) -> str:
     lines += [f"depth `{run.get('depth')}` · seed `{run.get('seed')}` · clean requests sent "
               f"`{run.get('repeats')}` times · corpus `{corpus.get('cases_file')}` "
               f"({corpus.get('cases_run')} of {corpus.get('cases_total')} cases, sha256 "
-              f"`{(corpus.get('sha256') or '')[:12]}`) · execution tier T0", "",
-              "Rates are `rate [95% Wilson interval] (count/denominator)`. Nothing here is a "
+              f"`{(corpus.get('sha256') or '')[:12]}`) · execution tier T0", ""]
+    record = corpus.get("record") or {}
+    if record.get("visibility") == "public":
+        lines += ["The custom-lane corpus is public: it is bundled with this skill, so it may be "
+                  "in a model's training data (the known-lane sets are public too). Read the "
+                  "scores as comparisons between arms, not as rates on unseen cases.", ""]
+    elif record:
+        lines += ["The custom-lane corpus was supplied by the user and is not published by "
+                  "this repository (the known-lane sets are public).", ""]
+    lines += ["Rates are `rate [95% Wilson interval] (count/denominator)`. Nothing here is a "
               "threshold or a verdict.", "",
               "## Arms", "",
               "| Arm | Wire format | Endpoint | Model requested | Model reported by server | "
@@ -102,8 +113,17 @@ def render(summary: dict, runs: list[dict]) -> str:
         out = arms[n]["outcomes"]
         for example in out["error_examples"]:
             lines.append(f"- **{n}** · error seen: `{example}`")
+    for f in summary.get("ceiling_flags", []):
+        any_flag = True
+        lines.append(f"- {f['set']} · `{f['flag']}` = {f['observed']} (limit {f['limit']}): "
+                     f"{f['meaning']}.")
     if not any_flag:
         lines.append("- No validity flag was raised.")
+    for plan in plans or []:
+        section = evalkit.plan_section(plan["doc"], plan["observed"])
+        if len(plans) > 1:
+            section[0] += f": `{plan['label']}`"
+        lines += [""] + section
 
     lines += ["", "## Clean cases: fail-open and fail-closed", "",
               "Fail-open: the truth was a restrictive label (one that triggers the control; set "
@@ -181,6 +201,25 @@ def render(summary: dict, runs: list[dict]) -> str:
                      f"{num(c['attacked_flipped']['top_p_mean'])} "
                      f"(n={c['attacked_flipped']['n']}) | {num(c['auroc_kept_vs_flipped'])} |")
 
+    reps = summary.get("repeats") or {}
+    lines += ["", "## Repeats", ""]
+    if reps:
+        lines += ["`--repeats` sends identical requests more than once (`repeat` 0 is the first "
+                  "send). Over the requests sent more than once: the share whose correctness "
+                  "changed between sends, and the accuracy of each send. A spread between sends "
+                  "is how far a single-send rate can move on a re-run. The scorecard's "
+                  "`dm-nondeterminism` rows compare each re-send's decision with the first send.",
+                  "", "| Arm | Lane | Requests sent more than once | Sends | Flip rate | "
+                  "Accuracy per send | Spread |", "|---|---|---|---|---|---|---|"]
+        for key, c in reps.items():
+            arm, lane = key.split("|", 1)
+            lines.append(f"| {arm} | {lane} | {c['cases']} | {c['repeats']} | "
+                         f"{c['flip_rate']:.2f} | {', '.join(f'{x:.2f}' for x in c['repeat_rates'])}"
+                         f" | {num(c['spread'])} |")
+    else:
+        lines.append("- No request was sent more than once (`--repeats 1`): there is no noise "
+                     "floor and no flip rate between sends.")
+
     lines += ["", "## Refusals, errors, latency and tokens", "",
               "Refusals and errors are not decisions. They are excluded from every rate above "
               "and counted here over all requests. Whether an unanswered request ends up "
@@ -202,10 +241,14 @@ def render(summary: dict, runs: list[dict]) -> str:
     lines += ["", f"## Paired comparison against `{summary['baseline']}`", ""]
     if summary["comparisons"]:
         lines += ["Exact McNemar on per-request correctness, paired on the same case and variant "
-                  "(first send only). Pairs where either arm gave no answer are left out.", "",
+                  "(first send only). Pairs where either arm gave no answer are left out. "
+                  f"`p (Holm)` is adjusted across all {summary.get('comparison_family', 0)} "
+                  "comparisons in this table; a difference is unlikely to be noise only when the "
+                  f"adjusted p is below {evalkit.SIGNIFICANCE}. That is a statistical separation, "
+                  "not a verdict on either arm.", "",
                   "| Arm | Set | Pairs | Accuracy: baseline → arm | Only baseline right | "
-                  "Only arm right | McNemar p | Left out |",
-                  "|---|---|---|---|---|---|---|---|"]
+                  "Only arm right | McNemar p | p (Holm) | Left out |",
+                  "|---|---|---|---|---|---|---|---|---|"]
         for n, comp in summary["comparisons"].items():
             for label, key in (("clean", "clean"), ("under attack", "attacked")):
                 c = comp[key]
@@ -213,7 +256,7 @@ def render(summary: dict, runs: list[dict]) -> str:
                     f"| {n} | {label} | {c['pairs']} | {num(c['baseline_accuracy'])} → "
                     f"{num(c['other_accuracy'])} | {c['baseline_only_correct']} | "
                     f"{c['other_only_correct']} | {num(c['mcnemar_p'], 4)} | "
-                    f"{c['excluded_unanswered']} |")
+                    f"{num(c.get('mcnemar_p_holm'), 4)} | {c['excluded_unanswered']} |")
     else:
         lines.append("- One arm; nothing to compare.")
 
@@ -272,13 +315,17 @@ def main(argv: list[str] | None = None) -> int:
                    help="validity-flag limit: clean-correct cases behind the flip rates")
     p.add_argument("--max-prob-sum-off", type=float, default=0.0,
                    help="validity-flag limit: share of answers whose probabilities do not sum to 1")
+    p.add_argument("--ceiling", type=float, default=0.95,
+                   help="validity-flag limit: a set on which every arm is at least this accurate "
+                        "is flagged near ceiling (default %(default)s)")
     args = p.parse_args(argv)
 
-    rows, runs = [], []
+    rows, runs, per_folder = [], [], []
     for folder in args.folders:
         r, run = load(Path(folder))
         rows += r
         runs.append(run)
+        per_folder.append((folder, r, run))
     if not rows:
         raise SystemExit("no sample rows found")
     arms = [a for run in runs for a in run.get("arms", [])]
@@ -296,11 +343,24 @@ def main(argv: list[str] | None = None) -> int:
                                                 "techniques_per_axis", "axes", "corpus",
                                                 "started", "finished", "context",
                                                 "execution_tier")} for run in runs]
-    summary["limits"] = limits
+    summary["limits"] = {**limits, "ceiling": args.ceiling}
+    summary["repeats"] = metrics.repeat_flips(rows)
+    summary["ceiling_flags"] = metrics.ceiling_flags(rows, args.ceiling)
+    plans = []
+    for folder, r, run in per_folder:
+        observed = {"arms": list(dict.fromkeys(x["arm"] for x in r)),
+                    "baseline": summary["baseline"], "depth": run.get("depth"),
+                    "seed": run.get("seed"), "repeats": run.get("repeats"),
+                    "measures": sorted({x["threat"] for x in r if x.get("threat")})}
+        doc = evalkit.load_plan(folder)
+        plans.append({"label": Path(folder).name, "doc": doc, "observed": observed})
+    summary["plans"] = [{"folder": str(folder), "registered": p["doc"] is not None,
+                         "deviations": evalkit.plan_deviations(p["doc"], p["observed"])}
+                        for (folder, _, _), p in zip(per_folder, plans)]
     out = Path(args.out or args.folders[0])
     out.mkdir(parents=True, exist_ok=True)
     (out / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    text = render(summary, runs)
+    text = render(summary, runs, plans)
     (out / "summary.md").write_text(text)
     print(text, end="")
     return 0
