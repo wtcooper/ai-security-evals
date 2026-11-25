@@ -58,8 +58,11 @@ class Check:
     lane: str | None = None
     # Optional: "module:function" that reads one sample's outcome when it needs more than one
     # score value, e.g. a multi-turn check graded on several criteria. Called with the
-    # sample's scores dict and its metadata; returns True, False or None (no verdict). With it,
+    # sample's scores dict and its metadata (and the sample itself, if the function takes a
+    # third argument). Returns True, False or None (no verdict), or a dict
+    # {"good": ..., "criteria": {...}} so each criterion is kept in samples.jsonl. With it,
     # `metric_key` may be "" and the headline is the good rate computed from the samples.
+    # A sample's metadata["factors"] (for example persona and tactic) is copied to its row.
     good_from: str | None = None
     rubric_version: str | None = None   # recorded with the judge in samples rows
 

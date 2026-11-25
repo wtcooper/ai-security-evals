@@ -24,6 +24,7 @@ Two rules:
 from __future__ import annotations
 
 import importlib
+import inspect
 import json
 import math
 import os
@@ -86,14 +87,23 @@ def sample_rows(check: suite.Check, arm: str, samples, judge: str | None = None)
     jid = evalkit.judge_id(judge, check.rubric_version) if check.needs_judge else None
     for sample in samples or []:
         scores = getattr(sample, "scores", None) or {}
+        meta = getattr(sample, "metadata", None) or {}
+        criteria = None
         if reader:
-            good = reader(scores, getattr(sample, "metadata", None) or {})
+            takes_sample = len(inspect.signature(reader).parameters) >= 3
+            good = reader(scores, meta, sample) if takes_sample else reader(scores, meta)
+            if isinstance(good, dict):
+                good, criteria = good.get("good"), good.get("criteria")
         else:
             first = list(scores.values())
             good = check.sample_good(getattr(first[0], "value", None)) if first else None
         sid, epoch = str(getattr(sample, "id", "")), getattr(sample, "epoch", 1)
         row = {"arm": arm, "target": check.id, "sample": sid, "epoch": epoch, "good": good,
                "judge": jid, "response_chars": _reply_chars(sample)}
+        if criteria is not None:
+            row["criteria"] = criteria
+        if isinstance(meta.get("factors"), dict):
+            row["factors"] = meta["factors"]
         if check.threat and check.lane:
             row.update({"threat": check.threat, "lane": check.lane, "benchmark": check.id,
                         "case": sid, "repeat": epoch})

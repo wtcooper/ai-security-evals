@@ -208,3 +208,16 @@ def test_report_notes_ceiling_and_epoch_flips_and_plan(tmp_path):
     text = report.render([run])
     assert "near_ceiling" in text and "changed outcome across 2 epochs" in text
     assert "## Analysis plan" in text and "`arms`: planned" in text
+
+
+def test_good_from_may_return_criteria_and_read_the_sample(tmp_path, monkeypatch):
+    mod = tmp_path / "goodmod2.py"
+    mod.write_text("def read(scores, meta, sample):\n"
+                   "    return {'good': sample.id == 'x', 'criteria': {'uplift': False}}\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    check = suite.Check("mt2", "multi-turn", "x", "y", "", suite.HIGHER, "r", good_from="goodmod2:read")
+    s = SimpleNamespace(id="x", epoch=1, scores={}, output=None,
+                        metadata={"factors": {"persona": "student", "tactic": "reframe"}})
+    row = runner.sample_rows(check, "a", [s])[0]
+    assert row["good"] is True and row["criteria"] == {"uplift": False}
+    assert row["factors"] == {"persona": "student", "tactic": "reframe"}
